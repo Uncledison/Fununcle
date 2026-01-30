@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import poster from '../assets/uncle_edison_poster.png';
 import heroVideo from '../assets/uncledison_hero.mp4'; // Import video directly (Cache busted)
 
 export const VideoHero: React.FC = () => {

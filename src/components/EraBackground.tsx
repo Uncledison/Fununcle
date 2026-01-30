@@ -1,24 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Particle Background Component ---
-export const EraBackground: React.FC = () => {
-    const { scrollY } = useScroll();
-    const [currentYear, setCurrentYear] = useState(-13800000000);
-    // const isBigBang = currentYear <= -13700000000; // Removed unused variable
+export const EraBackground: React.FC<{ currentYear: number }> = ({ currentYear }) => {
+    // 1. Determine Era
+    const isBigBang = currentYear <= -13700000000;
 
     // --- Optimized Star/Particle Logic ---
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const particlesRef = useRef<any[]>([]);
-    const animationFrameRef = useRef<number>(0);
-    const lastScrollY = useRef(0);
-    const scrollVelocity = useRef(0);
+    // const canvasRef = useRef<HTMLCanvasElement>(null); // Unused
+    // const particlesRef = useRef<any[]>([]); // Unused
+    // const animationFrameRef = useRef<number>(0); // Unused
+    // const lastScrollY = useRef(0); // Unused
+    // const scrollVelocity = useRef(0); // Unused
 
     // --- State for Event Popups ---
-    const [popupOpen, setPopupOpen] = useState(false);
-    const [activeEvent, setActiveEvent] = useState<any>(null);
-    const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Fixed type definition
-    const isBigBang = currentYear < -13000000000;
+    // const [popupOpen, setPopupOpen] = useState(false); // Unused
+    // const [activeEvent, setActiveEvent] = useState<any>(null); // Unused
+    // const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Unused
+
+    // const isBigBang = currentYear < -13000000000; // Duplicate logic
     const isHadean = currentYear >= -4600000000 && currentYear <= -4000000000; // Fire/Embers
     const isOceanic = currentYear > -4000000000 && currentYear <= -541000000;  // Water/Bubbles
     const isPaleozoic = currentYear > -541000000 && currentYear <= -66000000;  // Meteors
@@ -33,7 +33,7 @@ export const EraBackground: React.FC = () => {
 
     // 2. Particle System Logic
     useEffect(() => {
-        let interval: NodeJS.Timeout;
+        let interval: ReturnType<typeof setTimeout>;
 
         const spawnParticle = () => {
             const id = Date.now() + Math.random();

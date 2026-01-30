@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Titan+One&family=Patrick+Hand&display=swap');
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+@theme {
+  --color-brand-primary: #007AFF;
+  --font-family-display: "Titan One", "Jua", cursive;
+  --font-family-body: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-family-fun: "Patrick Hand", "Jua", cursive;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f3f4f6;
+  font-family: var(--font-family-body);
+  color: #111827;
+  overflow-x: hidden;
+  word-break: keep-all;
+  /* Improves Korean text wrapping */
+}

@@ -1,10 +1,10 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Particle Background Component ---
 export const EraBackground: React.FC<{ currentYear: number }> = ({ currentYear }) => {
     // 1. Determine Era
-    const isBigBang = currentYear <= -13700000000;
+    // const isBigBang = currentYear <= -13700000000; // Removed unused variable
 
     // --- Optimized Star/Particle Logic ---
     // const canvasRef = useRef<HTMLCanvasElement>(null); // Unused

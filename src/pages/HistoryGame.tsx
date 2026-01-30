@@ -1,6 +1,6 @@
+```
 import React, { useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { InteractiveMascot } from '../components/InteractiveMascot';
 import { EraBackground } from '../components/EraBackground';
@@ -51,7 +51,7 @@ export const HistoryGame: React.FC = () => {
 
     // Gradient center color (brighter) vs edge color (darker)
     const backgroundStyle = {
-        background: useTransform(backgroundColor, (color) => `radial-gradient(circle at center, ${color} 0%, #000000 100%)`)
+        background: useTransform(backgroundColor, (color) => `radial - gradient(circle at center, ${ color } 0 %, #000000 100 %)`)
     };
 
     // 3. Year Counter 
@@ -84,11 +84,11 @@ export const HistoryGame: React.FC = () => {
     });
 
     const formatYear = (y: number) => {
-        if (y > 0) return `${y}년`;
+        if (y > 0) return `${ y } 년`;
         const absY = Math.abs(y);
-        if (absY >= 100000000) return `${(absY / 100000000).toFixed(1)}억 년 전`;
-        if (absY >= 10000) return `${(absY / 10000).toFixed(0)}만 년 전`;
-        return `기원전 ${absY.toLocaleString()}년`;
+        if (absY >= 100000000) return `${ (absY / 100000000).toFixed(1) }억 년 전`;
+        if (absY >= 10000) return `${ (absY / 10000).toFixed(0) }만 년 전`;
+        return `기원전 ${ absY.toLocaleString() } 년`;
     };
 
     return (
@@ -116,7 +116,7 @@ export const HistoryGame: React.FC = () => {
             </div>
 
             {/* Main Scroll Content */}
-            <div className="w-full relative" style={{ height: `${totalHeight}px` }}>
+            <div className="w-full relative" style={{ height: `${ totalHeight } px` }}>
 
                 {/* Intro Title */}
                 <div className="w-full flex flex-col items-center justify-center pt-[20vh] sticky top-[10vh] z-0 pointer-events-none">
@@ -158,11 +158,12 @@ export const HistoryGame: React.FC = () => {
                         }}
                     />
                     <style>{`
-                        @keyframes shimmer {
-                            0% { background-position: 0% 0%; }
-                            100% { background-position: 0% 100%; }
+@keyframes shimmer {
+    0 % { background- position: 0 % 0 %;
+}
+100 % { background- position: 0 % 100 %; }
                         }
-                     `}</style>
+`}</style>
                 </motion.div>
 
                 {/* Era Specific Background Effects (Stars, Meteors, Big Bang) */}
@@ -550,14 +551,15 @@ export const HistoryGame: React.FC = () => {
                     return (
                         <motion.div
                             key={index}
-                            className={`absolute left-1/2 flex items-center gap-6 group transition-all
-                                flex-col-reverse -translate-x-1/2 w-[80vw] text-center
-                                md:w-[550px] md:justify-end
-                                ${isEven
-                                    ? 'md:flex-row md:-translate-x-full md:pr-8 md:text-right'
-                                    : 'md:flex-row-reverse md:pl-8 md:text-left md:translate-x-0'
-                                }
-                            `}
+                            className={`absolute left - 1 / 2 flex items - center gap - 6 group transition - all
+flex - col - reverse - translate - x - 1 / 2 w - [80vw] text - center
+md: w - [550px] md: justify - end
+                                ${
+    isEven
+        ? 'md:flex-row md:-translate-x-full md:pr-8 md:text-right'
+        : 'md:flex-row-reverse md:pl-8 md:text-left md:translate-x-0'
+}
+`}
                             style={{ top: event.top }}
                             initial={{ opacity: 0, y: 50, scale: 0.9 }}
                             whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -566,8 +568,8 @@ export const HistoryGame: React.FC = () => {
                         >
                             {/* Text Content */}
                             <div className="flex-1 z-20 bg-black/30 backdrop-blur-md rounded-2xl p-6 md:bg-transparent md:backdrop-blur-none md:p-0 md:rounded-none">
-                                <div className={`font-bold mb-2 text-sm md:text-lg tracking-wide opacity-80 ${yearColor} md:mb-2`}>{formatYear(event.year)}{event.month ? `.${event.month}` : ""}</div>
-                                <h3 className={`text-2xl md:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-sm tracking-tight transition-transform duration-300 group-hover:scale-105 group-hover:text-blue-200 origin-center ${isEven ? 'md:origin-right' : 'md:origin-left'}`}>{event.title}</h3>
+                                <div className={`font - bold mb - 2 text - sm md: text - lg tracking - wide opacity - 80 ${ yearColor } md: mb - 2`}>{formatYear(event.year)}{event.month ? `.${ event.month } ` : ""}</div>
+                                <h3 className={`text - 2xl md: text - 4xl font - bold text - white mb - 2 leading - tight drop - shadow - sm tracking - tight transition - transform duration - 300 group - hover: scale - 105 group - hover: text - blue - 200 origin - center ${ isEven ? 'md:origin-right' : 'md:origin-left' } `}>{event.title}</h3>
                                 <p className="text-white/60 font-medium text-sm md:text-lg leading-relaxed break-keep">{event.description}</p>
                             </div>
 
@@ -577,10 +579,10 @@ export const HistoryGame: React.FC = () => {
                             </div>
 
                             {/* Connector Node */}
-                            <div className={`hidden md:block absolute top-1/2 w-3 h-3 bg-white rounded-full ${isEven ? 'right-[-6px]' : 'left-[-6px]'} -translate-y-1/2 shadow-[0_0_15px_rgba(255,255,255,1)] z-20`}></div>
+                            <div className={`hidden md:block absolute top - 1 / 2 w - 3 h - 3 bg - white rounded - full ${ isEven ? 'right-[-6px]' : 'left-[-6px]' } -translate - y - 1 / 2 shadow - [0_0_15px_rgba(255, 255, 255, 1)] z - 20`}></div>
 
                             {/* Connector Line Gradient */}
-                            <div className={`hidden md:block absolute top-1/2 h-[1px] w-20 ${isEven ? 'right-0 bg-gradient-to-l' : 'left-0 bg-gradient-to-r'} from-white to-transparent opacity-50`}></div>
+                            <div className={`hidden md:block absolute top - 1 / 2 h - [1px] w - 20 ${ isEven ? 'right-0 bg-gradient-to-l' : 'left-0 bg-gradient-to-r' } from - white to - transparent opacity - 50`}></div>
                         </motion.div>
                     );
                 })}

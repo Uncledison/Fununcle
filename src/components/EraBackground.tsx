@@ -1,12 +1,23 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 
-interface EraBackgroundProps {
-    currentYear: number;
-}
+// --- Particle Background Component ---
+export const EraBackground: React.FC = () => {
+    const { scrollY } = useScroll();
+    const [currentYear, setCurrentYear] = useState(-13800000000);
+    // const isBigBang = currentYear <= -13700000000; // Removed unused variable
 
-export const EraBackground: React.FC<EraBackgroundProps> = ({ currentYear }) => {
-    // 1. Determine Era
+    // --- Optimized Star/Particle Logic ---
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const particlesRef = useRef<any[]>([]);
+    const animationFrameRef = useRef<number>(0);
+    const lastScrollY = useRef(0);
+    const scrollVelocity = useRef(0);
+
+    // --- State for Event Popups ---
+    const [popupOpen, setPopupOpen] = useState(false);
+    const [activeEvent, setActiveEvent] = useState<any>(null);
+    const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Fixed type definition
     const isBigBang = currentYear < -13000000000;
     const isHadean = currentYear >= -4600000000 && currentYear <= -4000000000; // Fire/Embers
     const isOceanic = currentYear > -4000000000 && currentYear <= -541000000;  // Water/Bubbles

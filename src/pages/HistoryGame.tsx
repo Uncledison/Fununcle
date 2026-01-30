@@ -37,7 +37,7 @@ export const HistoryGame: React.FC = () => {
         return {
             eventPositions: positions,
             finalPos,
-            totalHeight: currentPos + 1200 + window.innerHeight / 2 // Exact math for centering the outro
+            totalHeight: currentPos + 1500 + window.innerHeight * 1.5 // Increased buffer for mobile scrolling
         };
     }, []);
 

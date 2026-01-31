@@ -105,16 +105,19 @@ export const HistoryGame: React.FC = () => {
                         <span className="font-fun text-xl tracking-tight" style={{ fontFamily: '"Patrick Hand", cursive' }}>Fun.Uncle</span>
                     </motion.div>
                 </Link>
-                <div className="bg-black/10 px-6 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex flex-col items-end relative min-w-[100px] pointer-events-auto">
-                    {/* Year Counter - Main Focus */}
-                    <span className="text-sm font-medium text-white/95 tabular-nums tracking-wide mb-1">
+                <div className="bg-black/10 px-5 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex items-center gap-2 pointer-events-auto">
+                    {/* BGM Toggle - Left */}
+                    <BackgroundMusic className="flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity scale-90" />
+
+                    {/* Year Counter - Right (Matched Fun.Uncle Color) */}
+                    <span className="text-sm font-medium text-white/80 tabular-nums tracking-wide">
                         {formatYear(currentYear)}
                     </span>
-
-                    {/* BGM Toggle - Subtle, Bottom Right */}
-                    <BackgroundMusic className="absolute -bottom-1 -right-1 opacity-80 hover:opacity-100 scale-75" />
                 </div>
             </div>
+
+            {/* Central Timeline Line (Restored) */}
+            <div className="fixed top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-white/20 to-transparent -translate-x-1/2 pointer-events-none z-10 hidden md:block"></div>
 
             {/* Main Scroll Content */}
             <div className="w-full relative" style={{ height: `${totalHeight} px` }}>
@@ -600,7 +603,6 @@ md:w-[550px] md:justify-end
                     transition={{ duration: 0.8 }}
                     className="absolute w-full flex flex-col items-center justify-center z-50 text-center pb-0"
                 >
-                    {/* 1. Main Title */}
                     {/* 1. Main Title */}
                     <div className="flex flex-col items-center gap-1">
                         <h1 className="text-6xl md:text-8xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] tracking-tighter">

@@ -140,6 +140,33 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
+                {/* 3. Perfect Circle (New Game) */}
+                <BentoCard
+                    href="/shape"
+                    delay={0.2}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                    }}
+                >
+                    <div className="w-full h-full relative bg-[#101010] flex flex-col items-center justify-center border border-white/10">
+                        {/* Circle Preview Animation */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-50">
+                            <div className="w-32 h-32 rounded-full border-4 border-dashed border-white/20 animate-[spin_10s_linear_infinite]"></div>
+                        </div>
+
+                        <h2 className="text-3xl font-black text-white mb-1 z-10 tracking-tighter" style={{ fontFamily: '"Patrick Hand", cursive' }}>
+                            Perfect Circle
+                        </h2>
+                        <p className="text-white/50 text-sm z-10 font-medium">Draw it to believe it.</p>
+
+                        {/* Circle Icon */}
+                        <div className="w-12 h-12 rounded-full border-[3px] border-emerald-400 absolute top-4 right-4 animate-pulse"></div>
+                    </div>
+                </BentoCard>
+
                 {/* 3. Coming Soon (Image Banner) */}
                 <BentoCard
                     delay={0.2}

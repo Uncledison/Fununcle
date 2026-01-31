@@ -116,8 +116,7 @@ export const HistoryGame: React.FC = () => {
                 </div>
             </div>
 
-            {/* Central Timeline Line (Restored) */}
-            <div className="fixed top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-white/20 to-transparent -translate-x-1/2 pointer-events-none z-10 hidden md:block"></div>
+
 
             {/* Main Scroll Content */}
             <div className="w-full relative" style={{ height: `${totalHeight} px` }}>
@@ -144,14 +143,14 @@ export const HistoryGame: React.FC = () => {
                 {/* Vertical Timeline Line - Sparkle Effect */}
                 <motion.div
                     style={{
-                        opacity: useTransform(scrollY, [200, 500, finalPos, finalPos + 300], [0, 0.4, 0.4, 0]),
+                        opacity: useTransform(scrollY, [200, 500, totalHeight - 500, totalHeight], [0, 0.4, 0.4, 0]),
                         background: 'linear-gradient(to bottom, transparent, #60a5fa, transparent)',
                         backgroundSize: '1px 200px'
                     }}
                     className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 animate-[pulse_2s_infinite]"
                 />
                 <motion.div
-                    style={{ opacity: useTransform(scrollY, [200, 500, finalPos, finalPos + 300], [0, 0.8, 0.8, 0]) }}
+                    style={{ opacity: useTransform(scrollY, [200, 500, totalHeight - 500, totalHeight], [0, 0.8, 0.8, 0]) }}
                     className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2"
                 >
                     {/* Moving Sparkle Highlight */}
@@ -171,7 +170,16 @@ export const HistoryGame: React.FC = () => {
                 </motion.div>
 
                 {/* Era Specific Background Effects (Stars, Meteors, Big Bang) */}
-                <EraBackground currentYear={currentYear} />
+                <EraBackground era={(() => {
+                    if (currentYear > 2000) return 'DIGITAL';
+                    if (currentYear > 1975) return 'NETWORK';
+                    if (currentYear >= 1769) return 'INDUSTRIAL';
+                    if ((currentYear >= -110000 && currentYear <= -12000) || (currentYear >= -300000000 && currentYear <= -250000000)) return 'ICE_AGE';
+                    if (currentYear > -541000000 && currentYear <= -66000000) return 'PALEOZOIC';
+                    if (currentYear > -4000000000 && currentYear <= -541000000) return 'OCEANIC';
+                    if (currentYear >= -4600000000 && currentYear <= -4000000000) return 'HADEAN';
+                    return 'DEFAULT';
+                })()} />
 
                 {/* Visual Texture */}
                 <div className="fixed inset-0 opacity-30 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay"></div>

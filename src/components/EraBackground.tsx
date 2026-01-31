@@ -2,32 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Particle Background Component ---
-export const EraBackground: React.FC<{ currentYear: number }> = ({ currentYear }) => {
-    // 1. Determine Era
-    // const isBigBang = currentYear <= -13700000000; // Removed unused variable
+// Define Era Types for strict typing
+export type EraType = 'HADEAN' | 'OCEANIC' | 'PALEOZOIC' | 'ICE_AGE' | 'INDUSTRIAL' | 'NETWORK' | 'DIGITAL' | 'DEFAULT';
 
-    // --- Optimized Star/Particle Logic ---
-    // const canvasRef = useRef<HTMLCanvasElement>(null); // Unused
-    // const particlesRef = useRef<any[]>([]); // Unused
-    // const animationFrameRef = useRef<number>(0); // Unused
-    // const lastScrollY = useRef(0); // Unused
-    // const scrollVelocity = useRef(0); // Unused
+// --- Particle Background Component ---
+export const EraBackground: React.FC<{ era: EraType }> = React.memo(({ era }) => {
+    // Era Logic is now passed in as a prop to prevent re-renders on every year tick
+    const isHadean = era === 'HADEAN';
+    const isOceanic = era === 'OCEANIC';
+    const isPaleozoic = era === 'PALEOZOIC';
+    const isIceAge = era === 'ICE_AGE';
 
-    // --- State for Event Popups ---
-    // const [popupOpen, setPopupOpen] = useState(false); // Unused
-    // const [activeEvent, setActiveEvent] = useState<any>(null); // Unused
-    // const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Unused
-
-    // const isBigBang = currentYear < -13000000000; // Duplicate logic
-    const isHadean = currentYear >= -4600000000 && currentYear <= -4000000000; // Fire/Embers
-    const isOceanic = currentYear > -4000000000 && currentYear <= -541000000;  // Water/Bubbles
-    const isPaleozoic = currentYear > -541000000 && currentYear <= -66000000;  // Meteors
-    const isIceAge = (currentYear >= -110000 && currentYear <= -12000) || (currentYear >= -300000000 && currentYear <= -250000000); // Snow
-
-    // Modern Era Split (1950-2025)
-    const isDigital = currentYear > 2000; // 2000~2025: AI & Mobile (Digital Rain)
-    const isNetwork = currentYear <= 2000 && currentYear > 1975; // 1975~2000: Internet & PC (Horizontal Flow)
-    const isIndustrial = currentYear <= 1975 && currentYear >= 1769; // 1769~1975: Industrial Revolution (Rising Sparks)
+    // Modern Era Split
+    const isDigital = era === 'DIGITAL';
+    const isNetwork = era === 'NETWORK';
+    const isIndustrial = era === 'INDUSTRIAL';
 
     const [particles, setParticles] = useState<{ id: number; left: number; top?: number; scale: number; speed: number; type: 'meteor' | 'ember' | 'bubble' | 'snow' | 'data' | 'network' | 'spark' }[]>([]);
 
@@ -220,4 +209,4 @@ export const EraBackground: React.FC<{ currentYear: number }> = ({ currentYear }
 
         </div >
     );
-};
+});

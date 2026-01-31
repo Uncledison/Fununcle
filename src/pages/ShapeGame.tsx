@@ -68,7 +68,6 @@ export const ShapeGame: React.FC = () => {
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
-    const [feedback, setFeedback] = useState("");
 
     // Dimensions
     const centerX = window.innerWidth / 2;

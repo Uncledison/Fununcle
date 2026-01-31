@@ -238,7 +238,6 @@ export const ShapeGame: React.FC = () => {
             onPointerUp={handleEnd}
         >
             {/* Background Details */}
-            {/* Background Details */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 {/* Target Guide (Pulse Effect) */}
                 <div className="relative">

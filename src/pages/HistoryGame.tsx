@@ -119,7 +119,7 @@ export const HistoryGame: React.FC = () => {
 
 
             {/* Main Scroll Content */}
-            <div className="w-full relative" style={{ height: `${totalHeight} px` }}>
+            <div className="w-full relative" style={{ height: `${totalHeight}px` }}>
 
                 {/* Intro Title */}
                 <div className="w-full flex flex-col items-center justify-center pt-[20vh] sticky top-[10vh] z-0 pointer-events-none">
@@ -147,11 +147,11 @@ export const HistoryGame: React.FC = () => {
                         background: 'linear-gradient(to bottom, transparent, #60a5fa, transparent)',
                         backgroundSize: '1px 200px'
                     }}
-                    className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 animate-[pulse_2s_infinite]"
+                    className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 animate-[pulse_2s_infinite] z-[1]"
                 />
                 <motion.div
                     style={{ opacity: useTransform(scrollY, [200, 500, totalHeight - 500, totalHeight], [0, 0.8, 0.8, 0]) }}
-                    className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2"
+                    className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 z-[1]"
                 >
                     {/* Moving Sparkle Highlight */}
                     <div className="absolute inset-0 w-full h-full bg-gradient-to-b from-transparent via-white to-transparent animate-[shimmer_3s_linear_infinite]"

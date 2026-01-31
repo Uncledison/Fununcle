@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Music } from 'lucide-react';
 
-export const BackgroundMusic: React.FC = () => {
+interface BackgroundMusicProps {
+    className?: string;
+}
+
+export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ className = "" }) => {
     const [isPlaying, setIsPlaying] = useState(true);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -34,15 +37,19 @@ export const BackgroundMusic: React.FC = () => {
     };
 
     return (
-        <div className="fixed top-5 right-5 z-[100] cursor-pointer transition-opacity duration-300">
+        <div className={`cursor-pointer transition-opacity duration-300 ${className}`}>
             <audio ref={audioRef} loop src="/bgm.mp3" />
 
             <button
                 onClick={toggleMusic}
-                className={`p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white transition-all duration-300 hover:scale-110 ${!isPlaying ? 'opacity-50 grayscale' : 'opacity-100 shadow-[0_0_15px_rgba(255,255,255,0.4)]'}`}
+                className={`p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-300 hover:scale-110 ${!isPlaying ? 'opacity-50 grayscale' : 'opacity-100 shadow-[0_0_15px_rgba(255,255,255,0.4)]'}`}
                 aria-label="Toggle Background Music"
             >
-                <Music size={24} strokeWidth={2.5} />
+                <img
+                    src="/assets/music_note.png"
+                    alt="Music Toggle"
+                    className="w-5 h-5 object-contain invert opacity-90"
+                />
             </button>
         </div>
     );

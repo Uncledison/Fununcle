@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { InteractiveMascot } from '../components/InteractiveMascot';
 import { EraBackground } from '../components/EraBackground';
 import { historyEvents } from '../data/historyEvents';
+import { BackgroundMusic } from '../components/BackgroundMusic';
 
 export const HistoryGame: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -22,9 +23,6 @@ export const HistoryGame: React.FC = () => {
             if (event.category === 'tech' && event.year > 1900) {
                 gap = 800;
             }
-            // else if (event.year < -1000000) {  <-- Removed to keep consistent spacing
-            //    gap = 300;
-            // }
 
             if (isFirst) currentPos = window.innerHeight * 0.9;
             else currentPos += gap;
@@ -104,10 +102,14 @@ export const HistoryGame: React.FC = () => {
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
                         className="inline-block"
                     >
-                        <span className="font-fun text-xl tracking-tight" style={{ fontFamily: '"Patrick Hand", cursive' }}>Fun . Uncle</span>
+                        <span className="font-fun text-xl tracking-tight" style={{ fontFamily: '"Patrick Hand", cursive' }}>Fun.Uncle</span>
                     </motion.div>
                 </Link>
-                <div className="bg-black/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex flex-col items-end">
+                <div className="bg-black/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex items-center gap-3 pointer-events-auto">
+                    {/* BGM Toggle */}
+                    <BackgroundMusic className="flex items-center" />
+
+                    {/* Year Counter */}
                     <span className="text-sm font-normal text-white/90 tabular-nums min-w-[60px] text-right tracking-wide">
                         {formatYear(currentYear)}
                     </span>

@@ -68,6 +68,8 @@ export const ShapeGame: React.FC = () => {
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
+    const [showTutorial, setShowTutorial] = useState(true);
+    const [tutorialStep, setTutorialStep] = useState(0); // 0: Ready, 1: Go!, 2: Demo, 3: Done
 
     // Dimensions
     const centerX = window.innerWidth / 2;
@@ -123,7 +125,10 @@ export const ShapeGame: React.FC = () => {
     const handleEnd = () => {
         if (isDrawing) {
             setIsDrawing(false);
-            finishDrawing(points);
+            // DO NOT auto-finish here - only finish when loop is detected in handleMove
+            // This prevents premature closure when user lifts finger
+            setPoints([]);
+            setScore(null);
         }
     };
 
@@ -157,6 +162,7 @@ export const ShapeGame: React.FC = () => {
         setPoints([]);
         setScore(null);
         setFeedback("");
+        setShowTutorial(false);
     };
 
     // --- Path Generation ---
@@ -181,6 +187,24 @@ export const ShapeGame: React.FC = () => {
         const saved = localStorage.getItem('perfect-circle-highscore');
         if (saved) setHighScore(parseFloat(saved));
     }, []);
+
+    // Tutorial sequence
+    useEffect(() => {
+        if (!showTutorial) return;
+
+        const timer1 = setTimeout(() => setTutorialStep(1), 800); // Ready -> Go!
+        const timer2 = setTimeout(() => setTutorialStep(2), 1600); // Go! -> Demo
+        const timer3 = setTimeout(() => {
+            setTutorialStep(3);
+            setShowTutorial(false);
+        }, 4000); // Demo -> Done
+
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+        };
+    }, [showTutorial]);
 
     const shareResult = async () => {
         if (!containerRef.current) return;

@@ -599,13 +599,14 @@ md:w-[550px] md:justify-end
                     className="absolute w-full flex flex-col items-center justify-center z-50 text-center pb-0"
                 >
                     {/* 1. Main Title */}
-                    <div className="flex flex-col items-center gap-8">
+                    {/* 1. Main Title */}
+                    <div className="flex flex-col items-center gap-4">
                         <h1 className="text-6xl md:text-8xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] tracking-tighter">
                             인류의 진화
                         </h1>
 
-                        {/* 2. Brand Identity (Logo) - Restored to readable size */}
-                        <div className="flex flex-col items-center justify-center group scale-90 md:scale-100">
+                        {/* 2. Brand Identity (Logo) - Reduced size by ~30% as requested */}
+                        <div className="flex flex-col items-center justify-center group scale-[0.65] md:scale-[0.7]">
                             {/* FUN UNCLE Row */}
                             <div className="flex items-center gap-1">
                                 {/* FUN */}

@@ -589,9 +589,9 @@ md:w-[550px] md:justify-end
                 {/* Outro Section (Corrected Position & Size) */}
                 <motion.div
                     style={{
-                        opacity: useTransform(scrollY, [finalPos + 600, finalPos + 900], [0, 1]),
-                        y: useTransform(scrollY, [finalPos + 600, finalPos + 900], [50, 0]),
-                        top: finalPos + 1200,
+                        opacity: useTransform(scrollY, [finalPos + 400, finalPos + 700], [0, 1]),
+                        y: useTransform(scrollY, [finalPos + 400, finalPos + 700], [50, 0]),
+                        top: finalPos + 800,
                         transform: 'translateY(-50%)' // Center the element itself on its anchor point
                     }}
                     className="absolute w-full flex flex-col items-center justify-center z-50 text-center pb-0"

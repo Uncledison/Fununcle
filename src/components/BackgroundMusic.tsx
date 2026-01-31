@@ -38,7 +38,7 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ className = ""
 
     return (
         <div className={`cursor-pointer transition-opacity duration-300 ${className}`}>
-            <audio ref={audioRef} loop src="/bgm.mp3" />
+            <audio ref={audioRef} loop src="/bgm.mp3" autoPlay />
 
             <button
                 onClick={toggleMusic}
@@ -48,7 +48,7 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ className = ""
                 <img
                     src="/assets/music_note.png"
                     alt="Music Toggle"
-                    className="w-4 h-4 object-contain drop-shadow-sm"
+                    className="w-5 h-5 object-contain drop-shadow-sm"
                 />
             </button>
         </div>

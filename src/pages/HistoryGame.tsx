@@ -35,7 +35,7 @@ export const HistoryGame: React.FC = () => {
         return {
             eventPositions: positions,
             finalPos,
-            totalHeight: currentPos + 1500 + window.innerHeight * 1.5 // Increased buffer for mobile scrolling
+            totalHeight: currentPos + 1200 // Reduced buffer to stop scroll near the outro title
         };
     }, []);
 

@@ -589,11 +589,13 @@ md:w-[550px] md:justify-end
                 {/* Outro Section (Corrected Position & Size) */}
                 <motion.div
                     style={{
-                        opacity: useTransform(scrollY, [finalPos + 400, finalPos + 700], [0, 1]),
-                        y: useTransform(scrollY, [finalPos + 400, finalPos + 700], [50, 0]),
-                        top: finalPos + 800,
+                        top: finalPos + 600,
                         transform: 'translateY(-50%)' // Center the element itself on its anchor point
                     }}
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.8 }}
                     className="absolute w-full flex flex-col items-center justify-center z-50 text-center pb-0"
                 >
                     {/* 1. Main Title */}

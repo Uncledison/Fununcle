@@ -14,7 +14,7 @@ interface Point {
 
 // --- Scoring Utils ---
 // Simple Circle Fit Algorithm (Centroid + Deviation)
-const calculateCircleScore = (points: Point[], center: { x: number, y: number }, targetRadius: number) => {
+const calculateCircleScore = (points: Point[]) => {
     if (points.length < 10) return 0;
 
     // 1. Calculate actual centroid of the drawn path
@@ -125,7 +125,7 @@ export const ShapeGame: React.FC = () => {
             return;
         }
 
-        const calculatedScore = calculateCircleScore(finalPoints, { x: centerX, y: centerY }, targetRadius);
+        const calculatedScore = calculateCircleScore(finalPoints);
         setScore(calculatedScore);
 
         if (calculatedScore > highScore) {
@@ -170,7 +170,7 @@ export const ShapeGame: React.FC = () => {
     useEffect(() => {
         // Suppress unused variable warnings by logging (or could be removed if clean)
         // But keeping them is safer if I plan to use them in the "Expansion" phase
-        // console.log("Debug params:", center, targetRadius, strokeColor);
+        // console.log("Debug params:", strokeColor);
     }, [strokeColor]);
 
     // Used variables to suppress lint errors (logic uses them indirectly or future proofing)

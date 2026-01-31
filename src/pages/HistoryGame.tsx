@@ -95,7 +95,7 @@ export const HistoryGame: React.FC = () => {
             className="w-full h-screen text-white overflow-y-scroll relative font-[Pretendard, -apple-system, BlinkMacSystemFont, system-ui] scroll-smooth"
         >
             {/* Header */}
-            <div className="fixed top-0 left-0 w-full p-6 z-50 flex items-center justify-between pointer-events-none">
+            <div className="fixed top-0 left-0 w-full px-3 py-4 z-50 flex items-center justify-between pointer-events-none">
                 <Link to="/" className="text-white/80 hover:text-white transition-colors group no-underline pointer-events-auto">
                     <motion.div
                         whileHover={{ y: -3, scale: 1.1, rotate: -3 }}

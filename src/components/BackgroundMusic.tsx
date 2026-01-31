@@ -42,13 +42,13 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ className = ""
 
             <button
                 onClick={toggleMusic}
-                className={`p-2 rounded-full bg-black/20 backdrop-blur-md border border-white/10 transition-all duration-300 hover:scale-110 ${!isPlaying ? 'opacity-50 grayscale' : 'opacity-100 shadow-[0_0_15px_rgba(255,255,255,0.4)]'}`}
+                className={`flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 ${!isPlaying ? 'opacity-40 grayscale' : 'opacity-100'}`}
                 aria-label="Toggle Background Music"
             >
                 <img
                     src="/assets/music_note.png"
                     alt="Music Toggle"
-                    className="w-5 h-5 object-contain invert opacity-90"
+                    className="w-4 h-4 object-contain drop-shadow-sm"
                 />
             </button>
         </div>

@@ -105,14 +105,14 @@ export const HistoryGame: React.FC = () => {
                         <span className="font-fun text-xl tracking-tight" style={{ fontFamily: '"Patrick Hand", cursive' }}>Fun.Uncle</span>
                     </motion.div>
                 </Link>
-                <div className="bg-black/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex items-center gap-3 pointer-events-auto">
-                    {/* BGM Toggle */}
-                    <BackgroundMusic className="flex items-center" />
-
-                    {/* Year Counter */}
-                    <span className="text-sm font-normal text-white/90 tabular-nums min-w-[60px] text-right tracking-wide">
+                <div className="bg-black/10 px-6 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex flex-col items-end relative min-w-[100px] pointer-events-auto">
+                    {/* Year Counter - Main Focus */}
+                    <span className="text-sm font-medium text-white/95 tabular-nums tracking-wide mb-1">
                         {formatYear(currentYear)}
                     </span>
+
+                    {/* BGM Toggle - Subtle, Bottom Right */}
+                    <BackgroundMusic className="absolute -bottom-1 -right-1 opacity-80 hover:opacity-100 scale-75" />
                 </div>
             </div>
 

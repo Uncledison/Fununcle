@@ -40,16 +40,23 @@ const calculateCircleScore = (points: Point[]) => {
     const deviationRatio = avgDeviation / avgRadius;
 
     // Closer to 0 deviation = 100%
-    // Let's say 20% deviation is 0 points.
-    let score = Math.max(0, 1 - (deviationRatio * 5)); // * 5 making it sensitive
+    // RELAXED: 25% deviation is 0 points (was 20%)
+    // Multiplier changed from 5 to 4 to make it easier
+    let score = Math.max(0, 1 - (deviationRatio * 2.5)); // Significant relax
 
     // Penalize start/end gap
     const start = points[0];
     const end = points[points.length - 1];
     const gap = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
-    const gapPenalty = Math.min(0.2, (gap / avgRadius) * 0.1); // Max 20% penalty for gap
+
+    // Gap penalty: Only if gap is significant (> 10% of radius)
+    // Relaxed penalty weight
+    const gapPenalty = Math.min(0.3, (gap / avgRadius) * 0.2);
 
     score -= gapPenalty;
+
+    // Minimum score floor to avoid 0% for decent attempts
+    if (deviationRatio < 0.3 && score < 0.1) score = 0.1;
 
     return Math.max(0, Math.min(100, score * 100));
 };
@@ -61,18 +68,12 @@ export const ShapeGame: React.FC = () => {
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
-    const [strokeColor, setStrokeColor] = useState("white");
+    const [feedback, setFeedback] = useState("");
 
     // Dimensions
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     const targetRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35; // Target size guide
-
-    // Rainbow Gradient Stroke Logic
-    const getRainbowColor = (progress: number) => {
-        const hue = Math.floor(progress * 360);
-        return `hsl(${hue}, 100%, 70%)`;
-    };
 
     // --- Interaction Handlers ---
     const handleStart = (e: React.PointerEvent | React.TouchEvent) => {
@@ -97,12 +98,18 @@ export const ShapeGame: React.FC = () => {
             // Layout Shift / End Detection logic
             // Check distance to start point if we have enough points (e.g. > 20)
             if (newPoints.length > 20) {
+                // Live Score Calculation (Throttle this in production, but okay for simple game)
+                if (newPoints.length % 5 === 0) { // Update every 5 points
+                    const currentScore = calculateCircleScore(newPoints);
+                    setScore(currentScore);
+                }
+
                 const start = newPoints[0];
                 const current = newPoints[newPoints.length - 1];
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
 
                 // If we are close to start, auto-finish
-                if (dist < 20) {
+                if (dist < 20 && newPoints.length > 50) {
                     finishDrawing(newPoints);
                     setIsDrawing(false);
                 }
@@ -122,6 +129,7 @@ export const ShapeGame: React.FC = () => {
         if (finalPoints.length < 50) {
             // Too short, ignore
             setPoints([]);
+            setScore(null); // Reset live score if failed
             return;
         }
 
@@ -159,24 +167,10 @@ export const ShapeGame: React.FC = () => {
         return line(points) || "";
     }, [points]);
 
-    // Update stroke color dynamically based on completion % (Approximation)
-    useEffect(() => {
-        if (isDrawing) {
-            setStrokeColor(getRainbowColor((points.length % 500) / 500));
-        }
-    }, [points.length, isDrawing]);
-
-    // Log for debugging/linting
-    useEffect(() => {
-        // Suppress unused variable warnings by logging (or could be removed if clean)
-        // But keeping them is safer if I plan to use them in the "Expansion" phase
-        // console.log("Debug params:", strokeColor);
-    }, [strokeColor]);
-
     // Used variables to suppress lint errors (logic uses them indirectly or future proofing)
     useEffect(() => {
         // Just acknowledging variables are defined for scoring logic
-        console.log("Game Loaded", { centerX, centerY, targetRadius, strokeColor });
+        console.log("Game Loaded", { centerX, centerY, targetRadius });
     }, []);
 
 
@@ -251,8 +245,8 @@ export const ShapeGame: React.FC = () => {
                 <path
                     d={pathData}
                     fill="none"
-                    stroke={score !== null ? `url(#rainbow)` : "white"}
-                    strokeWidth={score !== null ? 6 : 4}
+                    stroke="url(#rainbow)"
+                    strokeWidth={score !== null || isDrawing ? 6 : 4}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
@@ -264,6 +258,7 @@ export const ShapeGame: React.FC = () => {
 
             {/* Score Overlay */}
             <AnimatePresence>
+                {/* Show if Score exists (Live or Final) */}
                 {score !== null && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -280,22 +275,24 @@ export const ShapeGame: React.FC = () => {
                             {score.toFixed(1)}%
                         </motion.div>
 
-                        {/* Feedback Text */}
-                        <motion.p
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-white/80 text-xl font-medium mt-4 tracking-wide"
-                        >
-                            {feedback}
-                        </motion.p>
+                        {/* Feedback Text - Only show when NOT drawing (finished) */}
+                        {!isDrawing && (
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-white/80 text-xl font-medium mt-4 tracking-wide"
+                            >
+                                {feedback}
+                            </motion.p>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Action Buttons (Only show when scored) */}
+            {/* Action Buttons (Only show when finished) */}
             <AnimatePresence>
-                {score !== null && (
+                {!isDrawing && score !== null && (
                     <motion.div
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}

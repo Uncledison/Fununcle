@@ -178,8 +178,8 @@ export const ShapeGame: React.FC = () => {
     // Used variables to suppress lint errors (logic uses them indirectly or future proofing)
     useEffect(() => {
         // Just acknowledging variables are defined for scoring logic
-        console.log("Game Loaded", { centerX, centerY, targetRadius });
-    }, []);
+        console.log("Game Loaded", { centerX, centerY, targetRadius, tutorialStep });
+    }, [tutorialStep]);
 
 
     // Load highscore

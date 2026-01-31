@@ -564,7 +564,7 @@ export const HistoryGame: React.FC = () => {
                     return (
                         <motion.div
                             key={index}
-                            className={`absolute left-1/2 flex items-center gap-6 group transition-all
+                            className={`absolute left-1/2 flex items-center gap-6 group transition-all z-20
 flex-col-reverse -translate-x-1/2 w-[80vw] text-center
 md:w-[550px] md:justify-end
                                 ${isEven

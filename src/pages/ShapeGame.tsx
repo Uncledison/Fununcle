@@ -108,9 +108,12 @@ export const ShapeGame: React.FC = () => {
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
 
                 // If we are close to start, auto-finish
-                if (dist < 20 && newPoints.length > 50) {
-                    finishDrawing(newPoints);
+                // Requires more points (80) to avoid short-circuits
+                // Requires closer distance (15px) for "snap" feel
+                if (dist < 15 && newPoints.length > 80) {
                     setIsDrawing(false);
+                    // Force close the loop visually by adding start point
+                    finishDrawing([...newPoints, start]);
                 }
             }
             return newPoints;
@@ -211,9 +214,16 @@ export const ShapeGame: React.FC = () => {
             onPointerUp={handleEnd}
         >
             {/* Background Details */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-                {/* Target Guide (Dot) */}
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+            {/* Background Details */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                {/* Target Guide (Pulse Effect) */}
+                <div className="relative">
+                    {/* Glowing Core */}
+                    <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10 relative"></div>
+                    {/* Pulsing Rings */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full animate-ping"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>
+                </div>
             </div>
 
             {/* Header / UI */}

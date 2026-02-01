@@ -126,8 +126,8 @@ export const ShapeGame: React.FC = () => {
             const end = points[points.length - 1];
             const dist = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
 
-            // Only finish if loop is reasonably closed (within 30px)
-            if (dist < 30) {
+            // Only finish if loop is reasonably closed (within 20px)
+            if (dist < 20) {
                 finishDrawing([...points, start]); // Close the loop
             } else {
                 // Too far apart - reset

@@ -342,7 +342,64 @@ export const ShapeGame: React.FC = () => {
                             >
                                 {feedback}
                             </motion.p>
-                            >
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Tutorial Overlay - Sequential Dots */}
+            <AnimatePresence>
+                {showTutorial && tutorialStep === 2 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 pointer-events-none"
+                    >
+                        <p className="text-white text-2xl font-bold mb-8 text-center">
+                            Trace the dots to draw a circle!
+                        </p>
+                        <div className="relative w-64 h-64">
+                            {Array.from({ length: 24 }).map((_, i) => {
+                                const angle = (i / 24) * 2 * Math.PI;
+                                const radius = 100;
+                                const x = Math.cos(angle) * radius + 128;
+                                const y = Math.sin(angle) * radius + 128;
+                                const hue = (i / 24) * 360;
+
+                                return (
+                                    <motion.div
+                                        key={i}
+                                        className="absolute w-3 h-3 rounded-full"
+                                        style={{
+                                            left: `${x}px`,
+                                            top: `${y}px`,
+                                            backgroundColor: `hsl(${hue}, 100%, 60%)`,
+                                            boxShadow: `0 0 10px hsl(${hue}, 100%, 60%)`
+                                        }}
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{
+                                            delay: i * 0.08,
+                                            duration: 0.3,
+                                            ease: "easeOut"
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Action Buttons (Only show when finished) */}
+            <AnimatePresence>
+                {!isDrawing && score !== null && (
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-50 pointer-events-auto"
+                    >
                         <button
                             onClick={resetGame}
                             className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all"

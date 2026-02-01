@@ -68,7 +68,6 @@ export const ShapeGame: React.FC = () => {
     const [highScore, setHighScore] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
     const [gameStarted, setGameStarted] = useState(false);
-    const [points, setPoints] = useState<Point[]>([]);
 
     // Dimensions
     const centerX = window.innerWidth / 2;
@@ -173,21 +172,18 @@ export const ShapeGame: React.FC = () => {
             localStorage.setItem('perfect-circle-highscore', calculatedScore.toString());
         }
 
-        // Generate Feedback
-        if (calculatedScore >= 98) setFeedback("Humanly Impossible! 🤖");
-        else if (calculatedScore >= 95) setFeedback("Unbelievable! 🏆");
-        else if (calculatedScore >= 90) setFeedback("Amazing! ✨");
-        else if (calculatedScore >= 80) setFeedback("Great job! 🎨");
-        else if (calculatedScore >= 70) setFeedback("Not bad! 👍");
-        else if (calculatedScore >= 50) setFeedback("Getting there... 🤔");
-        else setFeedback("Is that a potato? 🥔");
+        // Generate Feedback - Using Emojis as requested (Text is handled in render)
+        // We set feedback just to trigger the state change if needed, effectively "game over state"
+        // But the emoji rendering is static list, so we actually don't need 'feedback' string state for content anymore
+        // However, let's keep it if we want conditional rendering based on score brackets later.
+        // For now, request said "just show 10 small round emojis", so we might just toggle visibility.
+        setFeedback("done");
     };
 
     const resetGame = () => {
         setPoints([]);
         setScore(null);
         setFeedback("");
-        setShowTutorial(false);
     };
 
     // --- Path Generation ---
@@ -200,12 +196,6 @@ export const ShapeGame: React.FC = () => {
         return line(points) || "";
     }, [points]);
 
-    // Used variables to suppress lint errors (logic uses them indirectly or future proofing)
-    useEffect(() => {
-        // Just acknowledging variables are defined for scoring logic
-        console.log("Game Loaded", { centerX, centerY, targetRadius, tutorialStep });
-    }, [tutorialStep]);
-
 
     // Load highscore
     useEffect(() => {
@@ -213,42 +203,8 @@ export const ShapeGame: React.FC = () => {
         if (saved) setHighScore(parseFloat(saved));
     }, []);
 
-    // Tutorial sequence
-    useEffect(() => {
-        console.log('[Tutorial] showTutorial:', showTutorial, 'tutorialStep:', tutorialStep);
-        if (!showTutorial) return;
-
-        const timer1 = setTimeout(() => {
-            console.log('[Tutorial] Setting step to 1 (Go!)');
-            setTutorialStep(1);
-        }, 800);
-        const timer2 = setTimeout(() => {
-            console.log('[Tutorial] Setting step to 2 (Dots Animation)');
-            setTutorialStep(2);
-        }, 1600);
-        const timer3 = setTimeout(() => {
-            console.log('[Tutorial] Setting step to 3 (Done)');
-            setTutorialStep(3);
-            setShowTutorial(false);
-            // localStorage removed - tutorial will show on every page load
-        }, 5000);
-
-        return () => {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            clearTimeout(timer3);
-        };
-    }, [showTutorial]);
-
-    // Check if tutorial has been seen
-    useEffect(() => {
-        const seen = localStorage.getItem('perfect-circle-tutorial-seen');
-        console.log('[Tutorial] localStorage check - seen:', seen);
-        if (seen === 'true') {
-            console.log('[Tutorial] Tutorial already seen, hiding');
-            setShowTutorial(false);
-        }
-    }, []);
+    // New "Start Flow" logic: No specialized tutorial logic needed anymore
+    // as it's handled by 'gameStarted' state and the conditional rendering in JSX.
 
     const shareKakao = () => {
         if (!(window as any).Kakao) {

@@ -214,7 +214,7 @@ export const ShapeGame: React.FC = () => {
             console.log('[Tutorial] Setting step to 3 (Done)');
             setTutorialStep(3);
             setShowTutorial(false);
-            localStorage.setItem('perfect-circle-tutorial-seen', 'true');
+            // localStorage removed - tutorial will show on every page load
         }, 5000);
 
         return () => {

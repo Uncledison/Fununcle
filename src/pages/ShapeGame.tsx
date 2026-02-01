@@ -308,25 +308,27 @@ export const ShapeGame: React.FC = () => {
                             {score.toFixed(1)}%
                         </motion.div>
 
-                        {/* Feedback - 10 Small Round Emojis */}
+                        {/* Feedback - Single Random Emoji */}
                         {!isDrawing && (
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}
-                                className="flex gap-2 mt-4 flex-wrap justify-center px-4"
+                                initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="flex justify-center mt-6"
                             >
-                                {['🥔', '🍎', '🍊', '🥯', '🍠', '🍪', '⚽', '🏀', '🌕', '🍅'].map((emoji, i) => (
-                                    <motion.span
-                                        key={i}
-                                        className="text-3xl select-none"
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ delay: i * 0.1, type: "spring" }}
-                                    >
-                                        {emoji}
-                                    </motion.span>
-                                ))}
+                                <span className="text-6xl select-none filter drop-shadow-lg">
+                                    {useMemo(() => {
+                                        const emojis = [
+                                            // Fruits/Veg
+                                            '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌽', '🥕',
+                                            // Food
+                                            '🥯', '🍞', '🥨', '🧀', '🥞', '🧇', '🍖', '🌭', '🍔', '🍟', '🍕', '🌮', '🌯', '🥚', '🥘', '🍲', '🍿', '🧈', '🧂', '🥫',
+                                            // Objects
+                                            '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🔮', '🧶', '🎈', '🧧', '🏮', '🪀', '💿', '📀', '🧭', '⏱️', '⏰'
+                                        ];
+                                        return emojis[Math.floor(Math.random() * emojis.length)];
+                                    }, [])}
+                                </span>
                             </motion.div>
                         )}
                     </motion.div>
@@ -340,7 +342,7 @@ export const ShapeGame: React.FC = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 pointer-events-auto"
                         exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
                     >
-                        {/* Auto-drawing Continuous Sketch Animation */}
+                        {/* Auto-drawing Continuous Chaotic Sketch Animation */}
                         <div className="relative w-80 h-80 mb-12 pointer-events-none">
                             <motion.svg
                                 className="absolute inset-0 w-full h-full"
@@ -362,38 +364,62 @@ export const ShapeGame: React.FC = () => {
                                 <motion.path
                                     d={(() => {
                                         let d = "";
-                                        const loops = 5; // Draw over 5 times
-                                        const pointsPerLoop = 60;
-                                        const baseRadiusX = 80;
-                                        const baseRadiusY = 65;
+                                        const loops = 8;
+                                        const pointsPerLoop = 50;
                                         const steps = loops * pointsPerLoop;
 
                                         for (let i = 0; i <= steps; i++) {
                                             const t = (i / pointsPerLoop) * Math.PI * 2;
-                                            // Add smooth noise for "hand-drawn" look
-                                            const noiseX = Math.sin(t * 2.5) * 3 + Math.cos(t * 1.5) * 2;
-                                            const noiseY = Math.cos(t * 2.2) * 3 + Math.sin(t * 1.8) * 2;
+                                            const loopIndex = Math.floor(i / pointsPerLoop);
 
-                                            // Make it start exactly at angle 0 but allow drift
-                                            const rx = baseRadiusX + noiseX;
-                                            const ry = baseRadiusY + noiseY;
+                                            // More chaotic noise - morphing shapes
+                                            // Loop 0-2: Ellipse-ish
+                                            // Loop 3-5: Triangle-ish / Wobbly
+                                            // Loop 6-8: Offset Circle
 
-                                            const x = 100 + Math.cos(t) * rx;
-                                            const y = 100 + Math.sin(t) * ry;
+                                            let noiseX = 0;
+                                            let noiseY = 0;
+
+                                            if (loopIndex % 3 === 0) {
+                                                // Ellipse lean
+                                                noiseX = Math.sin(t) * 10;
+                                                noiseY = Math.cos(t) * 5;
+                                            } else if (loopIndex % 3 === 1) {
+                                                // Triangular wobble
+                                                noiseX = Math.sin(t * 3) * 8;
+                                                noiseY = Math.cos(t * 3) * 8;
+                                            } else {
+                                                // Random jitter
+                                                noiseX = Math.sin(t * 5) * 5;
+                                                noiseY = Math.cos(t * 4) * 5;
+                                            }
+
+                                            // Global rotation drift
+                                            const driftAngle = (i / steps) * Math.PI;
+
+                                            const baseR = 75;
+                                            const r = baseR + Math.sin(loopIndex) * 5;
+
+                                            const rawX = Math.cos(t) * r + noiseX;
+                                            const rawY = Math.sin(t) * r + noiseY;
+
+                                            // Apply rotation
+                                            const x = 100 + rawX * Math.cos(driftAngle) - rawY * Math.sin(driftAngle);
+                                            const y = 100 + rawX * Math.sin(driftAngle) + rawY * Math.cos(driftAngle);
 
                                             d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
                                         }
                                         return d;
                                     })()}
                                     stroke="url(#sketch-gradient)"
-                                    strokeWidth="3"
+                                    strokeWidth="2.5"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     fill="none"
                                     initial={{ pathLength: 0 }}
                                     animate={{ pathLength: 1 }}
                                     transition={{
-                                        duration: 8, // Takes 8 seconds to draw all loops
+                                        duration: 10,
                                         ease: "linear",
                                         repeat: Infinity,
                                         repeatType: "loop",
@@ -413,18 +439,18 @@ export const ShapeGame: React.FC = () => {
                                 visible: {
                                     opacity: 1,
                                     transition: {
-                                        staggerChildren: 0.1,
+                                        staggerChildren: 0.08,
                                         delayChildren: 0.1
                                     }
                                 }
                             }}
                         >
-                            {"원을 그려보세요!".split("").map((char, index) => (
+                            {"완전히 동그란 원을 그릴 수 있어?".split("").map((char, index) => (
                                 <motion.span
                                     key={index}
-                                    className="text-white text-3xl font-bold drop-shadow-md mx-[2px]"
+                                    className="text-white text-2xl font-bold drop-shadow-md mx-[1px]"
                                     variants={{
-                                        hidden: { opacity: 0, y: 20 },
+                                        hidden: { opacity: 0, y: 15 },
                                         visible: { opacity: 1, y: 0 }
                                     }}
                                 >
@@ -433,23 +459,25 @@ export const ShapeGame: React.FC = () => {
                             ))}
                         </motion.div>
 
-                        {/* Rainbow Gradient Start Button */}
+                        {/* Circular Rainbow Start Button */}
                         <motion.button
                             onClick={() => setGameStarted(true)}
-                            className="relative group px-1 py-1 rounded-full overflow-hidden"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 2.5, duration: 1 }}
+                            className="relative group w-24 h-24 rounded-full flex items-center justify-center -mt-4"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 2, type: "spring", stiffness: 200 }}
                         >
-                            {/* Rainbow Border/Background */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 animate-gradient-x opacity-80 group-hover:opacity-100 transition-opacity" />
+                            {/* Gradient Background */}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_30px_rgba(168,85,247,0.6)]" />
 
-                            {/* Button Content */}
-                            <div className="relative px-12 py-4 bg-black rounded-full transition-all group-hover:bg-black/90 active:scale-95">
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 font-bold text-xl tracking-wider">
-                                    시작
-                                </span>
-                            </div>
+                            {/* Inner White Circle (Optional, user asked for circular gradient button. Let's keep it full gradient with text) */}
+                            {/* Actually user said "round gradient button" - usually implies filled. */}
+
+                            <span className="relative text-white font-bold text-xl tracking-wider drop-shadow-lg z-10">
+                                GO
+                            </span>
                         </motion.button>
                     </motion.div>
                 )}

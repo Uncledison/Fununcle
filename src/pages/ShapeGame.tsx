@@ -1,7 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Share2, Twitter } from 'lucide-react';
+import { RefreshCw, Download } from 'lucide-react';
 import * as d3Shape from 'd3-shape';
 import html2canvas from 'html2canvas';
 
@@ -74,7 +73,38 @@ export const ShapeGame: React.FC = () => {
     // Dimensions
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
-    const targetRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35; // Target size guide
+    const targetRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+
+    // Marimba sound
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const oscillatorRef = useRef<OscillatorNode | null>(null);
+    const gainNodeRef = useRef<GainNode | null>(null);
+
+    const playMarimbaSound = () => {
+        if (!audioContextRef.current) {
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        const ctx = audioContextRef.current;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
+        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        oscillator.start();
+        oscillatorRef.current = oscillator;
+        gainNodeRef.current = gainNode;
+    };
+
+    const stopMarimbaSound = () => {
+        if (oscillatorRef.current && gainNodeRef.current) {
+            gainNodeRef.current.gain.exponentialRampToValueAtTime(0.01, audioContextRef.current!.currentTime + 0.1);
+            oscillatorRef.current.stop(audioContextRef.current!.currentTime + 0.1);
+            oscillatorRef.current = null;
+            gainNodeRef.current = null;
+        }
+    };
 
     // --- Interaction Handlers ---
     const handleStart = (e: React.PointerEvent | React.TouchEvent) => {
@@ -82,6 +112,7 @@ export const ShapeGame: React.FC = () => {
             resetGame();
         }
         setIsDrawing(true);
+        playMarimbaSound();
         const { clientX, clientY } = 'touches' in e ? (e as any).touches[0] : e;
         setPoints([{ x: clientX, y: clientY, timestamp: Date.now() }]);
     };
@@ -143,12 +174,12 @@ export const ShapeGame: React.FC = () => {
 
     const finishDrawing = (finalPoints: Point[]) => {
         if (finalPoints.length < 50) {
-            // Too short, ignore
             setPoints([]);
-            setScore(null); // Reset live score if failed
+            setScore(null);
             return;
         }
 
+        stopMarimbaSound();
         const calculatedScore = calculateCircleScore(finalPoints);
         setScore(calculatedScore);
 
@@ -234,14 +265,30 @@ export const ShapeGame: React.FC = () => {
         }
     }, []);
 
+    const shareKakao = () => {
+        if (!(window as any).Kakao) {
+            alert('카카오톡 공유 기능을 사용할 수 없습니다.');
+            return;
+        }
+        (window as any).Kakao.Share.sendDefault({
+            objectType: 'feed',
+            content: {
+                title: 'Perfect Circle Challenge',
+                description: `I scored ${score?.toFixed(1)}% on the Perfect Circle game! Can you beat my score?`,
+                imageUrl: 'https://fununcle.vercel.app/rainbow-center.png',
+                link: {
+                    mobileWebUrl: 'https://fununcle.vercel.app/shape-game',
+                    webUrl: 'https://fununcle.vercel.app/shape-game',
+                },
+            },
+        });
+    };
+
     const shareResult = async () => {
         if (!containerRef.current) return;
-
         try {
             const canvas = await html2canvas(containerRef.current);
             const image = canvas.toDataURL("image/png");
-
-            // Create a fake link to download
             const link = document.createElement('a');
             link.href = image;
             link.download = `perfect-circle-${score?.toFixed(1)}.png`;
@@ -251,20 +298,33 @@ export const ShapeGame: React.FC = () => {
         }
     };
 
-    const shareTwitter = () => {
-        const text = `⭕️ My circle is ${score?.toFixed(1)}% perfect! Can you beat that?`;
-        const url = "https://neal.fun/perfect-circle/"; // Replace with actual URL if hosted
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-    };
-
     return (
         <div
             ref={containerRef}
-            className="w-full h-screen bg-[#101010] overflow-hidden relative touch-none select-none"
+            className="w-full h-screen overflow-hidden relative touch-none select-none"
+            style={{
+                background: 'radial-gradient(circle at center, #1a1a1a 0%, #000000 100%)'
+            }}
             onPointerDown={handleStart}
             onPointerMove={handleMove}
             onPointerUp={handleEnd}
         >
+            {/* Header */}
+            <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-10">
+                <div className="flex items-center gap-2">
+                    <span className="text-white/90 text-lg font-bold tracking-wide">Fun</span>
+                    <img
+                        src="/rainbow-center.png"
+                        alt="·"
+                        className="w-2 h-2 rounded-full opacity-80"
+                    />
+                    <span className="text-white/90 text-lg font-bold tracking-wide">Uncle</span>
+                </div>
+                <div className="text-white/80 text-sm font-medium">
+                    Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
+                </div>
+            </div>
+
             {/* Background Details */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 {/* Target Guide (Pulse Effect) */}
@@ -410,27 +470,31 @@ export const ShapeGame: React.FC = () => {
                     <motion.div
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-50 pointer-events-auto"
+                        className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-50 pointer-events-auto px-4"
                     >
                         <button
                             onClick={resetGame}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all"
+                            className="flex items-center justify-center w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all border border-white/20"
+                            aria-label="Try Again"
                         >
-                            <RefreshCw size={20} /> Try Again
+                            <RefreshCw size={24} />
                         </button>
 
                         <button
-                            onClick={shareTwitter}
-                            className="flex items-center gap-2 px-6 py-3 bg-[#1DA1F2] hover:bg-[#1a91da] rounded-full text-white font-bold transition-all shadow-lg"
+                            onClick={shareKakao}
+                            className="flex items-center gap-2 px-6 py-3 bg-[#FEE500]/90 hover:bg-[#FEE500] backdrop-blur-md rounded-full text-[#3C1E1E] font-bold transition-all shadow-lg border border-[#FEE500]/50"
                         >
-                            <Twitter size={20} /> Tweet
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+                            </svg>
+                            Share
                         </button>
 
                         <button
                             onClick={shareResult}
-                            className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-full text-white font-bold transition-all shadow-lg"
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
                         >
-                            <Share2 size={20} /> Save Image
+                            <Download size={20} /> Save
                         </button>
                     </motion.div>
                 )}

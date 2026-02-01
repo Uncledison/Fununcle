@@ -67,8 +67,8 @@ export const ShapeGame: React.FC = () => {
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
     const [feedback, setFeedback] = useState("");
-    const [showTutorial, setShowTutorial] = useState(true);
-    const [tutorialStep, setTutorialStep] = useState(0); // 0: Ready, 1: Go!, 2: Demo, 3: Done
+    const [gameStarted, setGameStarted] = useState(false);
+    const [points, setPoints] = useState<Point[]>([]);
 
     // Dimensions
     const centerX = window.innerWidth / 2;
@@ -309,129 +309,6 @@ export const ShapeGame: React.FC = () => {
                     Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
                 </div>
             </div>
-
-            {/* Background Details - Interactive Center */}
-            {!isDrawing && !score && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    {/* Rotating Flower Center with Interaction */}
-                    <motion.div
-                        className="relative flex items-center justify-center w-8 h-8 pointer-events-auto cursor-pointer"
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                        animate={{
-                            scale: [1, 1.1, 1],
-                        }}
-                        transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                    >
-                        {/* Flower Petals Container - Rotating */}
-                        <motion.div
-                            className="relative w-full h-full"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        >
-                            {Array.from({ length: 12 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="absolute top-0 left-1/2 origin-bottom"
-                                    style={{
-                                        transform: `translateX(-50%) rotate(${i * 30}deg)`,
-                                        height: '50%',
-                                        width: '30%',
-                                        backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
-                                        borderRadius: '50% 50% 0 0',
-                                        mixBlendMode: 'screen',
-                                    }}
-                                />
-                            ))}
-                            {/* Center Core */}
-                            <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
-                        </motion.div>
-                    </motion.div>
-
-                    {/* Tutorial Text & Guide (Only when not drawing/no score) */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                        <motion.div
-                            className="flex flex-col items-center justify-center"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
-                            {/* Circular Dot Guide */}
-                            <div className="relative w-64 h-64 mb-8">
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: [0, 1, 1, 0] }}
-                                    transition={{ duration: 4, repeat: Infinity, repeatDelay: 1 }}
-                                >
-                                    {Array.from({ length: 24 }).map((_, i) => {
-                                        const angle = (i / 24) * 2 * Math.PI;
-                                        const radius = 100; // Radius of the guide circle
-                                        const x = Math.cos(angle) * radius;
-                                        const y = Math.sin(angle) * radius;
-                                        return (
-                                            <div
-                                                key={i}
-                                                className="absolute w-3 h-3 rounded-full"
-                                                style={{
-                                                    top: `calc(50% + ${y}px)`,
-                                                    left: `calc(50% + ${x}px)`,
-                                                    transform: 'translate(-50%, -50%)',
-                                                    backgroundColor: `hsl(${i * 15}, 100%, 60%)`,
-                                                    boxShadow: `0 0 5px hsl(${i * 15}, 100%, 60%)`
-                                                }}
-                                            />
-                                        )
-                                    })}
-                                </motion.div>
-                            </div>
-
-                            {/* Text */}
-                            <motion.p
-                                className="absolute -top-32 text-white text-xl font-bold whitespace-nowrap drop-shadow-md"
-                                animate={{ y: [0, -5, 0] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                동그란 원을 그려 보세요!
-                            </motion.p>
-                        </motion.div>
-                    </div>
-                </div>
-            )}
-
-            {/* Persist Center Flower when drawing or score exists (non-interactive) */}
-            {(isDrawing || score !== null) && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="relative flex items-center justify-center w-8 h-8">
-                        <motion.div
-                            className="relative w-full h-full"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        >
-                            {Array.from({ length: 12 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="absolute top-0 left-1/2 origin-bottom"
-                                    style={{
-                                        transform: `translateX(-50%) rotate(${i * 30}deg)`,
-                                        height: '50%',
-                                        width: '30%',
-                                        backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
-                                        borderRadius: '50% 50% 0 0',
-                                        mixBlendMode: 'screen',
-                                    }}
-                                />
-                            ))}
-                            <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
-                        </motion.div>
-                    </div>
-                </div>
-            )}
-
-
 
             {/* SVG Layer */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none">

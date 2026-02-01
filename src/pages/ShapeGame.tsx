@@ -337,55 +337,103 @@ export const ShapeGame: React.FC = () => {
             <AnimatePresence>
                 {!gameStarted && (
                     <motion.div
-                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-50 pointer-events-auto"
-                        exit={{ opacity: 0, transition: { duration: 1 } }}
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 pointer-events-auto"
+                        exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
                     >
-                        {/* Circular Dot Guide - Shows once */}
-                        <div className="relative w-64 h-64 mb-12 pointer-events-none">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: [0, 1, 1, 0] }}
-                                transition={{ duration: 4, times: [0, 0.2, 0.8, 1], repeat: 0 }} // Play once
-                            >
-                                {Array.from({ length: 24 }).map((_, i) => {
-                                    const angle = (i / 24) * 2 * Math.PI;
-                                    const radius = 100;
-                                    const x = Math.cos(angle) * radius;
-                                    const y = Math.sin(angle) * radius;
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="absolute w-3 h-3 rounded-full"
-                                            style={{
-                                                top: `calc(50% + ${y}px)`,
-                                                left: `calc(50% + ${x}px)`,
-                                                transform: 'translate(-50%, -50%)',
-                                                backgroundColor: `hsl(${i * 15}, 100%, 60%)`,
-                                                boxShadow: `0 0 5px hsl(${i * 15}, 100%, 60%)`
-                                            }}
-                                        />
-                                    )
-                                })}
-                            </motion.div>
+                        {/* Auto-drawing Ellipse Animation */}
+                        <div className="relative w-80 h-80 mb-12 pointer-events-none">
+                            {/* Simulate multiple messy ellipses drawing */}
+                            {[0, 1, 2].map((i) => (
+                                <motion.svg
+                                    key={i}
+                                    className="absolute inset-0 w-full h-full"
+                                    viewBox="0 0 200 200"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear", delay: i * -5 }}
+                                    style={{ opacity: 0.7 - i * 0.15 }}
+                                >
+                                    <motion.ellipse
+                                        cx="100"
+                                        cy="100"
+                                        rx={80 - i * 5}
+                                        ry={65 + i * 5}
+                                        stroke={`url(#rainbow-start-${i})`}
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeDasharray="500"
+                                        strokeDashoffset="500"
+                                        animate={{ strokeDashoffset: [500, 0] }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            repeatType: "loop",
+                                            ease: "easeInOut",
+                                            delay: i * 1.5
+                                        }}
+                                    />
+                                    <defs>
+                                        <linearGradient id={`rainbow-start-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#ff0000" />
+                                            <stop offset="20%" stopColor="#ffff00" />
+                                            <stop offset="40%" stopColor="#00ff00" />
+                                            <stop offset="60%" stopColor="#00ffff" />
+                                            <stop offset="80%" stopColor="#0000ff" />
+                                            <stop offset="100%" stopColor="#ff00ff" />
+                                        </linearGradient>
+                                    </defs>
+                                </motion.svg>
+                            ))}
                         </div>
 
-                        <motion.p
-                            className="text-white text-2xl font-bold mb-8 drop-shadow-md"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
+                        {/* Staggered Text Reveal */}
+                        <motion.div
+                            className="flex overflow-hidden mb-12"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                    opacity: 1,
+                                    transition: {
+                                        staggerChildren: 0.1,
+                                        delayChildren: 0.5
+                                    }
+                                }
+                            }}
                         >
-                            동그란 원을 그려 보세요!
-                        </motion.p>
+                            {"동그란 원을 그려 보세요!".split("").map((char, index) => (
+                                <motion.span
+                                    key={index}
+                                    className="text-white text-3xl font-bold drop-shadow-md mx-[2px]"
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        visible: { opacity: 1, y: 0 }
+                                    }}
+                                >
+                                    {char === " " ? "\u00A0" : char}
+                                </motion.span>
+                            ))}
+                        </motion.div>
 
+                        {/* Rainbow Gradient Start Button */}
                         <motion.button
                             onClick={() => setGameStarted(true)}
-                            className="px-8 py-3 bg-white text-black font-bold text-lg rounded-full shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:bg-gray-100 transition-all active:scale-95"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 1, type: "spring" }}
+                            className="relative group px-1 py-1 rounded-full overflow-hidden"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 2.5, duration: 1 }}
                         >
-                            시작
+                            {/* Rainbow Border/Background */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 animate-gradient-x opacity-80 group-hover:opacity-100 transition-opacity" />
+
+                            {/* Button Content */}
+                            <div className="relative px-12 py-4 bg-black rounded-full transition-all group-hover:bg-black/90 active:scale-95">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 font-bold text-xl tracking-wider">
+                                    시작
+                                </span>
+                            </div>
                         </motion.button>
                     </motion.div>
                 )}

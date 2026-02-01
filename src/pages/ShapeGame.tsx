@@ -66,7 +66,6 @@ export const ShapeGame: React.FC = () => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
-    const [highScore, setHighScore] = useState<number>(0);
     const [gameStarted, setGameStarted] = useState(false);
     const [resultEmoji, setResultEmoji] = useState<string>("");
 

@@ -373,97 +373,9 @@ export const ShapeGame: React.FC = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 pointer-events-auto"
                         exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
                     >
-                        {/* Auto-drawing Continuous Chaotic Sketch Animation */}
-                        <div className="relative w-80 h-80 mb-12 pointer-events-none">
-                            <motion.svg
-                                className="absolute inset-0 w-full h-full"
-                                viewBox="0 0 200 200"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                style={{ opacity: 0.9 }}
-                            >
-                                <defs>
-                                    <linearGradient id="sketch-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#ff0000" />
-                                        <stop offset="20%" stopColor="#ffff00" />
-                                        <stop offset="40%" stopColor="#00ff00" />
-                                        <stop offset="60%" stopColor="#00ffff" />
-                                        <stop offset="80%" stopColor="#0000ff" />
-                                        <stop offset="100%" stopColor="#ff00ff" />
-                                    </linearGradient>
-                                </defs>
-                                <motion.path
-                                    d={(() => {
-                                        let d = "";
-                                        const loops = 8;
-                                        const pointsPerLoop = 50;
-                                        const steps = loops * pointsPerLoop;
-
-                                        for (let i = 0; i <= steps; i++) {
-                                            const t = (i / pointsPerLoop) * Math.PI * 2;
-                                            const loopIndex = Math.floor(i / pointsPerLoop);
-
-                                            // More chaotic noise - morphing shapes
-                                            // Loop 0-2: Ellipse-ish
-                                            // Loop 3-5: Triangle-ish / Wobbly
-                                            // Loop 6-8: Offset Circle
-
-                                            let noiseX = 0;
-                                            let noiseY = 0;
-
-                                            if (loopIndex % 3 === 0) {
-                                                // Ellipse lean
-                                                noiseX = Math.sin(t) * 10;
-                                                noiseY = Math.cos(t) * 5;
-                                            } else if (loopIndex % 3 === 1) {
-                                                // Triangular wobble
-                                                noiseX = Math.sin(t * 3) * 8;
-                                                noiseY = Math.cos(t * 3) * 8;
-                                            } else {
-                                                // Random jitter
-                                                noiseX = Math.sin(t * 5) * 5;
-                                                noiseY = Math.cos(t * 4) * 5;
-                                            }
-
-                                            // Global rotation drift
-                                            const driftAngle = (i / steps) * Math.PI;
-
-                                            const baseR = 75;
-                                            const r = baseR + Math.sin(loopIndex) * 5;
-
-                                            const rawX = Math.cos(t) * r + noiseX;
-                                            const rawY = Math.sin(t) * r + noiseY;
-
-                                            // Apply rotation
-                                            const x = 100 + rawX * Math.cos(driftAngle) - rawY * Math.sin(driftAngle);
-                                            const y = 100 + rawX * Math.sin(driftAngle) + rawY * Math.cos(driftAngle);
-
-                                            d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
-                                        }
-                                        return d;
-                                    })()}
-                                    stroke="url(#sketch-gradient)"
-                                    strokeWidth="2.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    fill="none"
-                                    initial={{ pathLength: 0 }}
-                                    animate={{ pathLength: 1 }}
-                                    transition={{
-                                        duration: 10,
-                                        ease: "linear",
-                                        repeat: Infinity,
-                                        repeatType: "loop",
-                                        repeatDelay: 0
-                                    }}
-                                />
-                            </motion.svg>
-                        </div>
-
-                        {/* Staggered Text Reveal */}
-                        {/* Staggered Text Reveal */}
+                        {/* 1. Title Text at the Top */}
                         <motion.div
-                            className="flex overflow-hidden mb-12"
+                            className="flex overflow-hidden mb-8"
                             initial="hidden"
                             animate="visible"
                             variants={{
@@ -491,30 +403,96 @@ export const ShapeGame: React.FC = () => {
                             ))}
                         </motion.div>
 
-                        {/* Circular Rainbow Start Button */}
-                        <motion.button
-                            onClick={() => setGameStarted(true)}
-                            className="relative group w-32 h-32 rounded-full flex items-center justify-center -mt-4"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 2, type: "spring", stiffness: 200 }}
-                        >
-                            {/* Radial/Conic Rainbow Background */}
-                            <div
-                                className="absolute inset-0 rounded-full animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_40px_rgba(255,255,255,0.4)]"
-                                style={{
-                                    background: 'conic-gradient(from 180deg at 50% 50%, #FF0000 0deg, #FF8A00 51.43deg, #FFE600 102.86deg, #14FF00 154.29deg, #00A3FF 205.71deg, #9E00FF 257.14deg, #FF0000 360deg)'
-                                }}
-                            />
+                        {/* 2. Animation & Button Container */}
+                        <div className="relative w-80 h-80 flex items-center justify-center">
+                            {/* Chaotic Sketch Animation */}
+                            <motion.svg
+                                className="absolute inset-0 w-full h-full pointer-events-none"
+                                viewBox="0 0 200 200"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                style={{ opacity: 0.9 }}
+                            >
+                                <defs>
+                                    <linearGradient id="sketch-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#ff0000" />
+                                        <stop offset="20%" stopColor="#ffff00" />
+                                        <stop offset="40%" stopColor="#00ff00" />
+                                        <stop offset="60%" stopColor="#00ffff" />
+                                        <stop offset="80%" stopColor="#0000ff" />
+                                        <stop offset="100%" stopColor="#ff00ff" />
+                                    </linearGradient>
+                                </defs>
+                                <motion.path
+                                    d={(() => {
+                                        let d = "";
+                                        const loops = 8;
+                                        const pointsPerLoop = 50;
+                                        const steps = loops * pointsPerLoop;
+                                        for (let i = 0; i <= steps; i++) {
+                                            const t = (i / pointsPerLoop) * Math.PI * 2;
+                                            const loopIndex = Math.floor(i / pointsPerLoop);
+                                            let noiseX = 0;
+                                            let noiseY = 0;
+                                            if (loopIndex % 3 === 0) {
+                                                noiseX = Math.sin(t) * 10;
+                                                noiseY = Math.cos(t) * 5;
+                                            } else if (loopIndex % 3 === 1) {
+                                                noiseX = Math.sin(t * 3) * 8;
+                                                noiseY = Math.cos(t * 3) * 8;
+                                            } else {
+                                                noiseX = Math.sin(t * 5) * 5;
+                                                noiseY = Math.cos(t * 4) * 5;
+                                            }
+                                            const driftAngle = (i / steps) * Math.PI;
+                                            const baseR = 75;
+                                            const r = baseR + Math.sin(loopIndex) * 5;
+                                            const rawX = Math.cos(t) * r + noiseX;
+                                            const rawY = Math.sin(t) * r + noiseY;
+                                            const x = 100 + rawX * Math.cos(driftAngle) - rawY * Math.sin(driftAngle);
+                                            const y = 100 + rawX * Math.sin(driftAngle) + rawY * Math.cos(driftAngle);
+                                            d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
+                                        }
+                                        return d;
+                                    })()}
+                                    stroke="url(#sketch-gradient)"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    fill="none"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{
+                                        duration: 10,
+                                        ease: "linear",
+                                        repeat: Infinity,
+                                        repeatType: "loop",
+                                        repeatDelay: 0
+                                    }}
+                                />
+                            </motion.svg>
 
-                            {/* Inner White Circle removed per request for full gradient button, but maybe a slight overlay for depth? User said "Radial Rainbow" for button color. keeping it simple. */}
-
-                            <span className="relative text-black font-black text-4xl tracking-widest drop-shadow-sm z-10">
-                                GO
-                            </span>
-                        </motion.button>
+                            {/* GO Button (Centered Inside Animation) */}
+                            <motion.button
+                                onClick={() => setGameStarted(true)}
+                                className="relative group w-24 h-24 rounded-full flex items-center justify-center z-10"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 2, type: "spring", stiffness: 200 }}
+                            >
+                                <div
+                                    className="absolute inset-0 rounded-full animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_40px_rgba(255,255,255,0.4)]"
+                                    style={{
+                                        background: 'conic-gradient(from 180deg at 50% 50%, #FF0000 0deg, #FF8A00 51.43deg, #FFE600 102.86deg, #14FF00 154.29deg, #00A3FF 205.71deg, #9E00FF 257.14deg, #FF0000 360deg)'
+                                    }}
+                                />
+                                <span className="relative text-black font-black text-4xl tracking-widest drop-shadow-sm z-10">
+                                    GO
+                                </span>
+                            </motion.button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

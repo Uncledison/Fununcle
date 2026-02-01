@@ -199,15 +199,23 @@ export const ShapeGame: React.FC = () => {
 
     // Tutorial sequence
     useEffect(() => {
+        console.log('[Tutorial] showTutorial:', showTutorial, 'tutorialStep:', tutorialStep);
         if (!showTutorial) return;
 
-        const timer1 = setTimeout(() => setTutorialStep(1), 800); // Ready -> Go!
-        const timer2 = setTimeout(() => setTutorialStep(2), 1600); // Go! -> Demo
+        const timer1 = setTimeout(() => {
+            console.log('[Tutorial] Setting step to 1 (Go!)');
+            setTutorialStep(1);
+        }, 800);
+        const timer2 = setTimeout(() => {
+            console.log('[Tutorial] Setting step to 2 (Dots Animation)');
+            setTutorialStep(2);
+        }, 1600);
         const timer3 = setTimeout(() => {
+            console.log('[Tutorial] Setting step to 3 (Done)');
             setTutorialStep(3);
             setShowTutorial(false);
             localStorage.setItem('perfect-circle-tutorial-seen', 'true');
-        }, 5000); // Demo -> Done
+        }, 5000);
 
         return () => {
             clearTimeout(timer1);
@@ -219,7 +227,9 @@ export const ShapeGame: React.FC = () => {
     // Check if tutorial has been seen
     useEffect(() => {
         const seen = localStorage.getItem('perfect-circle-tutorial-seen');
+        console.log('[Tutorial] localStorage check - seen:', seen);
         if (seen === 'true') {
+            console.log('[Tutorial] Tutorial already seen, hiding');
             setShowTutorial(false);
         }
     }, []);

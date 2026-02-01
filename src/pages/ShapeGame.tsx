@@ -373,8 +373,10 @@ export const ShapeGame: React.FC = () => {
                             {Array.from({ length: 24 }).map((_, i) => {
                                 const angle = (i / 24) * 2 * Math.PI;
                                 const radius = 100;
-                                const x = Math.cos(angle) * radius + 128;
-                                const y = Math.sin(angle) * radius + 128;
+                                const dotSize = 12; // w-3 h-3 = 12px
+                                const centerOffset = 128; // Half of 256px (w-64 h-64)
+                                const x = Math.cos(angle) * radius + centerOffset - dotSize / 2;
+                                const y = Math.sin(angle) * radius + centerOffset - dotSize / 2;
                                 const hue = (i / 24) * 360;
 
                                 return (

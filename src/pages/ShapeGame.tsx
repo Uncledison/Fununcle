@@ -259,8 +259,14 @@ export const ShapeGame: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 {/* Target Guide (Pulse Effect) */}
                 <div className="relative">
-                    {/* Glowing Core */}
-                    <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] z-10 relative"></div>
+                    {/* Radial Rainbow Gradient Core */}
+                    <div
+                        className="w-6 h-6 rounded-full"
+                        style={{
+                            background: 'radial-gradient(circle, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff)',
+                            boxShadow: '0 0 20px rgba(255,255,255,0.5)'
+                        }}
+                    ></div>
                     {/* Pulsing Rings */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full animate-ping"></div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>

@@ -66,7 +66,6 @@ export const ShapeGame: React.FC = () => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
-    const [feedback, setFeedback] = useState("");
     const [gameStarted, setGameStarted] = useState(false);
 
 
@@ -173,13 +172,13 @@ export const ShapeGame: React.FC = () => {
         // But the emoji rendering is static list, so we actually don't need 'feedback' string state for content anymore
         // However, let's keep it if we want conditional rendering based on score brackets later.
         // For now, request said "just show 10 small round emojis", so we might just toggle visibility.
-        setFeedback("done");
+        // setFeedback("done"); // Removed unused feedback setter
     };
 
     const resetGame = () => {
         setPoints([]);
         setScore(null);
-        setFeedback("");
+        // setFeedback(""); // Removed unused feedback setter
     };
 
     // --- Path Generation ---

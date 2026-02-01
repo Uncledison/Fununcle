@@ -75,11 +75,6 @@ export const ShapeGame: React.FC = () => {
     const centerY = window.innerHeight / 2;
     const targetRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
 
-    // Marimba sound
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const oscillatorRef = useRef<OscillatorNode | null>(null);
-    const gainNodeRef = useRef<GainNode | null>(null);
-
     // Marimba sound - Disabled
     const audioContextRef = useRef<AudioContext | null>(null);
     const oscillatorRef = useRef<OscillatorNode | null>(null);

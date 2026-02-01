@@ -80,22 +80,12 @@ export const ShapeGame: React.FC = () => {
     const oscillatorRef = useRef<OscillatorNode | null>(null);
     const gainNodeRef = useRef<GainNode | null>(null);
 
-    const playMarimbaSound = () => {
-        if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        const ctx = audioContextRef.current;
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(523.25, ctx.currentTime);
-        gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        oscillator.start();
-        oscillatorRef.current = oscillator;
-        gainNodeRef.current = gainNode;
-    };
+    // Marimba sound - Disabled
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const oscillatorRef = useRef<OscillatorNode | null>(null);
+    const gainNodeRef = useRef<GainNode | null>(null);
+
+    // const playMarimbaSound = () => { ... } // Removed to fix unused var error
 
     const stopMarimbaSound = () => {
         if (oscillatorRef.current && gainNodeRef.current) {

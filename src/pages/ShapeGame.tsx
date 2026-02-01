@@ -86,36 +86,30 @@ export const ShapeGame: React.FC = () => {
         setPoints([{ x: clientX, y: clientY, timestamp: Date.now() }]);
     };
 
+
     const handleMove = (e: React.PointerEvent | React.TouchEvent) => {
         if (!isDrawing) return;
         const { clientX, clientY } = 'touches' in e ? (e as any).touches[0] : e;
 
-        // Prevent scrolling on mobile
-        // (e as any).preventDefault(); 
-
         setPoints(prev => {
             const newPoints = [...prev, { x: clientX, y: clientY, timestamp: Date.now() }];
 
-            // Layout Shift / End Detection logic
-            // Check distance to start point if we have enough points (e.g. > 20)
-            if (newPoints.length > 20) {
-                // Live Score Calculation (Throttle this in production, but okay for simple game)
-                if (newPoints.length % 5 === 0) { // Update every 5 points
-                    const currentScore = calculateCircleScore(newPoints);
-                    setScore(currentScore);
-                }
+            // Live Score Calculation
+            if (newPoints.length % 5 === 0 && newPoints.length > 10) {
+                const currentScore = calculateCircleScore(newPoints);
+                setScore(currentScore);
+            }
 
+            // Auto-close detection: Check if we're close to start point
+            if (newPoints.length > 80) {
                 const start = newPoints[0];
                 const current = newPoints[newPoints.length - 1];
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
 
-                // If we are close to start, auto-finish
-                // Requires more points (80) to avoid short-circuits
-                // Requires closer distance (15px) for "snap" feel
-                if (dist < 15 && newPoints.length > 80) {
+                // If very close to start (10px), auto-finish
+                if (dist < 10) {
                     setIsDrawing(false);
-                    // Force close the loop visually by adding start point
-                    finishDrawing([...newPoints, start]);
+                    finishDrawing([...newPoints, start]); // Close the loop visually
                 }
             }
             return newPoints;
@@ -123,10 +117,25 @@ export const ShapeGame: React.FC = () => {
     };
 
     const handleEnd = () => {
-        if (isDrawing) {
-            setIsDrawing(false);
-            // DO NOT auto-finish here - only finish when loop is detected in handleMove
-            // This prevents premature closure when user lifts finger
+        if (!isDrawing) return;
+        setIsDrawing(false);
+
+        // Check if the circle is closed when user releases
+        if (points.length > 80) {
+            const start = points[0];
+            const end = points[points.length - 1];
+            const dist = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
+
+            // Only finish if loop is reasonably closed (within 30px)
+            if (dist < 30) {
+                finishDrawing([...points, start]); // Close the loop
+            } else {
+                // Too far apart - reset
+                setPoints([]);
+                setScore(null);
+            }
+        } else {
+            // Too short - reset
             setPoints([]);
             setScore(null);
         }

@@ -340,51 +340,67 @@ export const ShapeGame: React.FC = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 pointer-events-auto"
                         exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
                     >
-                        {/* Auto-drawing Ellipse Animation */}
+                        {/* Auto-drawing Continuous Sketch Animation */}
                         <div className="relative w-80 h-80 mb-12 pointer-events-none">
-                            {/* Simulate multiple messy ellipses drawing */}
-                            {[0, 1, 2].map((i) => (
-                                <motion.svg
-                                    key={i}
-                                    className="absolute inset-0 w-full h-full"
-                                    viewBox="0 0 200 200"
+                            <motion.svg
+                                className="absolute inset-0 w-full h-full"
+                                viewBox="0 0 200 200"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                style={{ opacity: 0.9 }}
+                            >
+                                <defs>
+                                    <linearGradient id="sketch-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#ff0000" />
+                                        <stop offset="20%" stopColor="#ffff00" />
+                                        <stop offset="40%" stopColor="#00ff00" />
+                                        <stop offset="60%" stopColor="#00ffff" />
+                                        <stop offset="80%" stopColor="#0000ff" />
+                                        <stop offset="100%" stopColor="#ff00ff" />
+                                    </linearGradient>
+                                </defs>
+                                <motion.path
+                                    d={(() => {
+                                        let d = "";
+                                        const loops = 5; // Draw over 5 times
+                                        const pointsPerLoop = 60;
+                                        const baseRadiusX = 80;
+                                        const baseRadiusY = 65;
+                                        const steps = loops * pointsPerLoop;
+
+                                        for (let i = 0; i <= steps; i++) {
+                                            const t = (i / pointsPerLoop) * Math.PI * 2;
+                                            // Add smooth noise for "hand-drawn" look
+                                            const noiseX = Math.sin(t * 2.5) * 3 + Math.cos(t * 1.5) * 2;
+                                            const noiseY = Math.cos(t * 2.2) * 3 + Math.sin(t * 1.8) * 2;
+
+                                            // Make it start exactly at angle 0 but allow drift
+                                            const rx = baseRadiusX + noiseX;
+                                            const ry = baseRadiusY + noiseY;
+
+                                            const x = 100 + Math.cos(t) * rx;
+                                            const y = 100 + Math.sin(t) * ry;
+
+                                            d += (i === 0 ? "M" : "L") + `${x.toFixed(1)},${y.toFixed(1)}`;
+                                        }
+                                        return d;
+                                    })()}
+                                    stroke="url(#sketch-gradient)"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
                                     fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear", delay: i * -5 }}
-                                    style={{ opacity: 0.7 - i * 0.15 }}
-                                >
-                                    <motion.ellipse
-                                        cx="100"
-                                        cy="100"
-                                        rx={80 - i * 5}
-                                        ry={65 + i * 5}
-                                        stroke={`url(#rainbow-start-${i})`}
-                                        strokeWidth="3"
-                                        strokeLinecap="round"
-                                        strokeDasharray="500"
-                                        strokeDashoffset="500"
-                                        animate={{ strokeDashoffset: [500, 0] }}
-                                        transition={{
-                                            duration: 3,
-                                            repeat: Infinity,
-                                            repeatType: "loop",
-                                            ease: "easeInOut",
-                                            delay: i * 1.5
-                                        }}
-                                    />
-                                    <defs>
-                                        <linearGradient id={`rainbow-start-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#ff0000" />
-                                            <stop offset="20%" stopColor="#ffff00" />
-                                            <stop offset="40%" stopColor="#00ff00" />
-                                            <stop offset="60%" stopColor="#00ffff" />
-                                            <stop offset="80%" stopColor="#0000ff" />
-                                            <stop offset="100%" stopColor="#ff00ff" />
-                                        </linearGradient>
-                                    </defs>
-                                </motion.svg>
-                            ))}
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{
+                                        duration: 8, // Takes 8 seconds to draw all loops
+                                        ease: "linear",
+                                        repeat: Infinity,
+                                        repeatType: "loop",
+                                        repeatDelay: 0
+                                    }}
+                                />
+                            </motion.svg>
                         </div>
 
                         {/* Staggered Text Reveal */}
@@ -398,12 +414,12 @@ export const ShapeGame: React.FC = () => {
                                     opacity: 1,
                                     transition: {
                                         staggerChildren: 0.1,
-                                        delayChildren: 0.5
+                                        delayChildren: 0.1
                                     }
                                 }
                             }}
                         >
-                            {"동그란 원을 그려 보세요!".split("").map((char, index) => (
+                            {"원을 그려보세요!".split("").map((char, index) => (
                                 <motion.span
                                     key={index}
                                     className="text-white text-3xl font-bold drop-shadow-md mx-[2px]"

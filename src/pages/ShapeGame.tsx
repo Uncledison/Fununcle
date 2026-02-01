@@ -344,16 +344,7 @@ export const ShapeGame: React.FC = () => {
                 </div>
             </div>
 
-            {/* Header / UI */}
-            <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-50 pointer-events-none">
-                <Link to="/" className="pointer-events-auto text-white/50 hover:text-white transition-colors">
-                    <ArrowLeft size={32} />
-                </Link>
-                <div className="text-right">
-                    <h1 className="text-white font-bold text-2xl tracking-tighter">Perfect Circle</h1>
-                    {highScore > 0 && <p className="text-white/40 text-sm">Best: {highScore.toFixed(1)}%</p>}
-                </div>
-            </div>
+
 
             {/* SVG Layer */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none">

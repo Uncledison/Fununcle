@@ -206,7 +206,8 @@ export const ShapeGame: React.FC = () => {
         const timer3 = setTimeout(() => {
             setTutorialStep(3);
             setShowTutorial(false);
-        }, 4000); // Demo -> Done
+            localStorage.setItem('perfect-circle-tutorial-seen', 'true');
+        }, 5000); // Demo -> Done
 
         return () => {
             clearTimeout(timer1);
@@ -214,6 +215,14 @@ export const ShapeGame: React.FC = () => {
             clearTimeout(timer3);
         };
     }, [showTutorial]);
+
+    // Check if tutorial has been seen
+    useEffect(() => {
+        const seen = localStorage.getItem('perfect-circle-tutorial-seen');
+        if (seen === 'true') {
+            setShowTutorial(false);
+        }
+    }, []);
 
     const shareResult = async () => {
         if (!containerRef.current) return;

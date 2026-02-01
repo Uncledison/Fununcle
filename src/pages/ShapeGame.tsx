@@ -415,36 +415,31 @@ export const ShapeGame: React.FC = () => {
                 <p className="text-white text-2xl font-bold mb-8 text-center">
                     Trace the dots to draw a circle!
                 </p>
-                <div className="relative w-64 h-64">
-                    {Array.from({ length: 24 }).map((_, i) => {
-                        const angle = (i / 24) * 2 * Math.PI;
-                        const radius = 100;
-                        const dotSize = 12; // w-3 h-3 = 12px
-                        const centerOffset = 128; // Half of 256px (w-64 h-64)
-                        const x = Math.cos(angle) * radius + centerOffset - dotSize / 2;
-                        const y = Math.sin(angle) * radius + centerOffset - dotSize / 2;
-                        const hue = (i / 24) * 360;
-
-                        return (
-                            <motion.div
+                {/* Rotating Flower Center */}
+                <div className="relative flex items-center justify-center w-8 h-8">
+                    {/* Flower Petals Container - Rotating */}
+                    <motion.div
+                        className="relative w-full h-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    >
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div
                                 key={i}
-                                className="absolute w-3 h-3 rounded-full"
+                                className="absolute top-0 left-1/2 origin-bottom"
                                 style={{
-                                    left: `${x}px`,
-                                    top: `${y}px`,
-                                    backgroundColor: `hsl(${hue}, 100%, 60%)`,
-                                    boxShadow: `0 0 10px hsl(${hue}, 100%, 60%)`
-                                }}
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{
-                                    delay: i * 0.08,
-                                    duration: 0.3,
-                                    ease: "easeOut"
+                                    transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                                    height: '50%', // Half of container height
+                                    width: '30%',
+                                    backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
+                                    borderRadius: '50% 50% 0 0',
+                                    mixBlendMode: 'screen',
                                 }}
                             />
-                        );
-                    })}
+                        ))}
+                        {/* Center Core */}
+                        <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
+                    </motion.div>
                 </div>
             </motion.div>
         )}

@@ -327,101 +327,13 @@ export const ShapeGame: React.FC = () => {
 
             {/* Background Details */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            }}
-                transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                    delay: (i * 0.2) + 1
-                }}
-                        />
-                    ))}
-            </div>
-        </div>
-
-
-
-            {/* SVG Layer */ }
-    <svg className="absolute inset-0 w-full h-full pointer-events-none">
-        <defs>
-            <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ff0000" />
-                <stop offset="20%" stopColor="#ffff00" />
-                <stop offset="40%" stopColor="#00ff00" />
-                <stop offset="60%" stopColor="#00ffff" />
-                <stop offset="80%" stopColor="#0000ff" />
-                <stop offset="100%" stopColor="#ff00ff" />
-            </linearGradient>
-        </defs>
-
-        {/* Drawn Path */}
-        <path
-            d={pathData}
-            fill="none"
-            stroke="url(#rainbow)"
-            strokeWidth={score !== null || isDrawing ? 6 : 4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{
-                filter: score !== null ? 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'none',
-                transition: 'stroke 0.3s'
-            }}
-        />
-    </svg>
-
-    {/* Score Overlay */ }
-    <AnimatePresence>
-        {/* Show if Score exists (Live or Final) */}
-        {score !== null && (
-            <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-40"
-            >
-                {/* Score Count-up */}
-                <motion.div
-                    className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-2xl"
-                    initial={{ y: 20 }}
-                    animate={{ y: 0 }}
-                >
-                    {score.toFixed(1)}%
-                </motion.div>
-
-                {/* Feedback Text - Only show when NOT drawing (finished) */}
-                {!isDrawing && (
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-white/80 text-xl font-medium mt-4 tracking-wide"
-                    >
-                        {feedback}
-                    </motion.p>
-                )}
-            </motion.div>
-        )}
-    </AnimatePresence>
-
-    {/* Tutorial Overlay - Sequential Dots */ }
-    <AnimatePresence>
-        {showTutorial && tutorialStep === 2 && (
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 pointer-events-none"
-            >
-                <p className="text-white text-2xl font-bold mb-8 text-center">
-                    Trace the dots to draw a circle!
-                </p>
                 {/* Rotating Flower Center */}
                 <div className="relative flex items-center justify-center w-8 h-8">
                     {/* Flower Petals Container - Rotating */}
                     <motion.div
                         className="relative w-full h-full"
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                     >
                         {Array.from({ length: 12 }).map((_, i) => (
                             <div
@@ -429,7 +341,7 @@ export const ShapeGame: React.FC = () => {
                                 className="absolute top-0 left-1/2 origin-bottom"
                                 style={{
                                     transform: `translateX(-50%) rotate(${i * 30}deg)`,
-                                    height: '50%', // Half of container height
+                                    height: '50%',
                                     width: '30%',
                                     backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
                                     borderRadius: '50% 50% 0 0',
@@ -441,45 +353,149 @@ export const ShapeGame: React.FC = () => {
                         <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
                     </motion.div>
                 </div>
-            </motion.div>
-        )}
-    </AnimatePresence>
+            </div>
 
-    {/* Action Buttons (Only show when finished) */ }
-    <AnimatePresence>
-        {!isDrawing && score !== null && (
-            <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-50 pointer-events-auto px-4"
-            >
-                <button
-                    onClick={resetGame}
-                    className="flex items-center justify-center w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all border border-white/20"
-                    aria-label="Try Again"
-                >
-                    <RefreshCw size={24} />
-                </button>
 
-                <button
-                    onClick={shareKakao}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#FEE500]/90 hover:bg-[#FEE500] backdrop-blur-md rounded-full text-[#3C1E1E] font-bold transition-all shadow-lg border border-[#FEE500]/50"
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
-                    </svg>
-                    Share
-                </button>
 
-                <button
-                    onClick={shareResult}
-                    className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
-                >
-                    <Download size={20} /> Save
-                </button>
-            </motion.div>
-        )}
-    </AnimatePresence>
+            {/* SVG Layer */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <defs>
+                    <linearGradient id="rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#ff0000" />
+                        <stop offset="20%" stopColor="#ffff00" />
+                        <stop offset="40%" stopColor="#00ff00" />
+                        <stop offset="60%" stopColor="#00ffff" />
+                        <stop offset="80%" stopColor="#0000ff" />
+                        <stop offset="100%" stopColor="#ff00ff" />
+                    </linearGradient>
+                </defs>
+
+                {/* Drawn Path */}
+                <path
+                    d={pathData}
+                    fill="none"
+                    stroke="url(#rainbow)"
+                    strokeWidth={score !== null || isDrawing ? 6 : 4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                        filter: score !== null ? 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'none',
+                        transition: 'stroke 0.3s'
+                    }}
+                />
+            </svg>
+
+            {/* Score Overlay */}
+            <AnimatePresence>
+                {/* Show if Score exists (Live or Final) */}
+                {score !== null && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-40"
+                    >
+                        {/* Score Count-up */}
+                        <motion.div
+                            className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-2xl"
+                            initial={{ y: 20 }}
+                            animate={{ y: 0 }}
+                        >
+                            {score.toFixed(1)}%
+                        </motion.div>
+
+                        {/* Feedback Text - Only show when NOT drawing (finished) */}
+                        {!isDrawing && (
+                            <motion.p
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                                className="text-white/80 text-xl font-medium mt-4 tracking-wide"
+                            >
+                                {feedback}
+                            </motion.p>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Tutorial Overlay - Sequential Dots */}
+            <AnimatePresence>
+                {showTutorial && tutorialStep === 2 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm z-50 pointer-events-none"
+                    >
+                        <p className="text-white text-2xl font-bold mb-8 text-center">
+                            Trace the dots to draw a circle!
+                        </p>
+                        {/* Rotating Flower Center */}
+                        <div className="relative flex items-center justify-center w-8 h-8">
+                            {/* Flower Petals Container - Rotating */}
+                            <motion.div
+                                className="relative w-full h-full"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            >
+                                {Array.from({ length: 12 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="absolute top-0 left-1/2 origin-bottom"
+                                        style={{
+                                            transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                                            height: '50%', // Half of container height
+                                            width: '30%',
+                                            backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
+                                            borderRadius: '50% 50% 0 0',
+                                            mixBlendMode: 'screen',
+                                        }}
+                                    />
+                                ))}
+                                {/* Center Core */}
+                                <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Action Buttons (Only show when finished) */}
+            <AnimatePresence>
+                {!isDrawing && score !== null && (
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-50 pointer-events-auto px-4"
+                    >
+                        <button
+                            onClick={resetGame}
+                            className="flex items-center justify-center w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all border border-white/20"
+                            aria-label="Try Again"
+                        >
+                            <RefreshCw size={24} />
+                        </button>
+
+                        <button
+                            onClick={shareKakao}
+                            className="flex items-center gap-2 px-6 py-3 bg-[#FEE500]/90 hover:bg-[#FEE500] backdrop-blur-md rounded-full text-[#3C1E1E] font-bold transition-all shadow-lg border border-[#FEE500]/50"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+                            </svg>
+                            Share
+                        </button>
+
+                        <button
+                            onClick={shareResult}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
+                        >
+                            <Download size={20} /> Save
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 };

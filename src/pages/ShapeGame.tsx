@@ -49,9 +49,9 @@ const calculateCircleScore = (points: Point[]) => {
     const end = points[points.length - 1];
     const gap = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
 
-    // Gap penalty: Only if gap is significant (> 10% of radius)
-    // Relaxed penalty weight
-    const gapPenalty = Math.min(0.3, (gap / avgRadius) * 0.2);
+    // Gap penalty: Stronger penalty for larger gaps
+    // Max 40% penalty for very large gaps
+    const gapPenalty = Math.min(0.4, (gap / avgRadius) * 0.3);
 
     score -= gapPenalty;
 
@@ -126,8 +126,8 @@ export const ShapeGame: React.FC = () => {
             const end = points[points.length - 1];
             const dist = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
 
-            // Only finish if loop is reasonably closed (within 20px)
-            if (dist < 20) {
+            // Only finish if loop is reasonably closed (within 30px)
+            if (dist < 30) {
                 finishDrawing([...points, start]); // Close the loop
             } else {
                 // Too far apart - reset
@@ -259,14 +259,15 @@ export const ShapeGame: React.FC = () => {
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 {/* Target Guide (Pulse Effect) */}
                 <div className="relative">
-                    {/* Radial Rainbow Gradient Core */}
-                    <div
-                        className="w-6 h-6 rounded-full"
+                    {/* Rainbow Image Center */}
+                    <img
+                        src="/rainbow-center.png"
+                        alt="Rainbow center"
+                        className="w-8 h-8 rounded-full"
                         style={{
-                            background: 'radial-gradient(circle, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff)',
                             boxShadow: '0 0 20px rgba(255,255,255,0.5)'
                         }}
-                    ></div>
+                    />
                     {/* Pulsing Rings */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full animate-ping"></div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>
@@ -341,19 +342,7 @@ export const ShapeGame: React.FC = () => {
                             >
                                 {feedback}
                             </motion.p>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Action Buttons (Only show when finished) */}
-            <AnimatePresence>
-                {!isDrawing && score !== null && (
-                    <motion.div
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="absolute bottom-10 left-0 w-full flex justify-center gap-4 z-50 pointer-events-auto"
-                    >
+                            >
                         <button
                             onClick={resetGame}
                             className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all"

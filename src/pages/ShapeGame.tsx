@@ -311,12 +311,12 @@ export const ShapeGame: React.FC = () => {
         >
             {/* Header */}
             <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-10">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-[4px]">
                     <span className="text-white/90 text-lg font-bold tracking-wide">Fun</span>
                     <img
                         src="/rainbow-center.png"
                         alt="·"
-                        className="w-2 h-2 rounded-full opacity-80"
+                        className="w-1.5 h-1.5 rounded-full opacity-80 mt-1.5"
                     />
                     <span className="text-white/90 text-lg font-bold tracking-wide">Uncle</span>
                 </div>
@@ -327,20 +327,47 @@ export const ShapeGame: React.FC = () => {
 
             {/* Background Details */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                {/* Target Guide (Pulse Effect) */}
-                <div className="relative">
-                    {/* Rainbow Image Center */}
-                    <img
-                        src="/rainbow-center.png"
-                        alt="Rainbow center"
-                        className="w-8 h-8 rounded-full"
+                {/* Center Animation Container */}
+                <div className="relative flex items-center justify-center">
+                    {/* Fixed Center Core (20%) */}
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-tr from-blue-400 via-purple-400 to-red-400 z-10 shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+
+                    {/* Expanding Rainbow Ripple */}
+                    <motion.div
+                        className="absolute rounded-full"
                         style={{
-                            boxShadow: '0 0 20px rgba(255,255,255,0.5)'
+                            background: 'conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)',
+                        }}
+                        initial={{ width: '12px', height: '12px', opacity: 0.8 }}
+                        animate={{
+                            width: ['12px', '100px'],
+                            height: ['12px', '100px'],
+                            opacity: [0.8, 0]
+                        }}
+                        transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            ease: "easeOut"
                         }}
                     />
-                    {/* Pulsing Rings */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 rounded-full animate-ping"></div>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 rounded-full animate-pulse"></div>
+                    <motion.div
+                        className="absolute rounded-full"
+                        style={{
+                            background: 'conic-gradient(from 180deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)',
+                        }}
+                        initial={{ width: '12px', height: '12px', opacity: 0.6 }}
+                        animate={{
+                            width: ['12px', '80px'],
+                            height: ['12px', '80px'],
+                            opacity: [0.6, 0]
+                        }}
+                        transition={{
+                            duration: 1.5,
+                            delay: 0.5,
+                            repeat: Infinity,
+                            ease: "easeOut"
+                        }}
+                    />
                 </div>
             </div>
 

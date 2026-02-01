@@ -106,8 +106,8 @@ export const ShapeGame: React.FC = () => {
                 const current = newPoints[newPoints.length - 1];
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
 
-                // If very close to start (10px), auto-finish
-                if (dist < 10) {
+                // If very close to start (8px), auto-finish
+                if (dist < 8) {
                     setIsDrawing(false);
                     finishDrawing([...newPoints, start]); // Close the loop visually
                 }

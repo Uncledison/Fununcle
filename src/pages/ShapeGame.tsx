@@ -461,6 +461,7 @@ export const ShapeGame: React.FC = () => {
                         </div>
 
                         {/* Staggered Text Reveal */}
+                        {/* Staggered Text Reveal */}
                         <motion.div
                             className="flex overflow-hidden mb-12"
                             initial="hidden"
@@ -476,10 +477,10 @@ export const ShapeGame: React.FC = () => {
                                 }
                             }}
                         >
-                            {"완전히 동그란 원을 그릴 수 있어?".split("").map((char, index) => (
+                            {"동그라미 그려봐!".split("").map((char, index) => (
                                 <motion.span
                                     key={index}
-                                    className="text-white text-2xl font-bold drop-shadow-md mx-[1px]"
+                                    className="text-white text-5xl font-black drop-shadow-md mx-[2px]"
                                     variants={{
                                         hidden: { opacity: 0, y: 15 },
                                         visible: { opacity: 1, y: 0 }
@@ -493,20 +494,24 @@ export const ShapeGame: React.FC = () => {
                         {/* Circular Rainbow Start Button */}
                         <motion.button
                             onClick={() => setGameStarted(true)}
-                            className="relative group w-24 h-24 rounded-full flex items-center justify-center -mt-4"
+                            className="relative group w-32 h-32 rounded-full flex items-center justify-center -mt-4"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 2, type: "spring", stiffness: 200 }}
                         >
-                            {/* Gradient Background */}
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_30px_rgba(168,85,247,0.6)]" />
+                            {/* Radial/Conic Rainbow Background */}
+                            <div
+                                className="absolute inset-0 rounded-full animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_40px_rgba(255,255,255,0.4)]"
+                                style={{
+                                    background: 'conic-gradient(from 180deg at 50% 50%, #FF0000 0deg, #FF8A00 51.43deg, #FFE600 102.86deg, #14FF00 154.29deg, #00A3FF 205.71deg, #9E00FF 257.14deg, #FF0000 360deg)'
+                                }}
+                            />
 
-                            {/* Inner White Circle (Optional, user asked for circular gradient button. Let's keep it full gradient with text) */}
-                            {/* Actually user said "round gradient button" - usually implies filled. */}
+                            {/* Inner White Circle removed per request for full gradient button, but maybe a slight overlay for depth? User said "Radial Rainbow" for button color. keeping it simple. */}
 
-                            <span className="relative text-white font-bold text-xl tracking-wider drop-shadow-lg z-10">
+                            <span className="relative text-black font-black text-4xl tracking-widest drop-shadow-sm z-10">
                                 GO
                             </span>
                         </motion.button>

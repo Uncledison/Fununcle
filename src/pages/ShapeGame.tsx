@@ -207,36 +207,49 @@ export const ShapeGame: React.FC = () => {
     // New "Start Flow" logic: No specialized tutorial logic needed anymore
     // as it's handled by 'gameStarted' state and the conditional rendering in JSX.
 
-    const shareKakao = () => {
-        if (!(window as any).Kakao) {
-            alert('카카오톡 공유 기능을 사용할 수 없습니다.');
-            return;
+    const handleShare = async () => {
+        const shareData = {
+            title: 'Circle',
+            text: `내 원은 ${score?.toFixed(1)}% 완전히 원이야. 내 기록 깰 수 있어?`,
+            url: 'https://fununcle.vercel.app/shape'
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.log('Share canceled');
+            }
+        } else {
+            // Fallback
+            try {
+                await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+                alert('결과가 복사되었습니다!');
+            } catch (err) {
+                console.error('Clipboard failed', err);
+            }
         }
-        (window as any).Kakao.Share.sendDefault({
-            objectType: 'feed',
-            content: {
-                title: 'Perfect Circle Challenge',
-                description: `I scored ${score?.toFixed(1)}% on the Perfect Circle game! Can you beat my score?`,
-                imageUrl: 'https://fununcle.vercel.app/rainbow-center.png',
-                link: {
-                    mobileWebUrl: 'https://fununcle.vercel.app/shape-game',
-                    webUrl: 'https://fununcle.vercel.app/shape-game',
-                },
-            },
-        });
     };
 
-    const shareResult = async () => {
+    const handleSaveImage = async () => {
         if (!containerRef.current) return;
         try {
-            const canvas = await html2canvas(containerRef.current);
+            // Wait a moment for any UI updates
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const canvas = await html2canvas(containerRef.current, {
+                useCORS: true,
+                scale: 2, // Higher quality
+                backgroundColor: null
+            });
+
             const image = canvas.toDataURL("image/png");
             const link = document.createElement('a');
             link.href = image;
-            link.download = `perfect-circle-${score?.toFixed(1)}.png`;
+            link.download = `circle-score-${score?.toFixed(1)}.png`;
             link.click();
         } catch (err) {
-            console.error("Share failed", err);
+            console.error("Save failed", err);
         }
     };
 
@@ -547,7 +560,7 @@ export const ShapeGame: React.FC = () => {
                         </button>
 
                         <button
-                            onClick={shareKakao}
+                            onClick={handleShare}
                             className="flex items-center gap-2 px-6 py-3 bg-[#FEE500]/90 hover:bg-[#FEE500] backdrop-blur-md rounded-full text-[#3C1E1E] font-bold transition-all shadow-lg border border-[#FEE500]/50"
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -557,7 +570,7 @@ export const ShapeGame: React.FC = () => {
                         </button>
 
                         <button
-                            onClick={shareResult}
+                            onClick={handleSaveImage}
                             className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
                         >
                             <Download size={20} /> Save

@@ -60,7 +60,10 @@ const calculateCircleScore = (points: Point[]) => {
     return Math.max(0, Math.min(100, score * 100));
 };
 
+import { useNavigate } from 'react-router-dom';
+
 export const ShapeGame: React.FC = () => {
+    const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
     const [points, setPoints] = useState<Point[]>([]);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -265,16 +268,33 @@ export const ShapeGame: React.FC = () => {
             onPointerUp={handleEnd}
         >
             {/* Header */}
-            <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-10">
-                <div className="flex items-center gap-[4px]">
-                    <span className="text-white/90 text-lg font-bold tracking-wide">Fun</span>
+            <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-50 pointer-events-none">
+                <motion.div
+                    className="flex items-center gap-[4px] pointer-events-auto cursor-pointer"
+                    onClick={() => navigate('/')}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    <motion.span
+                        className="text-white/90 text-lg font-bold tracking-wide"
+                        whileHover={{ y: -3, rotate: -5 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                        Fun
+                    </motion.span>
                     <img
                         src="/rainbow-center.png"
                         alt="·"
                         className="w-1.5 h-1.5 rounded-full opacity-80 mt-1.5"
                     />
-                    <span className="text-white/90 text-lg font-bold tracking-wide">Uncle</span>
-                </div>
+                    <motion.span
+                        className="text-white/90 text-lg font-bold tracking-wide"
+                        whileHover={{ y: -3, rotate: 5 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                        Uncle
+                    </motion.span>
+                </motion.div>
                 <div className="text-white/80 text-sm font-medium">
                     Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
                 </div>

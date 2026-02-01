@@ -69,10 +69,6 @@ export const ShapeGame: React.FC = () => {
     const [feedback, setFeedback] = useState("");
     const [gameStarted, setGameStarted] = useState(false);
 
-    // Dimensions
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const targetRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
 
     // Marimba sound - Disabled
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -313,20 +309,137 @@ export const ShapeGame: React.FC = () => {
                             {score.toFixed(1)}%
                         </motion.div>
 
-                        {/* Feedback Text - Only show when NOT drawing (finished) */}
+                        {/* Feedback - 10 Small Round Emojis */}
                         {!isDrawing && (
-                            <motion.p
+                            <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="text-white/80 text-xl font-medium mt-4 tracking-wide"
+                                className="flex gap-2 mt-4 flex-wrap justify-center px-4"
                             >
-                                {feedback}
-                            </motion.p>
+                                {['🥔', '🍎', '🍊', '🥯', '🍠', '🍪', '⚽', '🏀', '🌕', '🍅'].map((emoji, i) => (
+                                    <motion.span
+                                        key={i}
+                                        className="text-3xl select-none"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: i * 0.1, type: "spring" }}
+                                    >
+                                        {emoji}
+                                    </motion.span>
+                                ))}
+                            </motion.div>
                         )}
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Start Screen & Tutorial Overlay */}
+            <AnimatePresence>
+                {!gameStarted && (
+                    <motion.div
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-50 pointer-events-auto"
+                        exit={{ opacity: 0, transition: { duration: 1 } }}
+                    >
+                        {/* Circular Dot Guide - Shows once */}
+                        <div className="relative w-64 h-64 mb-12 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: [0, 1, 1, 0] }}
+                                transition={{ duration: 4, times: [0, 0.2, 0.8, 1], repeat: 0 }} // Play once
+                            >
+                                {Array.from({ length: 24 }).map((_, i) => {
+                                    const angle = (i / 24) * 2 * Math.PI;
+                                    const radius = 100;
+                                    const x = Math.cos(angle) * radius;
+                                    const y = Math.sin(angle) * radius;
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="absolute w-3 h-3 rounded-full"
+                                            style={{
+                                                top: `calc(50% + ${y}px)`,
+                                                left: `calc(50% + ${x}px)`,
+                                                transform: 'translate(-50%, -50%)',
+                                                backgroundColor: `hsl(${i * 15}, 100%, 60%)`,
+                                                boxShadow: `0 0 5px hsl(${i * 15}, 100%, 60%)`
+                                            }}
+                                        />
+                                    )
+                                })}
+                            </motion.div>
+                        </div>
+
+                        <motion.p
+                            className="text-white text-2xl font-bold mb-8 drop-shadow-md"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            동그란 원을 그려 보세요!
+                        </motion.p>
+
+                        <motion.button
+                            onClick={() => setGameStarted(true)}
+                            className="px-8 py-3 bg-white text-black font-bold text-lg rounded-full shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:bg-gray-100 transition-all active:scale-95"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 1, type: "spring" }}
+                        >
+                            시작
+                        </motion.button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Interactive Center - Only visible after game starts */}
+            {gameStarted && !isDrawing && !score && (
+                <motion.div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.5, delay: 0.5 }} // Slow fade in
+                >
+                    {/* Rotating Flower Center with Interaction */}
+                    <motion.div
+                        className="relative flex items-center justify-center w-8 h-8 pointer-events-auto cursor-pointer"
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                        animate={{
+                            scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                        }}
+                    >
+                        {/* Flower Petals Container - Rotating */}
+                        <motion.div
+                            className="relative w-full h-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                        >
+                            {Array.from({ length: 12 }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute top-0 left-1/2 origin-bottom"
+                                    style={{
+                                        transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                                        height: '50%',
+                                        width: '30%',
+                                        backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
+                                        borderRadius: '50% 50% 0 0',
+                                        mixBlendMode: 'screen',
+                                    }}
+                                />
+                            ))}
+                            {/* Center Core */}
+                            <div className="absolute inset-0 m-auto w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] z-10" />
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
+            )}
 
             {/* Action Buttons (Only show when finished) */}
             <AnimatePresence>

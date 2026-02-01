@@ -66,7 +66,9 @@ export const ShapeGame: React.FC = () => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [score, setScore] = useState<number | null>(null);
     const [highScore, setHighScore] = useState<number>(0);
+    const [highScore, setHighScore] = useState<number>(0);
     const [gameStarted, setGameStarted] = useState(false);
+    const [resultEmoji, setResultEmoji] = useState<string>("");
 
 
     // Marimba sound - Disabled
@@ -167,18 +169,23 @@ export const ShapeGame: React.FC = () => {
             localStorage.setItem('perfect-circle-highscore', calculatedScore.toString());
         }
 
-        // Generate Feedback - Using Emojis as requested (Text is handled in render)
-        // We set feedback just to trigger the state change if needed, effectively "game over state"
-        // But the emoji rendering is static list, so we actually don't need 'feedback' string state for content anymore
-        // However, let's keep it if we want conditional rendering based on score brackets later.
-        // For now, request said "just show 10 small round emojis", so we might just toggle visibility.
-        // setFeedback("done"); // Removed unused feedback setter
+        // Generate Feedback - Single Random Emoji
+        const emojis = [
+            // Fruits/Veg
+            '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌽', '🥕',
+            // Food
+            '🥯', '🍞', '🥨', '🧀', '🥞', '🧇', '🍖', '🌭', '🍔', '🍟', '🍕', '🌮', '🌯', '🥚', '🥘', '🍲', '🍿', '🧈', '🧂', '🥫',
+            // Objects
+            '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🔮', '🧶', '🎈', '🧧', '🏮', '🪀', '💿', '📀', '🧭', '⏱️', '⏰'
+        ];
+        setResultEmoji(emojis[Math.floor(Math.random() * emojis.length)]);
     };
 
     const resetGame = () => {
         setPoints([]);
         setScore(null);
-        // setFeedback(""); // Removed unused feedback setter
+        setScore(null);
+        setResultEmoji("");
     };
 
     // --- Path Generation ---
@@ -317,17 +324,9 @@ export const ShapeGame: React.FC = () => {
                                 className="flex justify-center mt-6"
                             >
                                 <span className="text-6xl select-none filter drop-shadow-lg">
-                                    {useMemo(() => {
-                                        const emojis = [
-                                            // Fruits/Veg
-                                            '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌽', '🥕',
-                                            // Food
-                                            '🥯', '🍞', '🥨', '🧀', '🥞', '🧇', '🍖', '🌭', '🍔', '🍟', '🍕', '🌮', '🌯', '🥚', '🥘', '🍲', '🍿', '🧈', '🧂', '🥫',
-                                            // Objects
-                                            '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🔮', '🧶', '🎈', '🧧', '🏮', '🪀', '💿', '📀', '🧭', '⏱️', '⏰'
-                                        ];
-                                        return emojis[Math.floor(Math.random() * emojis.length)];
-                                    }, [])}
+                                    <span className="text-6xl select-none filter drop-shadow-lg">
+                                        {resultEmoji}
+                                    </span>
                                 </span>
                             </motion.div>
                         )}

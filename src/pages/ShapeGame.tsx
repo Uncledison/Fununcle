@@ -339,11 +339,12 @@ export const ShapeGame: React.FC = () => {
                 ctx.fillStyle = textGradient;
                 ctx.fillText(`${score.toFixed(1)}%`, width / 2, height / 2);
 
-                // 3. Emoji at bottom (above URL)
+                // 3. Emoji below score (Connected to content)
                 if (resultEmoji) {
                     ctx.font = '80px serif'; // Emoji font
                     ctx.textBaseline = 'ideographic'; // Better for emojis
-                    ctx.fillText(resultEmoji, width / 2, height - 100);
+                    // Center emoji just below score
+                    ctx.fillText(resultEmoji, width / 2, height / 2 + 120);
                 }
 
                 // 4. URL at very bottom

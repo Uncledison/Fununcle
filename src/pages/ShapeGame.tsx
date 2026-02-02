@@ -62,7 +62,7 @@ const calculateCircleScore = (points: Point[]) => {
 import { useNavigate } from 'react-router-dom';
 
 export const ShapeGame: React.FC = () => {
-    useFavicon('/rainbow-center.png');
+    useFavicon('/flower-logo.png');
     const navigate = useNavigate();
     const containerRef = useRef<HTMLDivElement>(null);
     const [points, setPoints] = useState<Point[]>([]);

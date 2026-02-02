@@ -4,7 +4,10 @@ import { HistoryGame } from './pages/HistoryGame';
 import { ShapeGame } from './pages/ShapeGame';
 import { CareerGame } from './pages/CareerGame';
 
+import { useCopyProtection } from './hooks/useCopyProtection';
+
 function App() {
+  useCopyProtection();
   return (
     <Router>
       <Routes>

@@ -75,7 +75,7 @@ export const Header: React.FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
                     >
-                        By Uncledison
+                        Play & Learn by Uncledison
                     </motion.div>
                 </div>
             </div>

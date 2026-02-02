@@ -472,26 +472,46 @@ export const ShapeGame: React.FC = () => {
                                 />
                             </motion.svg>
 
-                            {/* GO Button (Centered Inside Animation) */}
-                            <motion.button
+                            {/* Flower Center Button (Same as game center) */}
+                            <motion.div
                                 onClick={() => setGameStarted(true)}
-                                className="relative group w-24 h-24 rounded-full flex items-center justify-center z-10"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.95 }}
+                                className="relative flex items-center justify-center w-16 h-16 cursor-pointer z-10"
+                                whileHover={{ scale: 1.2 }}
+                                whileTap={{ scale: 0.9 }}
                                 initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 2, type: "spring", stiffness: 200 }}
+                                animate={{
+                                    scale: [1, 1.1, 1],
+                                    opacity: 1
+                                }}
+                                transition={{
+                                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                                    opacity: { delay: 1.5, duration: 0.5 }
+                                }}
                             >
-                                <div
-                                    className="absolute inset-0 rounded-full animate-spin-slow opacity-90 group-hover:opacity-100 shadow-[0_0_40px_rgba(255,255,255,0.4)]"
-                                    style={{
-                                        background: 'conic-gradient(from 180deg at 50% 50%, #FF0000 0deg, #FF8A00 51.43deg, #FFE600 102.86deg, #14FF00 154.29deg, #00A3FF 205.71deg, #9E00FF 257.14deg, #FF0000 360deg)'
-                                    }}
-                                />
-                                <span className="relative text-black font-black text-4xl tracking-widest drop-shadow-sm z-10">
-                                    GO
-                                </span>
-                            </motion.button>
+                                {/* Flower Petals Container - Rotating */}
+                                <motion.div
+                                    className="relative w-full h-full"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                >
+                                    {Array.from({ length: 12 }).map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className="absolute top-0 left-1/2 origin-bottom"
+                                            style={{
+                                                transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                                                height: '50%',
+                                                width: '30%',
+                                                backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.6)`,
+                                                borderRadius: '50% 50% 0 0',
+                                                mixBlendMode: 'screen',
+                                            }}
+                                        />
+                                    ))}
+                                    {/* Center Core */}
+                                    <div className="absolute inset-0 m-auto w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.9)] z-10" />
+                                </motion.div>
+                            </motion.div>
                         </div>
                     </motion.div>
                 )}

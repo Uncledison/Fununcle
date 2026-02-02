@@ -306,15 +306,15 @@ export const ShapeGame: React.FC = () => {
                     logoImg.onerror = resolve; // Continue even if logo fails
                 });
 
-                // Draw flower logo (small, centered)
-                const logoSize = 40;
-                ctx.drawImage(logoImg, width / 2 - 100, 50, logoSize, logoSize);
+                // Draw flower logo (larger, centered)
+                const logoSize = 80;
+                ctx.drawImage(logoImg, width / 2 - 140, 40, logoSize, logoSize);
 
                 // Draw "Fun.Uncle" text next to logo
-                ctx.font = 'bold 32px sans-serif';
+                ctx.font = 'bold 36px sans-serif';
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'left';
-                ctx.fillText('Fun.Uncle', width / 2 - 50, 80);
+                ctx.fillText('Fun.Uncle', width / 2 - 40, 95);
                 ctx.textAlign = 'center';
 
                 // 1. Description above score (smaller text)
@@ -480,6 +480,15 @@ export const ShapeGame: React.FC = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-40"
                     >
                         {/* Score Count-up */}
+                        {!isDrawing && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-white/70 text-lg sm:text-xl font-bold mb-2"
+                            >
+                                나의 동그라미 정확도
+                            </motion.div>
+                        )}
                         <motion.div
                             className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-2xl"
                             initial={{ y: 20 }}

@@ -102,9 +102,9 @@ export const BentoGrid: React.FC = () => {
         <div className="relative z-10 w-full min-h-screen px-4 pb-20 pt-10">
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                {/* 1. Career Compass (External Link) */}
+                {/* 1. Career Compass (Internal via iframe) */}
                 <BentoCard
-                    href="https://ai-careercompass.vercel.app/"
+                    href="/career"
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,

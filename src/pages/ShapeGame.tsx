@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Volume2, VolumeX } from 'lucide-react';
 import Lottie from 'lottie-react';
+import { useFavicon } from '../hooks/useFavicon';
 
 // --- Types ---
 interface Point {

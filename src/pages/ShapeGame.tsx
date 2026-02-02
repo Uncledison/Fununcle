@@ -246,7 +246,9 @@ export const ShapeGame: React.FC = () => {
         }
     };
 
-    const handleSaveImage = async () => {
+    const handleSaveImage = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling
+        e.preventDefault();
         if (!containerRef.current) return;
         try {
             // Wait a moment for any UI updates

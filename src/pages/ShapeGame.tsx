@@ -75,14 +75,6 @@ export const ShapeGame: React.FC = () => {
     const [fireworksData, setFireworksData] = useState<any>(null);
     const [showFireworks, setShowFireworks] = useState(false);
 
-    // Mouse hover sound effect (Mouse-over-01 or 02)
-    const playMouseOverSound = () => {
-        const soundNum = Math.floor(Math.random() * 2) + 1;
-        const audio = new Audio(`/sounds/Mouse-over-0${soundNum}.mp3`);
-        audio.volume = 0.4;
-        audio.play().catch(() => { });
-    };
-
     // Mouse click sound effect (Mouse-click-01 to 03)
     const playMouseClickSound = () => {
         const soundNum = Math.floor(Math.random() * 3) + 1;
@@ -532,7 +524,6 @@ export const ShapeGame: React.FC = () => {
                             {/* Flower Center Button with GO text */}
                             <motion.div
                                 onClick={() => { playMouseClickSound(); setGameStarted(true); }}
-                                onPointerEnter={() => playMouseOverSound()}
                                 className="relative flex items-center justify-center w-20 h-20 cursor-pointer z-10"
                                 whileHover={{ scale: 1.4 }}
                                 whileTap={{ scale: 0.9 }}

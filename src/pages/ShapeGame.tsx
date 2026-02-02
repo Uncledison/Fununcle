@@ -92,6 +92,14 @@ export const ShapeGame: React.FC = () => {
         oscillator.stop(audioContext.currentTime + 0.3);
     };
 
+    // Pop sound effect for click (random selection)
+    const playPopSound = () => {
+        const soundNum = Math.floor(Math.random() * 5) + 1;
+        const audio = new Audio(`/sounds/pop-0${soundNum}.mp3`);
+        audio.volume = 0.5;
+        audio.play().catch(() => { });
+    };
+
 
     // Marimba sound - Disabled
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -290,8 +298,8 @@ export const ShapeGame: React.FC = () => {
             {/* Header */}
             <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-50 pointer-events-none">
                 <motion.div
-                    className="flex items-center gap-[4px] pointer-events-auto cursor-pointer"
-                    onClick={() => navigate('/')}
+                    className="flex items-center gap-[1px] pointer-events-auto cursor-pointer"
+                    onClick={() => { playPopSound(); navigate('/'); }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -302,9 +310,9 @@ export const ShapeGame: React.FC = () => {
                     >
                         Fun
                     </motion.span>
-                    {/* Mini Flower Logo */}
+                    {/* Mini Flower Logo (40% smaller, positioned lower) */}
                     <motion.div
-                        className="relative w-4 h-4 mt-1"
+                        className="relative w-[6px] h-[6px] mt-2"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                     >
@@ -322,7 +330,7 @@ export const ShapeGame: React.FC = () => {
                                 }}
                             />
                         ))}
-                        <div className="absolute inset-0 m-auto w-1 h-1 bg-white rounded-full shadow-[0_0_3px_rgba(255,255,255,0.8)] z-10" />
+                        <div className="absolute inset-0 m-auto w-[2px] h-[2px] bg-white rounded-full shadow-[0_0_2px_rgba(255,255,255,0.8)] z-10" />
                     </motion.div>
                     <motion.span
                         className="text-white/90 text-lg font-bold tracking-wide"

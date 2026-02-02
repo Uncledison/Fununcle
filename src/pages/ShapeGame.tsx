@@ -72,6 +72,26 @@ export const ShapeGame: React.FC = () => {
     const [gameStarted, setGameStarted] = useState(false);
     const [resultEmoji, setResultEmoji] = useState<string>("");
 
+    // Ding sound effect for hover
+    const playDingSound = () => {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5 note (띵~)
+        oscillator.frequency.exponentialRampToValueAtTime(1760, audioContext.currentTime + 0.1); // Slide up
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+    };
+
 
     // Marimba sound - Disabled
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -282,11 +302,28 @@ export const ShapeGame: React.FC = () => {
                     >
                         Fun
                     </motion.span>
-                    <img
-                        src="/rainbow-center.png"
-                        alt="·"
-                        className="w-1.5 h-1.5 rounded-full opacity-80 mt-1.5"
-                    />
+                    {/* Mini Flower Logo */}
+                    <motion.div
+                        className="relative w-4 h-4 mt-1"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    >
+                        {Array.from({ length: 12 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="absolute top-0 left-1/2 origin-bottom"
+                                style={{
+                                    transform: `translateX(-50%) rotate(${i * 30}deg)`,
+                                    height: '50%',
+                                    width: '30%',
+                                    backgroundColor: `hsla(${i * 30}, 100%, 65%, 0.7)`,
+                                    borderRadius: '50% 50% 0 0',
+                                    mixBlendMode: 'screen',
+                                }}
+                            />
+                        ))}
+                        <div className="absolute inset-0 m-auto w-1 h-1 bg-white rounded-full shadow-[0_0_3px_rgba(255,255,255,0.8)] z-10" />
+                    </motion.div>
                     <motion.span
                         className="text-white/90 text-lg font-bold tracking-wide"
                         whileHover={{ y: -3, rotate: 5 }}
@@ -472,11 +509,12 @@ export const ShapeGame: React.FC = () => {
                                 />
                             </motion.svg>
 
-                            {/* Flower Center Button (Same as game center) */}
+                            {/* Flower Center Button with GO text */}
                             <motion.div
                                 onClick={() => setGameStarted(true)}
-                                className="relative flex items-center justify-center w-16 h-16 cursor-pointer z-10"
-                                whileHover={{ scale: 1.2 }}
+                                onMouseEnter={playDingSound}
+                                className="relative flex items-center justify-center w-20 h-20 cursor-pointer z-10"
+                                whileHover={{ scale: 1.4 }}
                                 whileTap={{ scale: 0.9 }}
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{
@@ -490,7 +528,7 @@ export const ShapeGame: React.FC = () => {
                             >
                                 {/* Flower Petals Container - Rotating */}
                                 <motion.div
-                                    className="relative w-full h-full"
+                                    className="absolute inset-0"
                                     animate={{ rotate: 360 }}
                                     transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                                 >
@@ -508,9 +546,11 @@ export const ShapeGame: React.FC = () => {
                                             }}
                                         />
                                     ))}
-                                    {/* Center Core */}
-                                    <div className="absolute inset-0 m-auto w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.9)] z-10" />
                                 </motion.div>
+                                {/* GO Text Overlay */}
+                                <span className="relative text-black font-black text-2xl tracking-wider drop-shadow-sm z-20">
+                                    GO
+                                </span>
                             </motion.div>
                         </div>
                     </motion.div>

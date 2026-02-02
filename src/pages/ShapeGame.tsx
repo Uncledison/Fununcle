@@ -83,10 +83,10 @@ export const ShapeGame: React.FC = () => {
         audio.play().catch(() => { });
     };
 
-    // Success sound effect (fanfare-01 to 05)
+    // Success sound effect (clap-01 to 05)
     const playSuccessSound = () => {
         const soundNum = Math.floor(Math.random() * 5) + 1;
-        const audio = new Audio(`/sounds/fanfare-0${soundNum}.mp3`);
+        const audio = new Audio(`/sounds/clap-0${soundNum}.wav`);
         audio.volume = 0.6;
         audio.play().catch(() => { });
     };
@@ -153,20 +153,10 @@ export const ShapeGame: React.FC = () => {
         if (!isDrawing) return;
         setIsDrawing(false);
 
-        // Check if the circle is closed when user releases
-        if (points.length > 80) {
-            const start = points[0];
-            const end = points[points.length - 1];
-            const dist = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
-
-            // Only finish if loop is reasonably closed (within 30px)
-            if (dist < 30) {
-                finishDrawing([...points, start]); // Close the loop
-            } else {
-                // Too far apart - reset
-                setPoints([]);
-                setScore(null);
-            }
+        // Allow scoring for any drawn shape with enough points
+        // No longer requires start/end to meet - alpha shapes are OK
+        if (points.length > 50) {
+            finishDrawing(points);
         } else {
             // Too short - reset
             setPoints([]);

@@ -294,19 +294,28 @@ export const ShapeGame: React.FC = () => {
                 }
             }
 
-            // Draw score text
+            // Draw texts
             if (score !== null) {
-                ctx.font = 'bold 80px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
 
-                // Create gradient for text
+                // 1. Description above score (smaller text)
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillText('나의 동그라미 정확도', width / 2, height / 2 - 60);
+
+                // 2. Score (large gradient text)
+                ctx.font = 'bold 80px sans-serif';
+                ctx.textBaseline = 'middle';
                 const textGradient = ctx.createLinearGradient(width / 2 - 100, height / 2, width / 2 + 100, height / 2);
                 textGradient.addColorStop(0, '#60a5fa'); // blue-400
                 textGradient.addColorStop(1, '#a855f7'); // purple-500
-
                 ctx.fillStyle = textGradient;
                 ctx.fillText(`${score.toFixed(1)}%`, width / 2, height / 2);
+
+                // 3. URL at bottom
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fillText('fun.uncledison.com', width / 2, height - 40);
             }
 
             // Download

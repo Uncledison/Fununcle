@@ -300,7 +300,7 @@ export const ShapeGame: React.FC = () => {
 
                 // 0. Load and draw flower logo + Fun.Uncle at top
                 const logoImg = new Image();
-                logoImg.src = '/rainbow-center.png';
+                logoImg.src = '/flower-logo.png';
                 await new Promise((resolve) => {
                     logoImg.onload = resolve;
                     logoImg.onerror = resolve; // Continue even if logo fails

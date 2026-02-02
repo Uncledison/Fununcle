@@ -532,7 +532,7 @@ export const ShapeGame: React.FC = () => {
                             {/* Flower Center Button with GO text */}
                             <motion.div
                                 onClick={() => { playMouseClickSound(); setGameStarted(true); }}
-                                onMouseEnter={playMouseOverSound}
+                                onPointerEnter={() => playMouseOverSound()}
                                 className="relative flex items-center justify-center w-20 h-20 cursor-pointer z-10"
                                 whileHover={{ scale: 1.4 }}
                                 whileTap={{ scale: 0.9 }}

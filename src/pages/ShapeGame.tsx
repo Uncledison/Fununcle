@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download } from 'lucide-react';
 import * as d3Shape from 'd3-shape';
 import html2canvas from 'html2canvas';
+import Lottie from 'lottie-react';
 
 // --- Types ---
 interface Point {
@@ -71,6 +72,8 @@ export const ShapeGame: React.FC = () => {
     const [highScore, setHighScore] = useState<number>(0);
     const [gameStarted, setGameStarted] = useState(false);
     const [resultEmoji, setResultEmoji] = useState<string>("");
+    const [fireworksData, setFireworksData] = useState<any>(null);
+    const [showFireworks, setShowFireworks] = useState(false);
 
     // Ding sound effect for hover
     const playDingSound = () => {
@@ -209,6 +212,18 @@ export const ShapeGame: React.FC = () => {
             '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🔮', '🧶', '🎈', '🧧', '🏮', '🪀', '💿', '📀', '🧭', '⏱️', '⏰'
         ];
         setResultEmoji(emojis[Math.floor(Math.random() * emojis.length)]);
+
+        // Trigger Fireworks
+        const fireworkNum = Math.floor(Math.random() * 5) + 1;
+        fetch(`/lottie/Fireworks-0${fireworkNum}.json`)
+            .then(res => res.json())
+            .then(data => {
+                setFireworksData(data);
+                setShowFireworks(true);
+                // Auto-hide after 3 seconds
+                setTimeout(() => setShowFireworks(false), 3000);
+            })
+            .catch(err => console.error('Failed to load fireworks', err));
     };
 
     const resetGame = () => {
@@ -646,6 +661,24 @@ export const ShapeGame: React.FC = () => {
                         >
                             <Download size={20} /> Save
                         </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Fireworks Animation Overlay */}
+            <AnimatePresence>
+                {showFireworks && fireworksData && (
+                    <motion.div
+                        className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <Lottie
+                            animationData={fireworksData}
+                            loop={false}
+                            className="w-full h-full absolute inset-0"
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

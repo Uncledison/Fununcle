@@ -307,11 +307,11 @@ export const ShapeGame: React.FC = () => {
                 });
 
                 // Draw header (Logo + Text centered)
-                const logoSize = 80;
+                const logoSize = 60;
                 ctx.font = 'bold 40px sans-serif';
                 const textMetrics = ctx.measureText('Fun.Uncle');
                 const textWidth = textMetrics.width;
-                const gap = 20;
+                const gap = 12;
                 const totalHeaderWidth = logoSize + gap + textWidth;
 
                 const startX = (width - totalHeaderWidth) / 2;
@@ -322,7 +322,7 @@ export const ShapeGame: React.FC = () => {
                 // Draw text
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'left';
-                ctx.fillText('Fun.Uncle', startX + logoSize + gap, 95);
+                ctx.fillText('Fun.Uncle', startX + logoSize + gap, 85);
                 ctx.textAlign = 'center';
 
                 // 1. Description above score (smaller text)

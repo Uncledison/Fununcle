@@ -224,29 +224,7 @@ export const ShapeGame: React.FC = () => {
     // New "Start Flow" logic: No specialized tutorial logic needed anymore
     // as it's handled by 'gameStarted' state and the conditional rendering in JSX.
 
-    const handleShare = async () => {
-        const shareData = {
-            title: 'Circle',
-            text: `내 원은 ${score?.toFixed(1)}% 완전히 원이야. 내 기록 깰 수 있어?`,
-            url: 'https://fununcle.vercel.app/shape'
-        };
 
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.log('Share canceled');
-            }
-        } else {
-            // Fallback
-            try {
-                await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-                alert('결과가 복사되었습니다!');
-            } catch (err) {
-                console.error('Clipboard failed', err);
-            }
-        }
-    };
 
     const handleSaveImage = async (e: React.MouseEvent) => {
         e.stopPropagation();

@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Volume2, VolumeX } from 'lucide-react';
-import html2canvas from 'html2canvas';
 import Lottie from 'lottie-react';
 
 // --- Types ---
@@ -247,33 +246,77 @@ export const ShapeGame: React.FC = () => {
     };
 
     const handleSaveImage = async (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation();
         e.preventDefault();
-        if (!containerRef.current) return;
+
         try {
-            // Wait a moment for any UI updates
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Create a canvas manually
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
 
-            const canvas = await html2canvas(containerRef.current, {
-                useCORS: true,
-                scale: 2, // Higher quality
-                backgroundColor: '#000000', // Use explicit black background to avoid oklab
-                removeContainer: true,
-                onclone: (clonedDoc) => {
-                    // Remove any elements with problematic CSS color functions
-                    const style = clonedDoc.createElement('style');
-                    style.textContent = '* { color-scheme: normal !important; }';
-                    clonedDoc.head.appendChild(style);
+            // Set canvas size (use window dimensions)
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            canvas.width = width * 2; // 2x for retina
+            canvas.height = height * 2;
+            ctx.scale(2, 2);
+
+            // Draw background (radial gradient)
+            const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height));
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw the circle path with variable thickness
+            if (points.length > 1) {
+                for (let i = 1; i < points.length; i++) {
+                    const prev = points[i - 1];
+                    const point = points[i];
+
+                    // Calculate stroke width (calligraphy effect)
+                    const progress = i / points.length;
+                    const baseWidth = 8;
+                    const widthMultiplier = 0.4 + 0.6 * Math.sin(progress * Math.PI);
+                    const strokeWidth = Math.max(2, baseWidth * widthMultiplier);
+
+                    // Rainbow color
+                    const hue = (progress * 360) % 360;
+
+                    ctx.beginPath();
+                    ctx.moveTo(prev.x, prev.y);
+                    ctx.lineTo(point.x, point.y);
+                    ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+                    ctx.lineWidth = strokeWidth;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
                 }
-            });
+            }
 
-            const image = canvas.toDataURL("image/png");
+            // Draw score text
+            if (score !== null) {
+                ctx.font = 'bold 80px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Create gradient for text
+                const textGradient = ctx.createLinearGradient(width / 2 - 100, height / 2, width / 2 + 100, height / 2);
+                textGradient.addColorStop(0, '#60a5fa'); // blue-400
+                textGradient.addColorStop(1, '#a855f7'); // purple-500
+
+                ctx.fillStyle = textGradient;
+                ctx.fillText(`${score.toFixed(1)}%`, width / 2, height / 2);
+            }
+
+            // Download
+            const image = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = image;
-            link.download = `circle-score-${score?.toFixed(1)}.png`;
+            link.download = `circle-score-${score?.toFixed(1) || '0'}.png`;
             link.click();
         } catch (err) {
-            console.error("Save failed", err);
+            console.error('Save failed', err);
         }
     };
 

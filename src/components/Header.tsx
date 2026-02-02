@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { InteractiveMascot } from './InteractiveMascot';
 export const Header: React.FC = () => {
     const [isBouncing, setIsBouncing] = useState(false);
-    const navigate = useNavigate();
 
     const triggerBounce = () => {
         if (!isBouncing) {
             setIsBouncing(true);
         }
-        navigate('/');
+        window.location.href = 'https://fun.uncledison.com/';
     };
 
     return (

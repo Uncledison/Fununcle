@@ -1,7 +1,6 @@
-import React, { useRef, useState, useMemo, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Volume2, VolumeX } from 'lucide-react';
-import * as d3Shape from 'd3-shape';
 import html2canvas from 'html2canvas';
 import Lottie from 'lottie-react';
 
@@ -212,16 +211,6 @@ export const ShapeGame: React.FC = () => {
         setScore(null);
         setResultEmoji("");
     };
-
-    // --- Path Generation ---
-    const pathData = useMemo(() => {
-        if (points.length < 2) return "";
-        const line = d3Shape.line<Point>()
-            .x((d: Point) => d.x)
-            .y((d: Point) => d.y)
-            .curve(d3Shape.curveBasis); // Smoothing!
-        return line(points) || "";
-    }, [points]);
 
 
     // Load highscore

@@ -306,35 +306,53 @@ export const ShapeGame: React.FC = () => {
                     logoImg.onerror = resolve; // Continue even if logo fails
                 });
 
-                // Draw flower logo (larger, centered)
+                // Draw header (Logo + Text centered)
                 const logoSize = 80;
-                ctx.drawImage(logoImg, width / 2 - 140, 40, logoSize, logoSize);
+                ctx.font = 'bold 40px sans-serif';
+                const textMetrics = ctx.measureText('Fun.Uncle');
+                const textWidth = textMetrics.width;
+                const gap = 20;
+                const totalHeaderWidth = logoSize + gap + textWidth;
 
-                // Draw "Fun.Uncle" text next to logo
-                ctx.font = 'bold 36px sans-serif';
+                const startX = (width - totalHeaderWidth) / 2;
+
+                // Draw logo
+                ctx.drawImage(logoImg, startX, 40, logoSize, logoSize);
+
+                // Draw text
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'left';
-                ctx.fillText('Fun.Uncle', width / 2 - 40, 95);
+                ctx.fillText('Fun.Uncle', startX + logoSize + gap, 95);
                 ctx.textAlign = 'center';
 
                 // 1. Description above score (smaller text)
                 ctx.font = 'bold 24px sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-                ctx.fillText('나의 동그라미 정확도', width / 2, height / 2 - 60);
+                ctx.fillText('나의 동그라미 정확도', width / 2, height / 2 - 80);
 
                 // 2. Score (large gradient text)
-                ctx.font = 'bold 80px sans-serif';
+                ctx.font = 'bold 100px sans-serif';
                 ctx.textBaseline = 'middle';
-                const textGradient = ctx.createLinearGradient(width / 2 - 100, height / 2, width / 2 + 100, height / 2);
+                const textGradient = ctx.createLinearGradient(width / 2 - 150, height / 2, width / 2 + 150, height / 2);
                 textGradient.addColorStop(0, '#60a5fa'); // blue-400
                 textGradient.addColorStop(1, '#a855f7'); // purple-500
                 ctx.fillStyle = textGradient;
                 ctx.fillText(`${score.toFixed(1)}%`, width / 2, height / 2);
 
-                // 3. URL at bottom
-                ctx.font = 'bold 20px sans-serif';
+                // 3. Emoji at bottom (above URL)
+                if (resultEmoji) {
+                    ctx.font = '80px serif'; // Emoji font
+                    ctx.textBaseline = 'ideographic'; // Better for emojis
+                    ctx.fillText(resultEmoji, width / 2, height - 100);
+                }
+
+                // 4. URL at very bottom
+                ctx.font = 'bold 24px sans-serif';
+                ctx.textBaseline = 'alphabetic';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 ctx.fillText('fun.uncledison.com', width / 2, height - 40);
+
+
             }
 
             // Download

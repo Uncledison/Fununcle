@@ -759,75 +759,72 @@ export const ShapeGame: React.FC = () => {
                             <RefreshCw size={24} />
                         </button>
 
-                        Share
-                    </button>
-
                         {/* Kakao Share Button */}
-                <button
-                    onClick={() => {
-                        const kakao = (window as any).Kakao;
-                        if (kakao) {
-                            if (!kakao.isInitialized()) {
-                                kakao.init('8e68190d1ba932955a557fbf0ae0b659');
-                            }
-                            kakao.Share.sendDefault({
-                                objectType: 'feed',
-                                content: {
-                                    title: `나의 동그라미 정확도: ${score?.toFixed(1)}%`,
-                                    description: `내 점수는 ${score?.toFixed(1)}%! 너도 한번 도전해봐?`,
-                                    imageUrl: 'https://fun.uncledison.com/banner.png',
-                                    link: {
-                                        mobileWebUrl: 'https://fun.uncledison.com/circle',
-                                        webUrl: 'https://fun.uncledison.com/circle',
-                                    },
-                                },
-                                buttons: [
-                                    {
-                                        title: '결과 보기 및 도전',
-                                        link: {
-                                            mobileWebUrl: 'https://fun.uncledison.com/circle',
-                                            webUrl: 'https://fun.uncledison.com/circle',
+                        <button
+                            onClick={() => {
+                                const kakao = (window as any).Kakao;
+                                if (kakao) {
+                                    if (!kakao.isInitialized()) {
+                                        kakao.init('8e68190d1ba932955a557fbf0ae0b659');
+                                    }
+                                    kakao.Share.sendDefault({
+                                        objectType: 'feed',
+                                        content: {
+                                            title: `나의 동그라미 정확도: ${score?.toFixed(1)}%`,
+                                            description: `내 점수는 ${score?.toFixed(1)}%! 너도 한번 도전해봐?`,
+                                            imageUrl: 'https://fun.uncledison.com/banner.png',
+                                            link: {
+                                                mobileWebUrl: 'https://fun.uncledison.com/circle',
+                                                webUrl: 'https://fun.uncledison.com/circle',
+                                            },
                                         },
-                                    },
-                                ],
-                            });
-                        }
-                    }}
-                    className="flex items-center justify-center w-14 h-14 bg-[#FEE500] hover:bg-[#FEE500]/90 rounded-full text-[#3C1E1E] transition-all shadow-lg border border-[#FEE500]/50"
-                    aria-label="Kakao Share"
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
-                    </svg>
-                </button>
+                                        buttons: [
+                                            {
+                                                title: '결과 보기 및 도전',
+                                                link: {
+                                                    mobileWebUrl: 'https://fun.uncledison.com/circle',
+                                                    webUrl: 'https://fun.uncledison.com/circle',
+                                                },
+                                            },
+                                        ],
+                                    });
+                                }
+                            }}
+                            className="flex items-center justify-center w-14 h-14 bg-[#FEE500] hover:bg-[#FEE500]/90 rounded-full text-[#3C1E1E] transition-all shadow-lg border border-[#FEE500]/50"
+                            aria-label="Kakao Share"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+                            </svg>
+                        </button>
 
-                <button
-                    onClick={handleSaveImage}
-                    className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
-                >
-                    <Download size={20} /> Save
-                </button>
-            </motion.div>
+                        <button
+                            onClick={handleSaveImage}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
+                        >
+                            <Download size={20} /> Save
+                        </button>
+                    </motion.div>
                 )}
-        </AnimatePresence>
+            </AnimatePresence>
 
-            {/* Fireworks Animation Overlay */ }
-    <AnimatePresence>
-        {showFireworks && fireworksData && (
-            <motion.div
-                className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            >
-                <Lottie
-                    animationData={fireworksData}
-                    loop={false}
-                    className="w-full h-full absolute inset-0"
-                />
-            </motion.div>
-        )}
-    </AnimatePresence>
+            {/* Fireworks Animation Overlay */}
+            <AnimatePresence>
+                {showFireworks && fireworksData && (
+                    <motion.div
+                        className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <Lottie
+                            animationData={fireworksData}
+                            loop={false}
+                            className="w-full h-full absolute inset-0"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 };

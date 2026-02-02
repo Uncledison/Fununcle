@@ -638,6 +638,9 @@ export const ShapeGame: React.FC = () => {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         className="absolute bottom-8 left-0 right-0 flex justify-center gap-3 z-50 pointer-events-auto px-4"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onPointerUp={(e) => e.stopPropagation()}
+                        onPointerMove={(e) => e.stopPropagation()}
                     >
                         <button
                             onClick={resetGame}

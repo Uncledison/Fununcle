@@ -109,6 +109,9 @@ export const ShapeGame: React.FC = () => {
 
     // --- Interaction Handlers ---
     const handleStart = (e: React.PointerEvent | React.TouchEvent) => {
+        // Prevent drawing/interaction if game hasn't started (Intro screen visible)
+        if (!gameStarted) return;
+
         if (score !== null) {
             resetGame();
         }

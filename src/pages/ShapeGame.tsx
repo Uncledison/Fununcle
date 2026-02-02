@@ -737,6 +737,15 @@ export const ShapeGame: React.FC = () => {
                             <RefreshCw size={24} />
                         </button>
 
+                        {/* Save Image Button */}
+                        <button
+                            onClick={handleSaveImage}
+                            className="flex items-center justify-center w-14 h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all border border-white/20"
+                            aria-label="Save Image"
+                        >
+                            <Download size={24} />
+                        </button>
+
                         {/* Kakao Share Button */}
                         <button
                             onClick={() => {
@@ -774,13 +783,6 @@ export const ShapeGame: React.FC = () => {
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                             </svg>
-                        </button>
-
-                        <button
-                            onClick={handleSaveImage}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white font-bold transition-all border border-white/20"
-                        >
-                            <Download size={20} /> Save
                         </button>
                     </motion.div>
                 )}

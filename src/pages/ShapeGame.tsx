@@ -83,10 +83,10 @@ export const ShapeGame: React.FC = () => {
         audio.play().catch(() => { });
     };
 
-    // Success sound effect (clap-01 to 05)
+    // Success sound effect (fanfare-01 to 05)
     const playSuccessSound = () => {
         const soundNum = Math.floor(Math.random() * 5) + 1;
-        const audio = new Audio(`/sounds/clap-0${soundNum}.wav`);
+        const audio = new Audio(`/sounds/fanfare-0${soundNum}.mp3`);
         audio.volume = 0.6;
         audio.play().catch(() => { });
     };

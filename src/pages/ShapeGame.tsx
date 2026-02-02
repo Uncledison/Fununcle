@@ -336,23 +336,21 @@ export const ShapeGame: React.FC = () => {
                         Uncle
                     </motion.span>
                 </motion.div>
-                <div className="flex items-center gap-3 pointer-events-auto">
-                    {/* Sound Toggle Button */}
-                    <motion.button
+                <div className="flex items-center gap-2 pointer-events-auto text-white/80 text-sm font-medium">
+                    {/* Sound Toggle Icon */}
+                    <motion.div
                         onClick={() => setIsMuted(!isMuted)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all"
-                        whileHover={{ scale: 1.1 }}
+                        className="cursor-pointer"
+                        whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
                     >
                         {isMuted ? (
-                            <VolumeX size={18} className="text-white/60" />
+                            <VolumeX size={16} className="text-white/50" />
                         ) : (
-                            <Volume2 size={18} className="text-white/90" />
+                            <Volume2 size={16} className="text-white/80" />
                         )}
-                    </motion.button>
-                    <div className="text-white/80 text-sm font-medium">
-                        Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
-                    </div>
+                    </motion.div>
+                    Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
                 </div>
             </div>
 

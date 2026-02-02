@@ -298,6 +298,25 @@ export const ShapeGame: React.FC = () => {
             if (score !== null) {
                 ctx.textAlign = 'center';
 
+                // 0. Load and draw flower logo + Fun.Uncle at top
+                const logoImg = new Image();
+                logoImg.src = '/rainbow-center.png';
+                await new Promise((resolve) => {
+                    logoImg.onload = resolve;
+                    logoImg.onerror = resolve; // Continue even if logo fails
+                });
+
+                // Draw flower logo (small, centered)
+                const logoSize = 40;
+                ctx.drawImage(logoImg, width / 2 - 100, 50, logoSize, logoSize);
+
+                // Draw "Fun.Uncle" text next to logo
+                ctx.font = 'bold 32px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'left';
+                ctx.fillText('Fun.Uncle', width / 2 - 50, 80);
+                ctx.textAlign = 'center';
+
                 // 1. Description above score (smaller text)
                 ctx.font = 'bold 24px sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';

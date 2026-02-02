@@ -13,7 +13,7 @@ interface Point {
 // --- Scoring Utils ---
 // Simple Circle Fit Algorithm (Centroid + Deviation)
 const calculateCircleScore = (points: Point[]) => {
-    if (points.length < 10) return 0;
+    if (points.length < 5) return 0;
 
     // 1. Calculate actual centroid of the drawn path
     const sum = points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
@@ -130,13 +130,13 @@ export const ShapeGame: React.FC = () => {
             const newPoints = [...prev, { x: clientX, y: clientY, timestamp: Date.now() }];
 
             // Live Score Calculation
-            if (newPoints.length % 5 === 0 && newPoints.length > 10) {
+            if (newPoints.length % 5 === 0 && newPoints.length > 5) {
                 const currentScore = calculateCircleScore(newPoints);
                 setScore(currentScore);
             }
 
             // Auto-close detection: Check if we're close to start point
-            if (newPoints.length > 25) {
+            if (newPoints.length > 15) {
                 const start = newPoints[0];
                 const current = newPoints[newPoints.length - 1];
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
@@ -157,7 +157,7 @@ export const ShapeGame: React.FC = () => {
 
         // Allow scoring for any drawn shape with enough points
         // No longer requires start/end to meet - alpha shapes are OK
-        if (points.length > 20) {
+        if (points.length > 5) {
             finishDrawing(points);
         } else {
             // Too short - reset
@@ -167,7 +167,7 @@ export const ShapeGame: React.FC = () => {
     };
 
     const finishDrawing = (finalPoints: Point[]) => {
-        if (finalPoints.length < 20) {
+        if (finalPoints.length < 5) {
             setPoints([]);
             setScore(null);
             return;

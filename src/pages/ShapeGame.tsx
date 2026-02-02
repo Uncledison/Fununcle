@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download, Volume2, VolumeX } from 'lucide-react';
 import * as d3Shape from 'd3-shape';
 import html2canvas from 'html2canvas';
 import Lottie from 'lottie-react';
@@ -74,6 +74,7 @@ export const ShapeGame: React.FC = () => {
     const [resultEmoji, setResultEmoji] = useState<string>("");
     const [fireworksData, setFireworksData] = useState<any>(null);
     const [showFireworks, setShowFireworks] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
 
     // Mouse click sound effect (Mouse-click-01 to 03)
     const playMouseClickSound = () => {
@@ -85,6 +86,7 @@ export const ShapeGame: React.FC = () => {
 
     // Success sound effect (clap-01 to 05)
     const playSuccessSound = () => {
+        if (isMuted) return; // Skip if muted
         const soundNum = Math.floor(Math.random() * 5) + 1;
         const audio = new Audio(`/sounds/clap-0${soundNum}.wav`);
         audio.volume = 0.6;
@@ -334,8 +336,23 @@ export const ShapeGame: React.FC = () => {
                         Uncle
                     </motion.span>
                 </motion.div>
-                <div className="text-white/80 text-sm font-medium">
-                    Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
+                <div className="flex items-center gap-3 pointer-events-auto">
+                    {/* Sound Toggle Button */}
+                    <motion.button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                    >
+                        {isMuted ? (
+                            <VolumeX size={18} className="text-white/60" />
+                        ) : (
+                            <Volume2 size={18} className="text-white/90" />
+                        )}
+                    </motion.button>
+                    <div className="text-white/80 text-sm font-medium">
+                        Best: <span className="text-white font-bold">{highScore.toFixed(1)}%</span>
+                    </div>
                 </div>
             </div>
 

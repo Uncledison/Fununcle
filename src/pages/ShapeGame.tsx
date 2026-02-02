@@ -30,35 +30,34 @@ const calculateCircleScore = (points: Point[]) => {
     });
     const avgRadius = radiusSum / points.length;
 
+    // Guard against tiny/degenerate shapes
+    if (avgRadius < 10) return 10; // Minimum score for any visible shape
+
     // 3. Calculate variance/deviation from average radius
-    // We penalize deviation from the perfect circle (constant radius)
     const deviationSum = radii.reduce((acc, r) => acc + Math.abs(r - avgRadius), 0);
     const avgDeviation = deviationSum / points.length;
 
-    // 4. Calculate Score
-    // Deviation ratio: How much it wobbles relative to its size
+    // 4. Calculate Score - More generous scoring
     const deviationRatio = avgDeviation / avgRadius;
 
-    // Closer to 0 deviation = 100%
-    // RELAXED: 25% deviation is 0 points (was 20%)
-    // Multiplier changed from 5 to 4 to make it easier
-    let score = Math.max(0, 1 - (deviationRatio * 2.5)); // Significant relax
+    // Base score: 100% at 0 deviation, scales down with deviation
+    let score = Math.max(0.1, 1 - (deviationRatio * 2)); // Even more relaxed
 
-    // Penalize start/end gap
+    // Check if shape is closed/crossed (any intersection means effort was made)
     const start = points[0];
     const end = points[points.length - 1];
     const gap = Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
 
-    // Gap penalty: Stronger penalty for larger gaps
-    // Max 40% penalty for very large gaps
-    const gapPenalty = Math.min(0.4, (gap / avgRadius) * 0.3);
-
+    // Small gap penalty (max 20% for very large gaps)
+    const gapPenalty = Math.min(0.2, (gap / avgRadius) * 0.15);
     score -= gapPenalty;
 
-    // Minimum score floor to avoid 0% for decent attempts
-    if (deviationRatio < 0.3 && score < 0.1) score = 0.1;
+    // IMPORTANT: Minimum score floor - any completed shape gets at least 10%
+    // If the shape has enough points and some roundness, it deserves a score
+    const minScore = 10;
+    const rawScore = Math.max(minScore, Math.min(100, score * 100));
 
-    return Math.max(0, Math.min(100, score * 100));
+    return rawScore;
 };
 
 import { useNavigate } from 'react-router-dom';
@@ -367,19 +366,38 @@ export const ShapeGame: React.FC = () => {
                     </linearGradient>
                 </defs>
 
-                {/* Drawn Path */}
-                <path
-                    d={pathData}
-                    fill="none"
-                    stroke="url(#rainbow)"
-                    strokeWidth={score !== null || isDrawing ? 6 : 4}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{
-                        filter: score !== null ? 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'none',
-                        transition: 'stroke 0.3s'
-                    }}
-                />
+                {/* Brush Stroke Effect - Variable Thickness */}
+                {points.length > 1 && points.map((point, i) => {
+                    if (i === 0) return null;
+                    const prev = points[i - 1];
+
+                    // Calculate stroke width based on position (calligraphy effect)
+                    // Thinner at start and end, thicker in the middle
+                    const progress = i / points.length;
+                    const baseWidth = score !== null ? 8 : 6;
+                    // Bell curve: sin gives smooth transition
+                    const widthMultiplier = 0.4 + 0.6 * Math.sin(progress * Math.PI);
+                    const strokeWidth = Math.max(2, baseWidth * widthMultiplier);
+
+                    // Calculate color based on progress for rainbow effect
+                    const hue = (progress * 360) % 360;
+
+                    return (
+                        <line
+                            key={i}
+                            x1={prev.x}
+                            y1={prev.y}
+                            x2={point.x}
+                            y2={point.y}
+                            stroke={`hsl(${hue}, 100%, 60%)`}
+                            strokeWidth={strokeWidth}
+                            strokeLinecap="round"
+                            style={{
+                                filter: score !== null ? 'drop-shadow(0 0 8px rgba(255,255,255,0.4))' : 'none'
+                            }}
+                        />
+                    );
+                })}
             </svg>
 
             {/* Score Overlay */}

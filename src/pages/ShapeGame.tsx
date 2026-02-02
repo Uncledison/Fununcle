@@ -257,7 +257,14 @@ export const ShapeGame: React.FC = () => {
             const canvas = await html2canvas(containerRef.current, {
                 useCORS: true,
                 scale: 2, // Higher quality
-                backgroundColor: null
+                backgroundColor: '#000000', // Use explicit black background to avoid oklab
+                removeContainer: true,
+                onclone: (clonedDoc) => {
+                    // Remove any elements with problematic CSS color functions
+                    const style = clonedDoc.createElement('style');
+                    style.textContent = '* { color-scheme: normal !important; }';
+                    clonedDoc.head.appendChild(style);
+                }
             });
 
             const image = canvas.toDataURL("image/png");

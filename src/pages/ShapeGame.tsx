@@ -75,31 +75,27 @@ export const ShapeGame: React.FC = () => {
     const [fireworksData, setFireworksData] = useState<any>(null);
     const [showFireworks, setShowFireworks] = useState(false);
 
-    // Ding sound effect for hover
-    const playDingSound = () => {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5 note (띵~)
-        oscillator.frequency.exponentialRampToValueAtTime(1760, audioContext.currentTime + 0.1); // Slide up
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
+    // Mouse hover sound effect (Mouse-over-01 or 02)
+    const playMouseOverSound = () => {
+        const soundNum = Math.floor(Math.random() * 2) + 1;
+        const audio = new Audio(`/sounds/Mouse-over-0${soundNum}.mp3`);
+        audio.volume = 0.4;
+        audio.play().catch(() => { });
     };
 
-    // Pop sound effect for click (random selection)
-    const playPopSound = () => {
-        const soundNum = Math.floor(Math.random() * 5) + 1;
-        const audio = new Audio(`/sounds/pop-0${soundNum}.mp3`);
+    // Mouse click sound effect (Mouse-click-01 to 03)
+    const playMouseClickSound = () => {
+        const soundNum = Math.floor(Math.random() * 3) + 1;
+        const audio = new Audio(`/sounds/Mouse-click-0${soundNum}.mp3`);
         audio.volume = 0.5;
+        audio.play().catch(() => { });
+    };
+
+    // Success sound effect (clap-01 to 05)
+    const playSuccessSound = () => {
+        const soundNum = Math.floor(Math.random() * 5) + 1;
+        const audio = new Audio(`/sounds/clap-0${soundNum}.wav`);
+        audio.volume = 0.6;
         audio.play().catch(() => { });
     };
 
@@ -213,8 +209,9 @@ export const ShapeGame: React.FC = () => {
         ];
         setResultEmoji(emojis[Math.floor(Math.random() * emojis.length)]);
 
-        // Trigger Fireworks
+        // Trigger Fireworks and Success Sound
         const fireworkNum = Math.floor(Math.random() * 5) + 1;
+        playSuccessSound();
         fetch(`/lottie/Fireworks-0${fireworkNum}.json`)
             .then(res => res.json())
             .then(data => {
@@ -314,7 +311,7 @@ export const ShapeGame: React.FC = () => {
             <div className="absolute top-4 left-0 right-0 flex justify-between items-center px-6 z-50 pointer-events-none">
                 <motion.div
                     className="flex items-center gap-[1px] pointer-events-auto cursor-pointer"
-                    onClick={() => { playPopSound(); navigate('/'); }}
+                    onClick={() => { playMouseClickSound(); navigate('/'); }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -534,8 +531,8 @@ export const ShapeGame: React.FC = () => {
 
                             {/* Flower Center Button with GO text */}
                             <motion.div
-                                onClick={() => setGameStarted(true)}
-                                onMouseEnter={playDingSound}
+                                onClick={() => { playMouseClickSound(); setGameStarted(true); }}
+                                onMouseEnter={playMouseOverSound}
                                 className="relative flex items-center justify-center w-20 h-20 cursor-pointer z-10"
                                 whileHover={{ scale: 1.4 }}
                                 whileTap={{ scale: 0.9 }}

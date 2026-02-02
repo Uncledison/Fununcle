@@ -136,7 +136,7 @@ export const ShapeGame: React.FC = () => {
             }
 
             // Auto-close detection: Check if we're close to start point
-            if (newPoints.length > 80) {
+            if (newPoints.length > 25) {
                 const start = newPoints[0];
                 const current = newPoints[newPoints.length - 1];
                 const dist = Math.sqrt(Math.pow(start.x - current.x, 2) + Math.pow(start.y - current.y, 2));
@@ -157,7 +157,7 @@ export const ShapeGame: React.FC = () => {
 
         // Allow scoring for any drawn shape with enough points
         // No longer requires start/end to meet - alpha shapes are OK
-        if (points.length > 50) {
+        if (points.length > 20) {
             finishDrawing(points);
         } else {
             // Too short - reset
@@ -167,7 +167,7 @@ export const ShapeGame: React.FC = () => {
     };
 
     const finishDrawing = (finalPoints: Point[]) => {
-        if (finalPoints.length < 50) {
+        if (finalPoints.length < 20) {
             setPoints([]);
             setScore(null);
             return;

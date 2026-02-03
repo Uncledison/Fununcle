@@ -828,7 +828,7 @@ export const BottleGame: React.FC = () => {
                         ‹
                     </div>
                     <div
-                        className="ctrl-btn absolute bottom-20 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
+                        className="ctrl-btn absolute bottom-12 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('down', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('down', false); }}
@@ -838,6 +838,52 @@ export const BottleGame: React.FC = () => {
                     </div>
                 </>
             )}
+
+            {/* Hand Guide Tutorial */}
+            <AnimatePresence>
+                {gameState.isGameActive && !gameState.showIntro && !gameState.showEnd && gameState.timeLeft > 56 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 pointer-events-none z-[60]"
+                    >
+                        {/* Hand animating on Right Button */}
+                        <motion.div
+                            className="absolute right-8 top-1/2 text-4xl"
+                            initial={{ x: 20, y: -20, opacity: 0 }}
+                            animate={{
+                                x: [20, 0, 20],
+                                y: [-20, 0, -20],
+                                opacity: [0, 1, 0],
+                                scale: [1, 0.9, 1]
+                            }}
+                            transition={{ duration: 1.5, repeat: 2 }}
+                        >
+                            👆
+                        </motion.div>
+
+                        {/* Hand animating on Bottom Button */}
+                        <motion.div
+                            className="absolute bottom-24 left-1/2 text-4xl"
+                            initial={{ x: 20, y: 20, opacity: 0 }}
+                            animate={{
+                                x: [20, 0, 20],
+                                y: [20, 0, 20],
+                                opacity: [0, 1, 0],
+                                scale: [1, 0.9, 1]
+                            }}
+                            transition={{ duration: 1.5, repeat: 2, delay: 0.5 }}
+                        >
+                            👆
+                        </motion.div>
+
+                        <div className="absolute top-[60%] left-1/2 -translate-x-1/2 text-white/90 font-bold text-lg bg-black/50 px-4 py-2 rounded-full whitespace-nowrap">
+                            버튼을 눌러 중심을 잡으세요!
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Intro Screen */}
             <AnimatePresence>
@@ -854,10 +900,9 @@ export const BottleGame: React.FC = () => {
                         }}
                     >
                         <h1
-                            className="text-6xl md:text-7xl font-black m-0"
+                            className="text-6xl md:text-7xl font-normal m-0"
                             style={{
-                                fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
-                                fontWeight: 900,
+                                fontFamily: "'Black Han Sans', sans-serif",
                                 color: '#007AFF',
                                 letterSpacing: '-1px',
                                 textShadow: '2px 2px 0 rgba(0,122,255,0.2)'

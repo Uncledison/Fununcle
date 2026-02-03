@@ -96,7 +96,10 @@ export const HistoryGame: React.FC = () => {
         >
             {/* Header */}
             <div className="fixed top-0 left-0 w-full px-3 py-4 z-50 flex items-center justify-between pointer-events-none">
-                <Link to="/" className="text-white/80 hover:text-white transition-colors group no-underline pointer-events-auto">
+                <div
+                    onClick={() => window.location.href = 'https://fun.uncledison.com'}
+                    className="text-white/80 hover:text-white transition-colors group no-underline pointer-events-auto cursor-pointer"
+                >
                     <motion.div
                         whileHover={{ y: -3, scale: 1.1, rotate: -3 }}
                         transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -104,7 +107,7 @@ export const HistoryGame: React.FC = () => {
                     >
                         <span className="font-fun text-xl tracking-tight" style={{ fontFamily: '"Patrick Hand", cursive' }}>Fun.Uncle</span>
                     </motion.div>
-                </Link>
+                </div>
                 <div className="bg-black/10 px-5 py-2 rounded-full backdrop-blur-sm border border-white/5 shadow-lg flex items-center gap-2 pointer-events-auto">
                     {/* BGM Toggle - Left */}
                     <BackgroundMusic className="flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity scale-90" />
@@ -627,7 +630,7 @@ md:w-[550px] md:justify-end
                                 </span>
 
                                 {/* Face (Home Link) */}
-                                <Link to="/">
+                                <div onClick={() => window.location.href = 'https://fun.uncledison.com'}>
                                     <motion.div
                                         className="w-16 h-16 flex items-center justify-center -mx-1 relative z-10 cursor-pointer mt-4"
                                         whileHover={{ scale: 1.2, rotate: 10 }}
@@ -635,7 +638,7 @@ md:w-[550px] md:justify-end
                                     >
                                         <InteractiveMascot />
                                     </motion.div>
-                                </Link>
+                                </div>
 
                                 {/* UNCLE */}
                                 <span className="text-5xl font-fun text-white tracking-tighter inline-block origin-bottom" style={{ fontFamily: '"Patrick Hand", cursive' }}>

@@ -34,7 +34,9 @@ export const PigMascot: React.FC = () => {
         fetchAnimations();
     }, []);
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent header click (page reload)
+
         if (isPlaying || !activeData) return;
 
         setIsPlaying(true);

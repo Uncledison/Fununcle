@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { InteractiveMascot } from './InteractiveMascot';
+import { PigMascot } from './PigMascot';
 export const Header: React.FC = () => {
     const [isBouncing, setIsBouncing] = useState(false);
 
@@ -63,6 +64,8 @@ export const Header: React.FC = () => {
                         >
                             UNCLE
                         </motion.span>
+                        {/* Pig Mascot */}
+                        <PigMascot />
                     </div>
 
                     {/* Subtitle */}

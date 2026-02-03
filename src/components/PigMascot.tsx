@@ -55,11 +55,9 @@ export const PigMascot: React.FC = () => {
 
     return (
         <div
-            className="absolute top-[80px] right-4 md:top-[-20px] md:right-0 w-[80px] md:w-[120px] cursor-pointer z-[60] hover:scale-105 transition-transform"
+            className="w-[50px] md:w-[70px] cursor-pointer hover:scale-110 transition-transform relative z-50 ml-2"
             onClick={handleClick}
-            style={{
-                transform: 'translateY(-50%)',
-            }}
+            style={{ marginTop: '-10px' }} // Slight adjustment to align with text
         >
             <Lottie
                 animationData={isIdle ? idleData : activeData}

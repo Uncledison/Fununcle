@@ -68,7 +68,7 @@ export const Header: React.FC = () => {
                     </div>
 
                     {/* Pig Mascot Positioned Absolutely to the Right */}
-                    <div className="absolute -right-16 top-2 md:-right-24 md:top-1 z-50">
+                    <div className="absolute -right-16 top-6 md:-right-24 md:top-5 z-50">
                         <PigMascot />
                     </div>
 

@@ -4,8 +4,11 @@ import mascot from '../assets/uncle_z_mascot.png';
 export const InteractiveMascot: React.FC = () => {
     const [pupilPos, setPupilPos] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
+        audioRef.current = new Audio('/assets/sounds/boing-01.mp3');
+
         const handleMouseMove = (e: MouseEvent) => {
             if (!containerRef.current) return;
 
@@ -33,8 +36,15 @@ export const InteractiveMascot: React.FC = () => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
+    const handleClick = () => {
+        if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+        }
+    };
+
     return (
-        <div ref={containerRef} className="relative w-12 h-12 flex items-center justify-center">
+        <div ref={containerRef} className="relative w-12 h-12 flex items-center justify-center cursor-pointer" onClick={handleClick}>
             {/* Base Image (Head/Hair/Glasses frames) */}
             <img src={mascot} alt="Uncle Edison" className="w-full h-full object-cover" />
 

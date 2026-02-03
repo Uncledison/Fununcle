@@ -55,12 +55,10 @@ export const PigMascot: React.FC = () => {
 
     return (
         <div
-            className="absolute top-[80px] right-4 md:top-[-20px] md:right-0 w-[80px] md:w-[120px] cursor-pointer z-40 hover:scale-105 transition-transform"
+            className="absolute top-[80px] right-4 md:top-[-20px] md:right-0 w-[80px] md:w-[120px] cursor-pointer z-[60] hover:scale-105 transition-transform"
             onClick={handleClick}
             style={{
-                // Mobile: top-80px puts it below the 80px header
-                // PC: top-[-20px] puts it slightly above the grid container (which starts after header usually or has padding)
-                // Adjusting PC to be more visible (lower than -30px)
+                transform: 'translateY(-50%)',
             }}
         >
             <Lottie

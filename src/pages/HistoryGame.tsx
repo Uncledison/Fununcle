@@ -1,6 +1,5 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { InteractiveMascot } from '../components/InteractiveMascot';
 import { EraBackground } from '../components/EraBackground';
 import { historyEvents } from '../data/historyEvents';

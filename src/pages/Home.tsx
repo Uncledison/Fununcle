@@ -25,7 +25,7 @@ export const Home: React.FC = () => {
                             content: {
                                 title: 'Fun.Uncle - 심심할 땐 엉클에디슨!',
                                 description: '다양한 미니게임과 심리테스트를 즐겨보세요! 👇',
-                                imageUrl: 'https://fun.uncledison.com/assets/bottle_share_square.png',
+                                imageUrl: 'https://fun.uncledison.com/assets/fununcle_share_square.png',
                                 link: {
                                     mobileWebUrl: window.location.origin,
                                     webUrl: window.location.origin,

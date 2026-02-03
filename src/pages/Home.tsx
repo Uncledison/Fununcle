@@ -43,11 +43,16 @@ export const Home: React.FC = () => {
                         });
                     }
                 }}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-[#FEE500] rounded-full shadow-lg z-50 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                className="fixed bottom-[90px] right-4 w-12 h-12 bg-[#FAE100] rounded-full shadow-lg z-50 flex items-center justify-center opacity-90 transition-transform active:scale-95 hover:scale-105"
+                style={{ boxShadow: '0 2px 3.84px rgba(0,0,0,0.15)' }}
                 aria-label="카카오톡 공유하기"
             >
-                <svg viewBox="0 0 24 24" fill="#3B1E1E" className="w-7 h-7">
-                    <path d="M12 3C7.58 3 4 5.79 4 9.24C4 11.22 5.21 12.96 7 14.12L6.16 17.27C6.1 17.5 6.36 17.7 6.58 17.57L10.03 15.42C10.66 15.5 11.31 15.5 12 15.5C16.42 15.5 20 12.71 20 9.24C20 5.79 16.42 3 12 3Z" />
+                {/* Minimalist Chat Bubble Icon mimicking Ionicons 'chatbubble-ellipses' */}
+                <svg viewBox="0 0 512 512" className="w-6 h-6 ml-[1px] mt-[1px]" fill="#3C1E1E">
+                    <path d="M408 64H104a56.16 56.16 0 00-56 56v192a56.16 56.16 0 0056 56h40v80l93.72-78.14a8 8 0 015.13-1.86H408a56.16 56.16 0 0056-56V120a56.16 56.16 0 00-56-56z" />
+                    <circle cx="160" cy="216" r="32" fill="#FAE100" />
+                    <circle cx="256" cy="216" r="32" fill="#FAE100" />
+                    <circle cx="352" cy="216" r="32" fill="#FAE100" />
                 </svg>
             </button>
         </main>

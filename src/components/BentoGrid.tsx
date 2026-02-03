@@ -115,9 +115,13 @@ export const BentoGrid: React.FC = () => {
         setIsComingSoonActive(true);
     };
 
+
     // Derived state for message and emojis using the calculated Random/Sequential index
     const currentMessage = COMING_SOON_MESSAGES[Math.min(currentIndex, COMING_SOON_MESSAGES.length - 1)];
-    const currentEmojis = EMOJI_THEMES[currentIndex % EMOJI_THEMES.length] || EMOJI_THEMES[0];
+    // Random emoji theme every time (independent of message index)
+    // We use a simple hash of clickCount + random math to ensure variability even if count doesn't change wildly
+    const emojiIndex = Math.floor(Math.random() * EMOJI_THEMES.length);
+    const currentEmojis = EMOJI_THEMES[emojiIndex];
 
 
     return (

@@ -893,7 +893,8 @@ export const BottleGame: React.FC = () => {
                         <h1
                             className="text-6xl md:text-7xl font-normal m-0"
                             style={{
-                                fontFamily: "'Black Han Sans', sans-serif",
+                                fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+                                fontWeight: 900,
                                 color: '#007AFF',
                                 letterSpacing: '-1px',
                                 textShadow: '2px 2px 0 rgba(0,122,255,0.2)'

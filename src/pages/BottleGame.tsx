@@ -653,7 +653,7 @@ export const BottleGame: React.FC = () => {
                     content: {
                         title: '[Fun.Uncle] 물병 세우기 도전!',
                         description: `최종 점수: ${gameState.score}점\n성공률: ${rate}%\n너도 도전해봐!!`,
-                        imageUrl: 'https://fun.uncledison.com/assets/bottle_banner.png',
+                        imageUrl: 'https://fun.uncledison.com/assets/bottle_share_square.png',
                         link: {
                             mobileWebUrl: window.location.href,
                             webUrl: window.location.href,
@@ -712,10 +712,10 @@ export const BottleGame: React.FC = () => {
 
     return (
         <div
-            className="relative w-full h-screen overflow-hidden select-none"
+            className="relative w-full h-[100dvh] overflow-hidden select-none"
             style={{
                 background: 'radial-gradient(circle at center, #F5F5F7 0%, #D1D1D6 100%)',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
                 touchAction: 'none'
             }}
             onPointerDown={handlePointerDown}
@@ -828,7 +828,7 @@ export const BottleGame: React.FC = () => {
                         ‹
                     </div>
                     <div
-                        className="ctrl-btn absolute bottom-8 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
+                        className="ctrl-btn absolute bottom-20 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('down', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('down', false); }}
@@ -854,9 +854,10 @@ export const BottleGame: React.FC = () => {
                         }}
                     >
                         <h1
-                            className="text-6xl md:text-7xl font-normal m-0"
+                            className="text-6xl md:text-7xl font-black m-0"
                             style={{
-                                fontFamily: "'Do Hyeon', sans-serif",
+                                fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+                                fontWeight: 900,
                                 color: '#007AFF',
                                 letterSpacing: '-1px',
                                 textShadow: '2px 2px 0 rgba(0,122,255,0.2)'

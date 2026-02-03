@@ -9,41 +9,27 @@ import circleBanner from '/banner.png';
 
 import { Link } from 'react-router-dom';
 
+import { ComingSoonEffect } from './ComingSoonEffect';
+import { useState } from 'react';
+
 const BentoCard = ({
     children,
     className,
     delay = 0,
     href,
-    whileHover
+    whileHover,
+    onClick
 }: {
     children: React.ReactNode,
     className?: string,
     delay?: number,
     href?: string,
-    whileHover?: any
+    whileHover?: any,
+    onClick?: () => void
 }) => {
-    // const navigate = useNavigate(); // Removed unused hook
-
-    // Default styles for the inner content container (unless overridden by className)
-    // We append className to the OUTER container for Grid positioning, 
-    // but some styles (like rounded-3xl) might be intended for the visual card.
-    // For this refactor, we'll apply the structural/interactive classes to the outer div
-    // and let the inner div manage content internal padding/etc if needed.
-
-    // Actually, simply merging them onto the motion.div is safest for this 'Neal.fun' use case
-    // where we often want to override everything with !bg-transparent.
-
     // Base classes that are always present
     const baseClasses = `transition-all duration-300 w-full h-full relative z-10`;
-
-    // Content default visual styles (white card, shadow) - only apply if we aren't overriding basics
-    // But since className is passed, and we used ! classes, we can just append className.
     const defaultVisuals = "bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl";
-
-    // Combine everything. Note: If className has !bg-transparent, it will override defaultVisuals if widely applied.
-    // However, to be safe and match the current behavior where we want "No Styles" for banners, 
-    // let's apply the defaultVisuals conditionally or just stick them in the class string.
-
     const combinedClassName = `${defaultVisuals} ${baseClasses} cursor-pointer ${className || ''}`;
 
     const motionProps = {
@@ -63,7 +49,6 @@ const BentoCard = ({
             >
                 <motion.div
                     {...motionProps}
-                    // We strip the grid classes from here since they are on the Link
                     className={`${defaultVisuals} w-full h-full`}
                 >
                     {children}
@@ -73,7 +58,7 @@ const BentoCard = ({
     }
 
     // 2. External Link
-    if (href) {
+    if (href && href !== '#') {
         return (
             <motion.a
                 href={href}
@@ -87,11 +72,12 @@ const BentoCard = ({
         );
     }
 
-    // 3. Static Card
+    // 3. Static Card or Clickable Div
     return (
         <motion.div
             {...motionProps}
             className={`${defaultVisuals} ${baseClasses} ${className || ''}`}
+            onClick={onClick}
         >
             {children}
         </motion.div>
@@ -99,8 +85,15 @@ const BentoCard = ({
 };
 
 export const BentoGrid: React.FC = () => {
+    const [isComingSoonActive, setIsComingSoonActive] = useState(false);
+
     return (
         <div className="relative z-10 w-full min-h-screen px-4 pb-20 pt-10">
+            <ComingSoonEffect
+                isActive={isComingSoonActive}
+                onComplete={() => setIsComingSoonActive(false)}
+            />
+
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 {/* 1. Career Compass (Internal via iframe) */}
@@ -183,11 +176,15 @@ export const BentoGrid: React.FC = () => {
                 </BentoCard>
 
 
-                {/* 5. Coming Soon */}
+                {/* 5. Coming Soon - Interaction Trigger */}
                 <BentoCard
-                    href="#"
                     delay={0.4}
-                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-default"
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"
+                    onClick={() => setIsComingSoonActive(true)}
+                    whileHover={{
+                        scale: 1.05,
+                        transition: { duration: 0.2 }
+                    }}
                 >
                     <div className="w-full h-full relative overflow-hidden">
                         <img
@@ -198,6 +195,11 @@ export const BentoGrid: React.FC = () => {
                         {/* Closed Badge */}
                         <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-white/10">
                             <span className="text-[10px]">🔒</span> Closed
+                        </div>
+
+                        {/* Hint Text on Hover */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
+                            <span className="text-white text-2xl font-bold drop-shadow-lg">Click Me! 👆</span>
                         </div>
                     </div>
                 </BentoCard>

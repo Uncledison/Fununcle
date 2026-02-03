@@ -1,14 +1,14 @@
 import React from 'react';
 import { Header } from '../components/Header';
 import { BentoGrid } from '../components/BentoGrid';
-import { InteractiveMascot } from '../components/InteractiveMascot';
+import { PigMascot } from '../components/PigMascot';
 
 export const Home: React.FC = () => {
     return (
         <main className="min-h-screen bg-white relative overflow-x-hidden">
             {/* Mascot positioned relative to this container */}
             <div className="relative max-w-4xl mx-auto pt-12 md:pt-16">
-                <InteractiveMascot />
+                <PigMascot />
                 <Header />
                 <BentoGrid />
             </div>

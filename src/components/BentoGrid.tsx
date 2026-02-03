@@ -1,10 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import comingSoonBanner from '../assets/coming_soon_banner.png';
+
 import humanEvolutionBanner from '../assets/human_evolution_banner.png';
 import careerBanner from '../assets/career_banner.png';
+import comingSoonBanner from '../assets/coming_soon_banner.png';
 import circleBanner from '/banner.png';
-import { Lock } from 'lucide-react'; // Restored import
+
 
 import { Link } from 'react-router-dom';
 
@@ -161,9 +162,10 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 3. Coming Soon (Image Banner) */}
+                {/* 4. Bottle Flip (New Game) */}
                 <BentoCard
-                    delay={0.2}
+                    href="/bottle"
+                    delay={0.3}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,
@@ -173,19 +175,32 @@ export const BentoGrid: React.FC = () => {
                 >
                     <div className="w-full h-full relative">
                         <img
-                            src={comingSoonBanner}
-                            alt="Coming Soon"
-                            className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                            src="/assets/bottle_banner.png"
+                            alt="Bottle Flip"
+                            className="w-full h-full object-cover"
                         />
-                        {/* Coming Soon Badge (Optional - added for consistency if image text isn't enough, but image says coming soon so minimal is better. Let's keep a small clean Lock icon generally) */}
-                        <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-                            <span className="text-xs font-bold text-white flex items-center gap-1">
-                                <Lock size={12} /> Closed
-                            </span>
-                        </div>
                     </div>
                 </BentoCard>
 
+
+                {/* 5. Coming Soon */}
+                <BentoCard
+                    href="#"
+                    delay={0.4}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-default"
+                >
+                    <div className="w-full h-full relative overflow-hidden">
+                        <img
+                            src={comingSoonBanner}
+                            alt="Coming Soon"
+                            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110 brightness-90"
+                        />
+                        {/* Closed Badge */}
+                        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-white/10">
+                            <span className="text-[10px]">🔒</span> Closed
+                        </div>
+                    </div>
+                </BentoCard>
             </div>
 
             <div className="text-center mt-20 text-gray-400 text-sm font-medium border-t border-gray-100 pt-8">

@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { HistoryGame } from './pages/HistoryGame';
 import { ShapeGame } from './pages/ShapeGame';
 import { CareerGame } from './pages/CareerGame';
+import { BottleGame } from './pages/BottleGame';
 
 import { useCopyProtection } from './hooks/useCopyProtection';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -18,6 +19,7 @@ function AppRoutes() {
       <Route path="/history" element={<HistoryGame />} />
       <Route path="/circle" element={<ShapeGame />} />
       <Route path="/career" element={<CareerGame />} />
+      <Route path="/bottle" element={<BottleGame />} />
     </Routes>
   );
 }

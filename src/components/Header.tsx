@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { InteractiveMascot } from './InteractiveMascot';
 import { PigMascot } from './PigMascot';
+
 export const Header: React.FC = () => {
     const [isBouncing, setIsBouncing] = useState(false);
 
@@ -9,14 +10,14 @@ export const Header: React.FC = () => {
         if (!isBouncing) {
             setIsBouncing(true);
         }
-        window.location.href = 'https://fun.uncledison.com/';
+        // Page reload removed to allow animation to play
     };
 
     return (
         <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md">
             <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-center relative">
                 {/* Logo Area (Centered Column) */}
-                <div className="flex flex-col items-center justify-center cursor-pointer group" onClick={triggerBounce}>
+                <div className="flex flex-col items-center justify-center cursor-pointer group relative" onClick={triggerBounce}>
                     {/* Main Logo Row */}
                     <div className="flex items-center gap-0">
                         {/* FUN - Jelly Wiggle Effect */}
@@ -64,7 +65,10 @@ export const Header: React.FC = () => {
                         >
                             UNCLE
                         </motion.span>
-                        {/* Pig Mascot */}
+                    </div>
+
+                    {/* Pig Mascot Positioned Absolutely to the Right */}
+                    <div className="absolute -right-16 top-2 md:-right-24 md:top-1 z-50">
                         <PigMascot />
                     </div>
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Home -->
+  <url>
+    <loc>https://fun.uncledison.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Career Compass -->
+  <url>
+    <loc>https://fun.uncledison.com/career</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- History Game (Human Evolution) -->
+  <url>
+    <loc>https://fun.uncledison.com/history</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Circle Game -->
+  <url>
+    <loc>https://fun.uncledison.com/circle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Bottle Flip Game -->
+  <url>
+    <loc>https://fun.uncledison.com/bottle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

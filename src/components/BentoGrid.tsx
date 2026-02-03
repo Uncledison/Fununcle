@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import humanEvolutionBanner from '../assets/human_evolution_banner.png';
 import careerBanner from '../assets/career_banner.png';
@@ -197,10 +197,25 @@ export const BentoGrid: React.FC = () => {
                             <span className="text-[10px]">🔒</span> Closed
                         </div>
 
-                        {/* Hint Text on Hover */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
-                            <span className="text-white text-2xl font-bold drop-shadow-lg">Click Me! 👆</span>
-                        </div>
+                        {/* Glassmorphic Speech Bubble (Centered in Banner) */}
+                        <AnimatePresence>
+                            {isComingSoonActive && (
+                                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                                    <motion.div
+                                        initial={{ scale: 0, opacity: 0, y: 10 }}
+                                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                                        exit={{ scale: 0, opacity: 0 }}
+                                        className="bg-white/30 backdrop-blur-md border border-white/20 px-4 py-2 rounded-2xl shadow-lg relative"
+                                    >
+                                        <span className="text-sm md:text-base font-bold text-white whitespace-nowrap drop-shadow-md">
+                                            {["열심히 공사 중! 🔨", "조금만 기다려요! ⏳", "1급 비밀 🤫", "Coming Soon... ✨"][Math.floor(Math.random() * 4)]}
+                                        </span>
+                                        {/* Triangle */}
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white/30"></div>
+                                    </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </BentoCard>
             </div>

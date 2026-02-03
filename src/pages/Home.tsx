@@ -23,8 +23,8 @@ export const Home: React.FC = () => {
                         kakao.Share.sendDefault({
                             objectType: 'feed',
                             content: {
-                                title: 'Fun.Uncle - 심심할 땐 엉클에디슨!',
-                                description: '다양한 미니게임과 심리테스트를 즐겨보세요! 👇',
+                                title: '심심할 때 웃긴 삼촌!',
+                                description: '다양한 미니게임과 진로테스트를 즐겨보세요!',
                                 imageUrl: 'https://fun.uncledison.com/assets/fununcle_share_square.png',
                                 link: {
                                     mobileWebUrl: window.location.origin,

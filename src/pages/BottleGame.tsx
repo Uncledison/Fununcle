@@ -800,86 +800,77 @@ export const BottleGame: React.FC = () => {
             {/* Control Buttons */}
             {gameState.isGameActive && (
                 <>
-                    <div
+                    <motion.div
                         className="ctrl-btn absolute left-4 top-1/2 -translate-y-1/2 text-5xl cursor-pointer z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('left', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('left', false); }}
                         onPointerLeave={() => bindCtrl('left', false)}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                     >
                         ‹
-                    </div>
-                    <div
+                    </motion.div>
+                    <motion.div
                         className="ctrl-btn absolute right-4 top-1/2 -translate-y-1/2 text-5xl cursor-pointer z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('right', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('right', false); }}
                         onPointerLeave={() => bindCtrl('right', false)}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
                     >
                         ›
-                    </div>
-                    <div
+                    </motion.div>
+                    <motion.div
                         className="ctrl-btn absolute top-20 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('up', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('up', false); }}
                         onPointerLeave={() => bindCtrl('up', false)}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
                     >
                         ‹
-                    </div>
-                    <div
+                    </motion.div>
+                    <motion.div
                         className="ctrl-btn absolute bottom-12 left-1/2 -translate-x-1/2 text-5xl cursor-pointer rotate-90 z-20"
                         style={{ color: 'rgba(0,0,0,0.15)' }}
                         onPointerDown={(e) => { e.stopPropagation(); bindCtrl('down', true); }}
                         onPointerUp={(e) => { e.stopPropagation(); bindCtrl('down', false); }}
                         onPointerLeave={() => bindCtrl('down', false)}
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
                     >
                         ›
-                    </div>
+                    </motion.div>
                 </>
             )}
 
-            {/* Hand Guide Tutorial */}
+            {/* Swipe Tutorial Overlay */}
             <AnimatePresence>
                 {gameState.isGameActive && !gameState.showIntro && !gameState.showEnd && gameState.timeLeft > 56 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 pointer-events-none z-[60]"
+                        className="absolute inset-0 pointer-events-none z-[60] flex flex-col items-center justify-center translate-y-20"
                     >
-                        {/* Hand animating on Right Button */}
+                        {/* Hand Swipe Animation */}
                         <motion.div
-                            className="absolute right-8 top-1/2 text-4xl"
-                            initial={{ x: 20, y: -20, opacity: 0 }}
+                            className="text-7xl mb-6 filter drop-shadow-lg"
+                            initial={{ y: 50, opacity: 0, scale: 1 }}
                             animate={{
-                                x: [20, 0, 20],
-                                y: [-20, 0, -20],
-                                opacity: [0, 1, 0],
-                                scale: [1, 0.9, 1]
+                                y: -150,
+                                opacity: [0, 1, 0, 0]
                             }}
-                            transition={{ duration: 1.5, repeat: 2 }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
                         >
                             👆
                         </motion.div>
 
-                        {/* Hand animating on Bottom Button */}
-                        <motion.div
-                            className="absolute bottom-24 left-1/2 text-4xl"
-                            initial={{ x: 20, y: 20, opacity: 0 }}
-                            animate={{
-                                x: [20, 0, 20],
-                                y: [20, 0, 20],
-                                opacity: [0, 1, 0],
-                                scale: [1, 0.9, 1]
-                            }}
-                            transition={{ duration: 1.5, repeat: 2, delay: 0.5 }}
-                        >
-                            👆
-                        </motion.div>
-
-                        <div className="absolute top-[60%] left-1/2 -translate-x-1/2 text-white/90 font-bold text-lg bg-black/50 px-4 py-2 rounded-full whitespace-nowrap">
-                            버튼을 눌러 중심을 잡으세요!
+                        <div className="text-white font-black text-2xl bg-black/40 px-6 py-3 rounded-full backdrop-blur-sm animate-bounce">
+                            위로 밀어 물병을 던지세요!
                         </div>
                     </motion.div>
                 )}

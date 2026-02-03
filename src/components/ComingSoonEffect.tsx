@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ComingSoonEffectProps {
     isActive: boolean;
     onComplete: () => void;
+    emojis: string[];
 }
 
-const EMOJIS = ['❓', '❔', '❗', '🚧', '🔨', '🧐', '👀'];
-
-export const ComingSoonEffect: React.FC<ComingSoonEffectProps> = ({ isActive, onComplete }) => {
+export const ComingSoonEffect: React.FC<ComingSoonEffectProps> = ({ isActive, onComplete, emojis }) => {
     const [particles, setParticles] = useState<{ id: number; x: number; emoji: string; delay: number; duration: number }[]>([]);
     useEffect(() => {
         if (isActive) {
@@ -16,7 +15,7 @@ export const ComingSoonEffect: React.FC<ComingSoonEffectProps> = ({ isActive, on
             const newParticles = Array.from({ length: 60 }).map((_, i) => ({
                 id: i,
                 x: Math.random() * 100, // 0-100vw
-                emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+                emoji: emojis[Math.floor(Math.random() * emojis.length)],
                 delay: Math.random() * 1.5, // Spread out over time
                 duration: 2 + Math.random() * 1.5 // Varied fall speed
             }));

@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 
 import { ComingSoonEffect } from './ComingSoonEffect';
 import { useState } from 'react';
+import { COMING_SOON_MESSAGES, EMOJI_THEMES } from '../data/comingSoonData';
 
 const BentoCard = ({
     children,
@@ -86,12 +87,34 @@ const BentoCard = ({
 
 export const BentoGrid: React.FC = () => {
     const [isComingSoonActive, setIsComingSoonActive] = useState(false);
+    const [clickCount, setClickCount] = useState(0);
+
+    const handleComingSoonClick = () => {
+        if (clickCount >= 50) {
+            if (confirm("너 50번 눌렀다. 대단해!! 최고다 이제 처음부터 다시?? 🤪")) {
+                setClickCount(0);
+            }
+            return;
+        }
+        setClickCount(prev => prev + 1);
+        setIsComingSoonActive(true);
+    };
+
+    // Derived state for message and emojis
+    const currentMessage = clickCount <= 50
+        ? COMING_SOON_MESSAGES[Math.min(clickCount - 1, COMING_SOON_MESSAGES.length - 1)]
+        : COMING_SOON_MESSAGES[0];
+
+    // Pick random theme or based on count (use modulo to cycle)
+    const currentEmojis = EMOJI_THEMES[(clickCount - 1) % EMOJI_THEMES.length] || EMOJI_THEMES[0];
+
 
     return (
         <div className="relative z-10 w-full min-h-screen px-4 pb-20 pt-10">
             <ComingSoonEffect
                 isActive={isComingSoonActive}
                 onComplete={() => setIsComingSoonActive(false)}
+                emojis={currentEmojis}
             />
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -180,7 +203,7 @@ export const BentoGrid: React.FC = () => {
                 <BentoCard
                     delay={0.4}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"
-                    onClick={() => setIsComingSoonActive(true)}
+                    onClick={handleComingSoonClick}
                     whileHover={{
                         scale: 1.05,
                         transition: { duration: 0.2 }
@@ -194,7 +217,7 @@ export const BentoGrid: React.FC = () => {
                         />
                         {/* Closed Badge */}
                         <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white/90 text-[11px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-white/10">
-                            <span className="text-[10px]">🔒</span> Closed
+                            <span className="text-[10px]">🔒 Closed {clickCount > 0 && `(${clickCount})`}</span>
                         </div>
 
                         {/* Glassmorphic Speech Bubble (Centered in Banner) */}
@@ -208,7 +231,7 @@ export const BentoGrid: React.FC = () => {
                                         className="bg-white/30 backdrop-blur-md border border-white/20 px-4 py-2 rounded-2xl shadow-lg relative"
                                     >
                                         <span className="text-sm md:text-base font-bold text-white whitespace-nowrap drop-shadow-md">
-                                            {["열심히 공사 중! 🔨", "조금만 기다려요! ⏳", "1급 비밀 🤫", "Coming Soon... ✨"][Math.floor(Math.random() * 4)]}
+                                            {currentMessage}
                                         </span>
                                         {/* Triangle */}
                                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white/30"></div>

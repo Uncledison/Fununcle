@@ -88,25 +88,36 @@ const BentoCard = ({
 export const BentoGrid: React.FC = () => {
     const [isComingSoonActive, setIsComingSoonActive] = useState(false);
     const [clickCount, setClickCount] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0);
 
     const handleComingSoonClick = () => {
         if (clickCount >= 50) {
             if (confirm("너 50번 눌렀다. 대단해!! 최고다 이제 처음부터 다시?? 🤪")) {
                 setClickCount(0);
+                setCurrentIndex(0);
             }
             return;
         }
+
+        let newIndex;
+        // Logic: Random until 45, then Sequential for Countdown (45-49)
+        if (clickCount < 45) {
+            do {
+                newIndex = Math.floor(Math.random() * 45); // Random from 0 to 44
+            } while (newIndex === currentIndex && clickCount > 0); // Avoid repeat
+        } else {
+            // Sequential for countdown (45, 46, 47, 48, 49)
+            newIndex = clickCount;
+        }
+
+        setCurrentIndex(newIndex);
         setClickCount(prev => prev + 1);
         setIsComingSoonActive(true);
     };
 
-    // Derived state for message and emojis
-    const currentMessage = clickCount <= 50
-        ? COMING_SOON_MESSAGES[Math.min(clickCount - 1, COMING_SOON_MESSAGES.length - 1)]
-        : COMING_SOON_MESSAGES[0];
-
-    // Pick random theme or based on count (use modulo to cycle)
-    const currentEmojis = EMOJI_THEMES[(clickCount - 1) % EMOJI_THEMES.length] || EMOJI_THEMES[0];
+    // Derived state for message and emojis using the calculated Random/Sequential index
+    const currentMessage = COMING_SOON_MESSAGES[Math.min(currentIndex, COMING_SOON_MESSAGES.length - 1)];
+    const currentEmojis = EMOJI_THEMES[currentIndex % EMOJI_THEMES.length] || EMOJI_THEMES[0];
 
 
     return (

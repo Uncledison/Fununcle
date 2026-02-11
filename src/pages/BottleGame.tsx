@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Home, RefreshCw, Share2 } from 'lucide-react';
+import { Home, RefreshCw, Share2, MessageCircle } from 'lucide-react';
 import { useFavicon } from '../hooks/useFavicon';
 
 // --- Constants ---

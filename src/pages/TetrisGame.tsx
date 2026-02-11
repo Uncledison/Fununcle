@@ -590,11 +590,12 @@ export const TetrisGame: React.FC = () => {
             if (!kakao.isInitialized()) {
                 kakao.init('8e68190d1ba932955a557fbf0ae0b659');
             }
+            const difficultyText = difficulty === 'beginner' ? '초급' : difficulty === 'intermediate' ? '중급' : '고급';
             kakao.Share.sendDefault({
                 objectType: 'feed',
                 content: {
-                    title: `NEON TETRIS Challenge!`,
-                    description: `Score: ${score.toLocaleString()}\nCan you beat me?`,
+                    title: `[Fun.Uncle] 네온 테트리스 도전!`,
+                    description: `등급(${difficultyText}) 최종점수 : ${score.toLocaleString()}\n나 이길 수 있어?`,
                     imageUrl: 'https://fun.uncledison.com/assets/tetris_share.png',
                     link: {
                         mobileWebUrl: 'https://fun.uncledison.com/tetris',
@@ -603,7 +604,7 @@ export const TetrisGame: React.FC = () => {
                 },
                 buttons: [
                     {
-                        title: 'Play Now',
+                        title: '나도 도전하기',
                         link: {
                             mobileWebUrl: 'https://fun.uncledison.com/tetris',
                             webUrl: 'https://fun.uncledison.com/tetris',
@@ -775,69 +776,77 @@ export const TetrisGame: React.FC = () => {
 
                             {/* Difficulty Selector (Only on Start Screen) */}
                             {!isGameOver && (
-                                <div className="flex gap-3 justify-center w-full mb-6">
+                                <div className="flex gap-3 justify-center w-full mb-8">
                                     <button
                                         onClick={() => setDifficulty('beginner')}
-                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                        className={`px-8 py-2 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
                                         초급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('intermediate')}
-                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                        className={`px-8 py-2 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
                                         중급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('advanced')}
-                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                        className={`px-8 py-2 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
                                         고급
                                     </button>
                                 </div>
                             )}
 
-                            <div className="flex flex-col gap-1 w-full max-w-[200px] bg-white/5 p-3 rounded-2xl border border-white/10 shadow-sm mx-auto mb-4">
-                                <div className="text-xs text-gray-500 font-bold tracking-widest uppercase">최고점수</div>
-                                <div className="text-2xl font-mono text-[#ff00ff] font-black">{Math.max(score, highScore)}</div>
-                            </div>
-
                             {isGameOver && (
-                                <div className="text-3xl text-white font-bold animate-pulse mb-6">
-                                    최종 점수: <span className="text-[#00f0ff]">{score}</span>
+                                <div className="flex flex-col items-center mb-8">
+                                    <div className="text-6xl text-white font-black italic drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-2">
+                                        {score.toLocaleString()}
+                                    </div>
+                                    <div className="text-xs text-gray-500 font-medium tracking-widest uppercase">
+                                        최고점수 : {Math.max(score, highScore).toLocaleString()}
+                                    </div>
                                 </div>
                             )}
 
-                            <div className="flex flex-col gap-3 w-full">
+                            {/* Minimal High Score (Start Screen Only) */}
+                            {!isGameOver && (
+                                <div className="text-xs text-gray-500 font-medium tracking-widest uppercase mb-8">
+                                    최고점수 : {Math.max(score, highScore).toLocaleString()}
+                                </div>
+                            )}
+
+                            <div className="flex flex-col items-center gap-6 w-full">
+                                {/* Main Action Button (Slim & Pill) */}
                                 <button
                                     onClick={startGame}
-                                    className="w-full py-4 bg-[#00f0ff] hover:opacity-80 rounded-full font-bold text-xl text-black shadow-lg transition-all active:scale-95"
+                                    className="px-12 py-3 bg-[#00f0ff] hover:opacity-80 rounded-full font-bold text-xl text-black shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all active:scale-95"
                                 >
                                     {isGameOver ? "다시" : "시작"}
                                 </button>
 
+                                {/* Sub Actions (Start Screen - None / Game Over - Icons) */}
                                 {isGameOver && (
-                                    <>
+                                    <div className="flex gap-6">
                                         <button
                                             onClick={handleShare}
-                                            className="w-full py-4 bg-[#FEE500] hover:bg-[#E6CF00] rounded-full font-bold text-lg text-[#191919] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                            className="p-4 bg-[#FEE500] hover:bg-[#E6CF00] rounded-full text-[#191919] shadow-lg transition-all active:scale-95 flex items-center justify-center"
+                                            aria-label="공유"
                                         >
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                                             </svg>
-                                            공유
                                         </button>
                                         <button
                                             onClick={() => navigate('/')}
-                                            className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-full font-bold text-lg text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                            className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white shadow-lg transition-all active:scale-95 flex items-center justify-center"
+                                            aria-label="홈으로"
                                         >
-                                            {/* Home Icon */}
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                                             </svg>
-                                            홈으로
                                         </button>
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </motion.div>

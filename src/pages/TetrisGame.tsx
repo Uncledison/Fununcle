@@ -664,7 +664,7 @@ export const TetrisGame: React.FC = () => {
         <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
             {/* Header: Branding & Controls (Compact) */}
-            <div className="w-full px-5 pt-4 pb-1 flex justify-between items-center z-20 shrink-0">
+            <div className="w-full px-5 pt-3 pb-1 flex justify-between items-center z-20 shrink-0">
                 {/* Left: Branding (Home Link) */}
                 <div onClick={() => navigate('/')} className="cursor-pointer">
                     <h1 className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
@@ -683,40 +683,40 @@ export const TetrisGame: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats Bar: Time | Next | Score (Compact) */}
+            {/* Stats Bar: Time | Next | Score (Slim & Transparent) */}
             <div className="w-full px-6 py-1 grid grid-cols-3 gap-2 items-center z-20 shrink-0 mb-1">
                 {/* Time */}
-                <div className={`flex flex-col items-center justify-center bg-white/5 border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/20' : 'border-white/10'}`}>
+                <div className={`flex flex-col items-center justify-center border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
                     <div className={`text-[9px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
                     <div className={`text-lg font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
                 </div>
 
-                {/* Next Piece */}
+                {/* Next Piece (Wider) */}
                 <div className="flex items-center justify-center">
-                    <div className="bg-black/40 border border-white/10 rounded-lg w-[40px] h-[40px] flex items-center justify-center">
-                        <canvas ref={nextCanvasRef} width={40} height={40} />
+                    <div className="border border-white/20 rounded-lg w-[60px] h-[40px] flex items-center justify-center">
+                        <canvas ref={nextCanvasRef} width={60} height={40} />
                     </div>
                 </div>
 
                 {/* Score */}
-                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-1">
+                <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1">
                     <div className="text-[9px] text-gray-400 font-bold tracking-widest">SCORE</div>
                     <div className="text-lg font-mono font-bold text-white/90">{score.toLocaleString()}</div>
                 </div>
             </div>
 
-            {/* Main Game Area (Flex Grow to Fill Remaining Space) */}
+            {/* Main Game Area (Reduced Height) */}
             <div className="flex-1 w-full flex items-start justify-center relative p-2 overflow-hidden"
                 style={{ transform: `translate(${Math.random() * shake - shake / 2}px, ${Math.random() * shake - shake / 2}px)` }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* Canvas - Force Height to Fit, Width Auto */}
+                {/* Canvas - Limit Max Height further for Chrome URL bar */}
                 <canvas
                     ref={canvasRef}
                     width={COLS * BLOCK_SIZE}
                     height={ROWS * BLOCK_SIZE}
-                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[75vh]"
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[70vh]"
                 />
 
                 {/* Combo Text Overlay (Flashy!) */}

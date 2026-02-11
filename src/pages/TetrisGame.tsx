@@ -118,8 +118,9 @@ export const TetrisGame: React.FC = () => {
     const particlesRef = useRef<Particle[]>([]);
 
     // Time Attack State
+    const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('advanced');
     const [score, setScore] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(60); // 60 Seconds Time Attack
+    const [timeLeft, setTimeLeft] = useState(60);
     const [isGameOver, setIsGameOver] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -276,7 +277,15 @@ export const TetrisGame: React.FC = () => {
             if (navigator.vibrate) navigator.vibrate(50 * linesCleared);
 
             // Score Logic (Dynamic Multiplier based on speed/time left)
-            const speedMultiplier = timeLeft < 15 ? 4 : timeLeft < 30 ? 3 : timeLeft < 45 ? 2 : 1;
+            let speedMultiplier = 1;
+            if (difficulty === 'advanced') {
+                speedMultiplier = timeLeft < 15 ? 4 : timeLeft < 30 ? 3 : timeLeft < 45 ? 2 : 1;
+            } else if (difficulty === 'intermediate') {
+                speedMultiplier = timeLeft < 30 ? 3 : timeLeft < 60 ? 2 : 1;
+            } else {
+                speedMultiplier = timeLeft < 30 ? 2 : 1;
+            }
+
             const points = [0, 100, 300, 500, 800][linesCleared] * speedMultiplier;
             setScore(prev => prev + points);
 
@@ -364,15 +373,30 @@ export const TetrisGame: React.FC = () => {
         playSound('drop');
     }, [isPaused, isPlaying]);
 
-    // --- Dynamic Speed Loop based on Time Left ---
+    // --- Dynamic Speed Loop based on Time Left & Difficulty ---
     const startGameLoop = () => {
         if (gameLoopRef.current) clearInterval(gameLoopRef.current);
 
-        // Speed Curve: 60s (800ms) -> 45s (500ms) -> 30s (300ms) -> 15s (150ms)
-        let speed = 800;
-        if (timeLeft < 15) speed = 150;
-        else if (timeLeft < 30) speed = 300;
-        else if (timeLeft < 45) speed = 500;
+        let speed = 800; // Default
+
+        if (difficulty === 'advanced') {
+            // 60s Total: Fast paced
+            if (timeLeft < 15) speed = 150;      // Hyper
+            else if (timeLeft < 30) speed = 300; // Super Fast
+            else if (timeLeft < 45) speed = 500; // Fast
+            else speed = 800;                    // Normal
+        } else if (difficulty === 'intermediate') {
+            // 180s Total: Balanced
+            if (timeLeft < 30) speed = 300;      // Super Fast
+            else if (timeLeft < 60) speed = 500; // Fast
+            else speed = 800;                    // Normal
+        } else {
+            // 300s Total: Relaxed start
+            if (timeLeft < 30) speed = 300;      // Super Fast
+            else if (timeLeft < 60) speed = 500; // Fast
+            else if (timeLeft < 120) speed = 800;// Normal
+            else speed = 1000;                   // Slow start
+        }
 
         gameLoopRef.current = setInterval(() => {
             drop();
@@ -410,7 +434,7 @@ export const TetrisGame: React.FC = () => {
         if (isPlaying && !isPaused) {
             startGameLoop();
         }
-    }, [timeLeft, isPlaying, isPaused]);
+    }, [timeLeft, isPlaying, isPaused, difficulty]);
 
 
     // --- Gestures ---
@@ -554,10 +578,43 @@ export const TetrisGame: React.FC = () => {
     }
 
 
+    const handleShare = () => {
+        const kakao = (window as any).Kakao;
+        if (kakao) {
+            if (!kakao.isInitialized()) {
+                kakao.init('8e68190d1ba932955a557fbf0ae0b659');
+            }
+            kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: `Neon Tetris Challenge!`,
+                    description: `I scored ${score.toLocaleString()} in ${difficulty?.toUpperCase() || 'GAME'} Mode! Can you beat me?`,
+                    imageUrl: 'https://fun.uncledison.com/assets/tetris_share.png',
+                    link: {
+                        mobileWebUrl: 'https://fun.uncledison.com/tetris',
+                        webUrl: 'https://fun.uncledison.com/tetris',
+                    },
+                },
+                buttons: [
+                    {
+                        title: 'Play Now',
+                        link: {
+                            mobileWebUrl: 'https://fun.uncledison.com/tetris',
+                            webUrl: 'https://fun.uncledison.com/tetris',
+                        },
+                    },
+                ],
+            });
+        }
+    };
+
     const startGame = () => {
         boardRef.current = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         setScore(0);
-        setTimeLeft(60); // Reset Timer
+        // Set Time based on Difficulty
+        if (difficulty === 'beginner') setTimeLeft(300); // 5 min
+        else if (difficulty === 'intermediate') setTimeLeft(180); // 3 min
+        else setTimeLeft(60); // 1 min (Advanced)
         setIsGameOver(false);
         setIsPaused(false);
         setIsPlaying(true);
@@ -707,8 +764,32 @@ export const TetrisGame: React.FC = () => {
                             className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-8"
                         >
                             <h1 className="text-6xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
-                                {isGameOver ? "TIME'S UP!" : "TIME ATTACK"}
+                                {isGameOver ? "TIME'S UP!" : "TETRIS"}
                             </h1>
+
+                            {/* Difficulty Selector (Only on Start Screen) */}
+                            {!isGameOver && (
+                                <div className="grid grid-cols-3 gap-2 w-full">
+                                    <button
+                                        onClick={() => setDifficulty('beginner')}
+                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                    >
+                                        초급 (5분)
+                                    </button>
+                                    <button
+                                        onClick={() => setDifficulty('intermediate')}
+                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-[0_0_10px_#f0f000]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                    >
+                                        중급 (3분)
+                                    </button>
+                                    <button
+                                        onClick={() => setDifficulty('advanced')}
+                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-[0_0_10px_#f00000]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                    >
+                                        고급 (1분)
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="flex flex-col gap-1 w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
                                 <div className="text-sm text-gray-400 font-bold tracking-widest">HIGHSCORE</div>
@@ -725,8 +806,21 @@ export const TetrisGame: React.FC = () => {
                                 onClick={startGame}
                                 className="w-full py-5 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-2xl text-white shadow-[0_0_40px_rgba(0,240,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
                             >
-                                <span className="relative z-10">{isGameOver ? "RETRY" : "START (60s)"}</span>
+                                <span className="relative z-10">{isGameOver ? "RETRY" : "START"}</span>
                             </button>
+
+                            {/* Kakao Share Button (Game Over Only) */}
+                            {isGameOver && (
+                                <button
+                                    onClick={handleShare}
+                                    className="flex items-center gap-2 px-6 py-3 bg-[#FEE500] hover:bg-[#FEE500]/90 rounded-full text-[#3C1E1E] font-bold shadow-lg transition-transform active:scale-95"
+                                >
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+                                    </svg>
+                                    카카오톡 공유하기
+                                </button>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}

@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, RefreshCw, Play } from 'lucide-react';
+import { Play, Volume2, VolumeX, Pause } from 'lucide-react';
 import { useFavicon } from '../hooks/useFavicon';
 
 // --- Constants & Types ---
 const COLS = 10;
 const ROWS = 20;
-const BLOCK_SIZE = 30;
+const BLOCK_SIZE = 30; // Base size, will scale with Canvas CSS
 
 const TETROMINOS: any = {
     'I': { shape: [[[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], [[0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]], [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]], color: 1 },
@@ -65,14 +66,14 @@ export const TetrisGame: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const nextCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    // Game State Refs (Mutable, No Re-render)
+    // Game State Refs
     const boardRef = useRef<number[][]>(Array.from({ length: ROWS }, () => Array(COLS).fill(0)));
     const currentPieceRef = useRef<Piece | null>(null);
     const nextPieceRef = useRef<Piece | null>(null);
     const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const pieceBagRef = useRef<string[]>([]);
 
-    // UI State (Triggers Re-render)
+    // UI State
     const [score, setScore] = useState(0);
     const [level, setLevel] = useState(1);
     const [lines, setLines] = useState(0);
@@ -81,31 +82,43 @@ export const TetrisGame: React.FC = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [showStartScreen, setShowStartScreen] = useState(true);
     const [highScore, setHighScore] = useState(0);
+    const [isMuted, setIsMuted] = useState(false);
+
+    // Animation Effects state
+    const [comboText, setComboText] = useState<{ text: string, color: string } | null>(null);
 
     // Audio Refs
     const soundsRef = useRef<any>({});
+
+    // Touch Logic Refs
+    const touchStartRef = useRef<{ x: number, y: number, time: number } | null>(null);
 
     useEffect(() => {
         const savedHigh = localStorage.getItem('tetrisHighScore');
         if (savedHigh) setHighScore(parseInt(savedHigh));
 
         // Init Audio
-        soundsRef.current = {
-            move: new Audio('/tetris/audio/flip.wav'),
-            rotate: new Audio('/tetris/audio/beep.wav'),
-            drop: new Audio('/tetris/audio/drop.wav'),
-            clear: new Audio('/tetris/audio/success.mp3'),
-            levelUp: new Audio('/tetris/audio/level-up.wav'),
-            gameStart: new Audio('/tetris/audio/beep.wav'),
-            gameOver: new Audio('/tetris/audio/whoosh.wav'), // Reusing whoosh for game over/special
-            bgm: new Audio('/tetris/audio/bgm01.mp3')
+        const audioFiles = {
+            move: '/tetris/audio/flip.wav',
+            rotate: '/tetris/audio/beep.wav',
+            drop: '/tetris/audio/drop.wav',
+            clear: '/tetris/audio/success.mp3',
+            levelUp: '/tetris/audio/level-up.wav',
+            gameStart: '/tetris/audio/beep.wav',
+            gameOver: '/tetris/audio/whoosh.wav',
+            bgm: '/tetris/audio/bgm01.mp3'
         };
-        soundsRef.current.bgm.loop = true;
-        soundsRef.current.bgm.volume = 0.3;
 
-        Object.values(soundsRef.current).forEach((audio: any) => {
-            audio.volume = 0.3;
-        });
+        const loadAudio = () => {
+            const sounds: any = {};
+            Object.entries(audioFiles).forEach(([key, path]) => {
+                sounds[key] = new Audio(path);
+                sounds[key].volume = 0.3;
+            });
+            sounds.bgm.loop = true;
+            soundsRef.current = sounds;
+        };
+        loadAudio();
 
         return () => {
             stopGameLoop();
@@ -116,12 +129,28 @@ export const TetrisGame: React.FC = () => {
         };
     }, []);
 
+    // Mute Toggle Logic
+    useEffect(() => {
+        if (soundsRef.current.bgm) {
+            soundsRef.current.bgm.muted = isMuted;
+            if (!isMuted && isPlaying && !isPaused && !isGameOver) {
+                soundsRef.current.bgm.play().catch(() => { });
+            } else if (isMuted) {
+                soundsRef.current.bgm.pause();
+            }
+        }
+    }, [isMuted, isPlaying, isPaused, isGameOver]);
+
+    const toggleMute = () => setIsMuted(!isMuted);
+
+
     // --- Core Game Logic ---
 
     const playSound = (name: string) => {
+        if (isMuted) return;
         try {
             if (soundsRef.current[name]) {
-                soundsRef.current[name].currentTime = 0;
+                if (name !== 'bgm') soundsRef.current[name].currentTime = 0;
                 soundsRef.current[name].play().catch(() => { });
             }
         } catch (e) { }
@@ -169,11 +198,11 @@ export const TetrisGame: React.FC = () => {
         // Check Lines
         let linesCleared = 0;
         for (let r = ROWS - 1; r >= 0; r--) {
-            if (boardRef.current[r].every(c => c !== 0)) {
+            if (boardRef.current[r].every((c: number) => c !== 0)) {
                 boardRef.current.splice(r, 1);
                 boardRef.current.unshift(Array(COLS).fill(0));
                 linesCleared++;
-                r++; // Check same row index again
+                r++;
             }
         }
 
@@ -184,10 +213,18 @@ export const TetrisGame: React.FC = () => {
                 setLevel(Math.floor(newLines / 10) + 1);
                 return newLines;
             });
-            setScore(prev => prev + [0, 100, 300, 500, 800][linesCleared] * level);
+            const points = [0, 100, 300, 500, 800][linesCleared] * level;
+            setScore(prev => prev + points);
 
-            // Visual Effects (Simple Shake)
+            // Visual Effects (Vibrate & Combo Text)
             if (navigator.vibrate) navigator.vibrate(50 * linesCleared);
+
+            if (linesCleared >= 2) {
+                let text = linesCleared === 4 ? "NEON TETRIS!" : linesCleared === 3 ? "TRIPLE!" : "DOUBLE!";
+                let color = linesCleared === 4 ? "#b026ff" : linesCleared === 3 ? "#00f0ff" : "#f0f000";
+                setComboText({ text, color });
+                setTimeout(() => setComboText(null), 1500);
+            }
         }
 
         spawnPiece();
@@ -208,7 +245,7 @@ export const TetrisGame: React.FC = () => {
         stopGameLoop();
         setIsPlaying(false);
         setIsGameOver(true);
-        soundsRef.current.bgm.pause();
+        if (soundsRef.current.bgm) soundsRef.current.bgm.pause();
         playSound('gameOver');
 
         if (score > highScore) {
@@ -217,25 +254,27 @@ export const TetrisGame: React.FC = () => {
         }
     };
 
-    const move = (dir: number) => {
+    const move = useCallback((dir: number) => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         if (!checkCollision(currentPieceRef.current, dir, 0)) {
             currentPieceRef.current.x += dir;
             draw();
             playSound('move');
         }
-    };
+    }, [isPaused, isPlaying]);
 
-    const rotate = () => {
+    const rotate = useCallback(() => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         const piece = currentPieceRef.current;
         const prevRot = piece.rotation;
         piece.rotate();
 
         if (checkCollision(piece)) {
-            // Wall Kicks (Simple)
+            // Wall Kicks
             if (!checkCollision(piece, -1, 0)) piece.x -= 1;
             else if (!checkCollision(piece, 1, 0)) piece.x += 1;
+            else if (!checkCollision(piece, -2, 0)) piece.x -= 2; // Extra kick for I bar
+            else if (!checkCollision(piece, 2, 0)) piece.x += 2;
             else {
                 piece.rotation = prevRot;
                 piece.shape = TETROMINOS[piece.type].shape[prevRot];
@@ -244,9 +283,9 @@ export const TetrisGame: React.FC = () => {
         }
         draw();
         playSound('rotate');
-    };
+    }, [isPaused, isPlaying]);
 
-    const drop = () => {
+    const drop = useCallback(() => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         if (!checkCollision(currentPieceRef.current, 0, 1)) {
             currentPieceRef.current.y += 1;
@@ -256,9 +295,9 @@ export const TetrisGame: React.FC = () => {
             playSound('drop');
             draw();
         }
-    };
+    }, [isPaused, isPlaying]);
 
-    const hardDrop = () => {
+    const hardDrop = useCallback(() => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         while (!checkCollision(currentPieceRef.current, 0, 1)) {
             currentPieceRef.current.y += 1;
@@ -266,7 +305,7 @@ export const TetrisGame: React.FC = () => {
         lockPiece();
         playSound('drop');
         draw();
-    };
+    }, [isPaused, isPlaying]);
 
     const startGameLoop = () => {
         if (gameLoopRef.current) clearInterval(gameLoopRef.current);
@@ -280,10 +319,69 @@ export const TetrisGame: React.FC = () => {
         if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     };
 
+    const togglePause = () => {
+        if (isGameOver) return;
+        setIsPaused(!isPaused);
+    };
+
     useEffect(() => {
-        if (isPlaying && !isPaused) startGameLoop();
-        else stopGameLoop();
+        if (isPlaying && !isPaused) {
+            startGameLoop();
+            if (!isMuted && soundsRef.current.bgm) soundsRef.current.bgm.play().catch(() => { });
+        } else {
+            stopGameLoop();
+            if (soundsRef.current.bgm) soundsRef.current.bgm.pause();
+        }
     }, [isPlaying, isPaused, level]);
+
+
+    // --- Gestures ---
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (isPaused || !isPlaying) return;
+        const touch = e.touches[0];
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            time: Date.now()
+        };
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (!touchStartRef.current || isPaused || !isPlaying) return;
+
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - touchStartRef.current.x;
+        const deltaY = touch.clientY - touchStartRef.current.y;
+        const deltaTime = Date.now() - touchStartRef.current.time;
+
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        // Tap Detection (Short time, small movement) -> Rotate
+        if (deltaTime < 200 && absX < 10 && absY < 10) {
+            rotate();
+        }
+        // Swipe Detection (Longer/Larger movement)
+        else {
+            if (absX > absY) {
+                // Horizontal Swipe
+                if (absX > 30) { // Threshold
+                    move(deltaX > 0 ? 1 : -1);
+                }
+            } else {
+                // Vertical Swipe
+                if (absY > 30) {
+                    if (deltaY > 0) {
+                        // Down Swipe -> Hard Drop (User said "Fast Drop", commonly hard drop or fast soft drop. I'll use hard drop for clear feedback)
+                        hardDrop();
+                    } else {
+                        // Up Swipe - Maybe rotate? User requested Tap for rotate. Ignore Up swipe to avoid accidental inputs.
+                    }
+                }
+            }
+        }
+        touchStartRef.current = null;
+    };
 
 
     // --- Rendering ---
@@ -292,26 +390,16 @@ export const TetrisGame: React.FC = () => {
         const px = x * BLOCK_SIZE;
         const py = y * BLOCK_SIZE;
 
-        // Clear
-        // ctx.clearRect(px, py, BLOCK_SIZE, BLOCK_SIZE); // Not needed if we redraw background
-
-        // Neon Glow Style 💎
+        // Clean Neon Fill
         ctx.fillStyle = color;
         ctx.shadowColor = color;
         ctx.shadowBlur = 15;
-        ctx.fillRect(px + 2, py + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4);
-
-        // Inner Highlight
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.fillRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
         ctx.shadowBlur = 0;
-        ctx.fillRect(px + 2, py + 2, BLOCK_SIZE - 4, (BLOCK_SIZE - 4) / 2);
 
-        // Border
-        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(px + 2, py + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4);
-
-        ctx.shadowBlur = 0; // Reset
+        // Inner Light
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(px + 4, py + 4, BLOCK_SIZE / 3, BLOCK_SIZE / 3);
     };
 
     const draw = () => {
@@ -321,11 +409,11 @@ export const TetrisGame: React.FC = () => {
         if (!ctx) return;
 
         // Background
-        ctx.fillStyle = '#111025'; // Deep Neon BG
+        ctx.fillStyle = '#0f0f1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Grid (Optional)
-        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        // Grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
         ctx.lineWidth = 1;
         for (let i = 0; i <= COLS; i++) {
             ctx.beginPath(); ctx.moveTo(i * BLOCK_SIZE, 0); ctx.lineTo(i * BLOCK_SIZE, canvas.height); ctx.stroke();
@@ -334,14 +422,14 @@ export const TetrisGame: React.FC = () => {
             ctx.beginPath(); ctx.moveTo(0, i * BLOCK_SIZE); ctx.lineTo(canvas.width, i * BLOCK_SIZE); ctx.stroke();
         }
 
-        // Draw Board
+        // Board
         boardRef.current.forEach((row: number[], y: number) => {
             row.forEach((color: number, x: number) => {
                 if (color) drawBlock(ctx, x, y, color);
             });
         });
 
-        // Draw Ghost
+        // Ghost
         if (currentPieceRef.current) {
             const piece = currentPieceRef.current;
             let ghostY = piece.y;
@@ -349,7 +437,7 @@ export const TetrisGame: React.FC = () => {
                 ghostY++;
             }
 
-            ctx.globalAlpha = 0.2;
+            ctx.globalAlpha = 0.15;
             piece.shape.forEach((row: number[], r: number) => {
                 row.forEach((val: number, c: number) => {
                     if (val) drawBlock(ctx, piece.x + c, ghostY + r, piece.color);
@@ -357,7 +445,7 @@ export const TetrisGame: React.FC = () => {
             });
             ctx.globalAlpha = 1.0;
 
-            // Draw Current Piece
+            // Current Piece
             piece.shape.forEach((row: number[], r: number) => {
                 row.forEach((val: number, c: number) => {
                     if (val) drawBlock(ctx, piece.x + c, piece.y + r, piece.color);
@@ -376,18 +464,17 @@ export const TetrisGame: React.FC = () => {
 
         if (nextPieceRef.current) {
             const piece = nextPieceRef.current;
-            const size = 20; // Smaller block size for preview
+            const size = 15; // Compact Size
             const offsetX = (canvas.width - piece.shape[0].length * size) / 2;
             const offsetY = (canvas.height - piece.shape.length * size) / 2;
 
             piece.shape.forEach((row: number[], r: number) => {
                 row.forEach((val: number, c: number) => {
                     if (val) {
-                        const color = COLORS[piece.color];
-                        ctx.fillStyle = color;
-                        ctx.shadowColor = color;
-                        ctx.shadowBlur = 10;
-                        ctx.fillRect(offsetX + c * size, offsetY + r * size, size - 2, size - 2);
+                        ctx.fillStyle = COLORS[piece.color];
+                        ctx.shadowColor = COLORS[piece.color];
+                        ctx.shadowBlur = 5;
+                        ctx.fillRect(offsetX + c * size, offsetY + r * size, size - 1, size - 1);
                         ctx.shadowBlur = 0;
                     }
                 });
@@ -408,12 +495,10 @@ export const TetrisGame: React.FC = () => {
 
         nextPieceRef.current = getNextPiece();
         spawnPiece();
-
-        soundsRef.current.bgm.currentTime = 0;
-        soundsRef.current.bgm.play().catch(() => { });
+        // BGM handled by useEffect
     };
 
-    // --- Controls ---
+    // --- Controls Bindings ---
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!isPlaying || isPaused) return;
@@ -427,9 +512,7 @@ export const TetrisGame: React.FC = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isPlaying, isPaused, currentPieceRef.current]);
-    // Added currentPieceRef.current to dependency to ensure closure has latest ref (?) 
-    // Actually ref is always latest, but callback needs to be fresh if we used state. Ref is fine.
+    }, [isPlaying, isPaused, move, rotate, drop, hardDrop]); // Dependencies included for safety
 
 
     // --- Render Loop ---
@@ -445,126 +528,142 @@ export const TetrisGame: React.FC = () => {
 
 
     return (
-        <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col items-center justify-center font-sans text-white touch-none">
+        <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Header */}
-            <div className="absolute top-6 left-6 z-20 flex items-center gap-4">
-                <button onClick={() => navigate('/')} className="p-2 bg-white/10 rounded-full backdrop-blur-md hover:bg-white/20 transition-all">
-                    <ArrowLeft size={24} color="#00f0ff" />
-                </button>
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col"
-                >
-                    <span className="text-3xl font-black italic tracking-tighter" style={{ textShadow: '0 0 10px #00f0ff' }}>
-                        <span className="text-[#00f0ff]">FUN</span>
-                        <span className="text-white">.UNCLE</span>
-                    </span>
-                    <span className="text-[10px] text-[#b026ff] tracking-widest font-bold">NEON TETRIS</span>
-                </motion.div>
-            </div>
-
-            {/* Score & HUD */}
-            <div className="absolute top-6 right-6 z-20 flex flex-col items-end gap-2">
-                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-[#b026ff]/30 shadow-[0_0_15px_rgba(176,38,255,0.2)]">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider">Score</div>
-                    <div className="text-2xl font-mono font-bold text-[#00f0ff]">{score.toLocaleString()}</div>
+            {/* Top Bar: Header & Stats - Clean UI Layout */}
+            <div className="w-full px-6 pt-6 pb-2 flex justify-between items-start z-20">
+                {/* Left: Branding */}
+                <div onClick={() => navigate('/')} className="cursor-pointer">
+                    <h1 className="text-2xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
+                        FUN.UNCLE
+                    </h1>
                 </div>
-                <div className="flex gap-2">
-                    <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                        <div className="text-[9px] text-gray-500">LEVEL</div>
-                        <div className="text-lg font-mono font-bold">{level}</div>
+
+                {/* Right UI: Stats Grid + Controls */}
+                <div className="flex gap-4 items-start">
+                    {/* Score & Next Piece (Compact) */}
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="bg-[#1a1a2e]/80 border border-[#b026ff]/30 px-3 py-1 rounded-lg">
+                            <div className="text-[10px] text-gray-400">SCORE</div>
+                            <div className="text-xl font-mono text-[#00f0ff]">{score.toLocaleString()}</div>
+                        </div>
                     </div>
-                    <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10">
-                        <div className="text-[9px] text-gray-500">LINES</div>
-                        <div className="text-lg font-mono font-bold">{lines}</div>
+
+                    <div className="flex flex-col gap-2">
+                        {/* Audio & Pause Controls */}
+                        <div className="flex gap-2 justify-end">
+                            <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                                {isMuted ? <VolumeX size={20} color="#666" /> : <Volume2 size={20} color="#00f0ff" />}
+                            </button>
+                            <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                                {isPaused ? <Play size={20} color="#00f000" /> : <Pause size={20} color="#fff" />}
+                            </button>
+                        </div>
+                        {/* Next Piece */}
+                        <div className="bg-black/40 border border-white/10 rounded-lg w-[60px] h-[60px] flex items-center justify-center self-end">
+                            <canvas ref={nextCanvasRef} width={60} height={60} />
+                        </div>
                     </div>
                 </div>
-
-                {/* Next Piece PREVIEW */}
-                <div className="mt-2 bg-black/40 backdrop-blur-md p-2 rounded-xl border border-white/10 w-[80px] h-[80px] flex items-center justify-center">
-                    <canvas ref={nextCanvasRef} width={80} height={80} />
-                </div>
             </div>
 
-            {/* Main Canvas */}
-            <canvas
-                ref={canvasRef}
-                width={COLS * BLOCK_SIZE}
-                height={ROWS * BLOCK_SIZE}
-                className="bg-[#111025] shadow-[0_0_50px_rgba(0,240,255,0.15)] border-2 border-[#00f0ff]/20 rounded-lg max-h-[80vh] w-auto h-auto object-contain"
-            />
+            {/* Main Game Area - Centered and Responsive */}
+            <div className="flex-1 flex items-center justify-center relative p-4"
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
+                {/* Canvas */}
+                <canvas
+                    ref={canvasRef}
+                    width={COLS * BLOCK_SIZE}
+                    height={ROWS * BLOCK_SIZE}
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg max-h-full w-auto h-auto object-contain"
+                />
 
-            {/* Controls (Mobile) */}
-            <div className="absolute bottom-8 w-full px-8 flex justify-between items-end max-w-md z-20 pointer-events-auto">
-                <div className="flex gap-4">
-                    <button className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur active:bg-[#00f0ff]/20 active:border-[#00f0ff] transition-all flex items-center justify-center"
-                        onPointerDown={() => move(-1)}
-                    >
-                        <ArrowLeft size={24} />
-                    </button>
-                    <button className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur active:bg-[#00f0ff]/20 active:border-[#00f0ff] transition-all flex items-center justify-center transform rotate-180"
-                        onPointerDown={() => move(1)}
-                    >
-                        <ArrowLeft size={24} />
-                    </button>
-                    <button className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur active:bg-[#00f0ff]/20 active:border-[#00f0ff] transition-all flex items-center justify-center transform -rotate-90"
-                        onPointerDown={() => rotate()}
-                    >
-                        <ArrowLeft size={24} />
-                    </button>
-                </div>
+                {/* Combo Text Overlay */}
+                <AnimatePresence>
+                    {comboText && (
+                        <motion.div
+                            initial={{ scale: 0.5, opacity: 0, y: 0 }}
+                            animate={{ scale: 1.5, opacity: 1, y: -50 }}
+                            exit={{ scale: 2, opacity: 0 }}
+                            className="absolute z-30 font-black italic text-4xl drop-shadow-lg"
+                            style={{ color: comboText.color, textShadow: `0 0 20px ${comboText.color}` }}
+                        >
+                            {comboText.text}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                <button className="w-20 h-20 rounded-full bg-[#b026ff]/20 border border-[#b026ff] backdrop-blur active:bg-[#b026ff]/40 shadow-[0_0_20px_rgba(176,38,255,0.3)] flex items-center justify-center"
-                    onPointerDown={() => hardDrop()}
-                >
-                    <span className="font-black text-sm">DROP</span>
-                </button>
+                {/* Paused Overlay */}
+                {isPaused && !isGameOver && (
+                    <div className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                        <div className="flex flex-col gap-4">
+                            <h2 className="text-3xl font-black italic text-white text-center">PAUSED</h2>
+                            <div className="flex gap-4">
+                                <button onClick={togglePause} className="px-8 py-3 bg-[#00f0ff] text-black font-bold rounded-full shadow-[0_0_15px_#00f0ff]">
+                                    CONTINUE
+                                </button>
+                                <button onClick={() => navigate('/')} className="px-8 py-3 bg-white/10 text-white font-bold rounded-full border border-white/20">
+                                    QUIT
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Info Bar (Level) */}
+            <div className="px-6 pb-6 flex justify-between text-xs text-gray-500 font-mono tracking-widest uppercase">
+                <div>LVL {level}</div>
+                <div>LINES {lines}</div>
+                <div>FUN.UNCLE NEON</div>
             </div>
 
 
-            {/* Overlays */}
+            {/* Start / Game Over Screen */}
             <AnimatePresence>
                 {(showStartScreen || isGameOver) && (
                     <motion.div
-                        initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                        animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
-                        exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/60"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-[#0f0f1e]/95 backdrop-blur-md"
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
-                            className="bg-[#1a1a2e]/90 border border-[#00f0ff]/30 p-8 rounded-3xl shadow-[0_0_50px_rgba(0,240,255,0.15)] flex flex-col items-center gap-6 max-w-xs w-full"
+                            className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-6"
                         >
-                            <div className="text-center">
-                                <h1 className="text-4xl font-black italic text-white mb-2" style={{ textShadow: '0 0 20px #b026ff' }}>
-                                    {isGameOver ? "GAME OVER" : "NEON TETRIS"}
-                                </h1>
-                                {isGameOver ? (
-                                    <div className="text-xl text-[#00f0ff]">SCORE: {score}</div>
-                                ) : (
-                                    <div className="text-sm text-gray-400">HIGHSCORE: <span className="text-[#00f0ff]">{highScore}</span></div>
-                                )}
+                            <h1 className="text-5xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
+                                {isGameOver ? "GAME OVER" : "NEON TETRIS"}
+                            </h1>
+
+                            <div className="flex flex-col gap-1 w-full bg-white/5 p-4 rounded-xl border border-white/10">
+                                <div className="text-sm text-gray-400">HIGHSCORE</div>
+                                <div className="text-3xl font-mono text-[#b026ff] font-bold">{Math.max(score, highScore)}</div>
                             </div>
+
+                            {isGameOver && (
+                                <div className="text-xl text-white font-bold">SCORE: <span className="text-[#00f0ff]">{score}</span></div>
+                            )}
 
                             <button
                                 onClick={startGame}
-                                className="w-full py-4 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-xl font-bold text-lg text-white shadow-lg shadow-[#b026ff]/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-4 mt-4 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-xl text-white shadow-[0_0_30px_rgba(176,38,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
                             >
-                                {isGameOver ? <RefreshCw size={20} /> : <Play size={20} />}
                                 {isGameOver ? "RETRY" : "START GAME"}
                             </button>
 
-                            {isGameOver && (
-                                <button
-                                    onClick={() => navigate('/')}
-                                    className="text-gray-400 hover:text-white text-sm underline"
-                                >
-                                    Go Home
-                                </button>
-                            )}
+                            {/* Gesture Guide */}
+                            <div className="mt-8 text-xs text-gray-500 flex flex-col gap-2">
+                                <div className="font-bold text-gray-400 mb-1">HOW TO PLAY (TOUCH)</div>
+                                <div className="flex gap-4 justify-center">
+                                    <span>👆 Tap: Rotate</span>
+                                    <span>↔️ Swipe: Move</span>
+                                    <span>⬇️ Down: Drop</span>
+                                </div>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

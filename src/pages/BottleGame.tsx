@@ -797,6 +797,60 @@ export const BottleGame: React.FC = () => {
                 )}
             </AnimatePresence>
 
+            {/* Game Over Modal - Benchmarked from Tetris Style */}
+            <AnimatePresence>
+                {gameState.showEnd && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="flex flex-col items-center p-8 rounded-2xl border border-white/10 bg-black/50 shadow-2xl"
+                        >
+                            <h2 className="text-5xl font-black italic text-white tracking-widest drop-shadow-[0_0_15px_#00f0ff] mb-2 text-center leading-tight">
+                                GAME<br />OVER
+                            </h2>
+
+                            <div className="flex flex-col items-center mb-8">
+                                <span className="text-6xl font-mono font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+                                    {gameState.score}
+                                </span>
+                                <span className="text-gray-400 text-sm mt-2">시도 횟수 : {gameState.tryCount}</span>
+                            </div>
+
+                            {/* Main Action: Retry */}
+                            <button
+                                onClick={restartGame}
+                                className="w-48 py-3 mb-4 bg-[#00f0ff] text-black text-xl font-bold rounded-full shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:scale-105 hover:bg-[#4dffff] transition-transform"
+                            >
+                                다시
+                            </button>
+
+                            {/* Sub Actions: Home & Share */}
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors"
+                                >
+                                    <Home size={24} />
+                                </button>
+                                <button
+                                    onClick={shareResult}
+                                    className="w-12 h-12 flex items-center justify-center bg-[#FEE500] text-black rounded-full hover:scale-110 transition-transform"
+                                    aria-label="카카오톡 공유하기"
+                                >
+                                    <MessageCircle size={24} fill="#000000" />
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Control Buttons */}
             {gameState.isGameActive && (
                 <>

@@ -25,7 +25,7 @@ const TETROMINO_TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
 const COLORS: any = {
     1: '#00f0ff', // Cyan
     2: '#f0f000', // Yellow
-    3: '#a000f0', // Purple
+    3: '#ff00ff', // Pink (was Purple)
     4: '#00f000', // Green
     5: '#f00000', // Red
     6: '#0000f0', // Blue
@@ -291,7 +291,7 @@ export const TetrisGame: React.FC = () => {
 
             if (linesCleared >= 2) {
                 let text = linesCleared === 4 ? "TETRIS!" : linesCleared === 3 ? "TRIPLE!" : "DOUBLE!";
-                let color = linesCleared === 4 ? "#b026ff" : linesCleared === 3 ? "#00f0ff" : "#f0f000";
+                let color = linesCleared === 4 ? "#ff00ff" : linesCleared === 3 ? "#00f0ff" : "#f0f000";
                 setComboText({ text, color });
                 setTimeout(() => setComboText(null), 1500);
             }
@@ -686,8 +686,8 @@ export const TetrisGame: React.FC = () => {
             <div className="w-full px-6 py-2 grid grid-cols-3 gap-4 items-center z-20">
                 {/* Time (Replaces Level) */}
                 <div className={`flex flex-col items-center justify-center bg-white/5 border rounded-lg py-2 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/20' : 'border-white/10'}`}>
-                    <div className={`text-[10px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-gray-400'}`}>TIME</div>
-                    <div className={`text-xl font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#b026ff]'}`}>{timeLeft}s</div>
+                    <div className={`text-[10px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
+                    <div className={`text-xl font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
                 </div>
 
                 {/* Next Piece */}
@@ -780,26 +780,26 @@ export const TetrisGame: React.FC = () => {
                                         onClick={() => setDifficulty('beginner')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        Easy
+                                        초급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('intermediate')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        Normal
+                                        중급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('advanced')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        Hard
+                                        고급
                                     </button>
                                 </div>
                             )}
 
                             <div className="flex flex-col gap-1 w-full max-w-[200px] bg-white/5 p-3 rounded-2xl border border-white/10 shadow-sm mx-auto mb-4">
-                                <div className="text-xs text-gray-500 font-bold tracking-widest uppercase">High Score</div>
-                                <div className="text-2xl font-mono text-[#b026ff] font-black">{Math.max(score, highScore)}</div>
+                                <div className="text-xs text-gray-500 font-bold tracking-widest uppercase">최고점수</div>
+                                <div className="text-2xl font-mono text-[#ff00ff] font-black">{Math.max(score, highScore)}</div>
                             </div>
 
                             {isGameOver && (
@@ -811,9 +811,9 @@ export const TetrisGame: React.FC = () => {
                             <div className="flex flex-col gap-3 w-full">
                                 <button
                                     onClick={startGame}
-                                    className="w-full py-4 bg-[#007AFF] hover:bg-[#005bb5] rounded-full font-bold text-xl text-white shadow-lg transition-all active:scale-95"
+                                    className="w-full py-4 bg-[#00f0ff] hover:opacity-80 rounded-full font-bold text-xl text-black shadow-lg transition-all active:scale-95"
                                 >
-                                    {isGameOver ? "RETRY" : "START"}
+                                    {isGameOver ? "다시" : "시작"}
                                 </button>
 
                                 {isGameOver && (
@@ -825,13 +825,17 @@ export const TetrisGame: React.FC = () => {
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                                             </svg>
-                                            Share
+                                            공유
                                         </button>
                                         <button
                                             onClick={() => navigate('/')}
-                                            className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-full font-bold text-lg text-white shadow-lg transition-all active:scale-95"
+                                            className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-full font-bold text-lg text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
                                         >
-                                            Home
+                                            {/* Home Icon */}
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                                            </svg>
+                                            홈으로
                                         </button>
                                     </>
                                 )}

@@ -596,7 +596,7 @@ export const TetrisGame: React.FC = () => {
                 content: {
                     title: `[Fun.Uncle] 네온 테트리스 도전!`,
                     description: `등급(${difficultyText}) 최종점수 : ${score.toLocaleString()}\n나 이길 수 있어?`,
-                    imageUrl: 'https://fun.uncledison.com/assets/tetris_share.png',
+                    imageUrl: 'https://fun.uncledison.com/assets/tetris_square_thumb.png', // Updated to square thumbnail
                     link: {
                         mobileWebUrl: 'https://fun.uncledison.com/tetris',
                         webUrl: 'https://fun.uncledison.com/tetris',
@@ -661,7 +661,7 @@ export const TetrisGame: React.FC = () => {
 
 
     return (
-        <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
+        <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
             {/* Header: Branding & Controls */}
             <div className="w-full px-6 pt-6 pb-2 flex justify-between items-center z-20">

@@ -593,8 +593,8 @@ export const TetrisGame: React.FC = () => {
             kakao.Share.sendDefault({
                 objectType: 'feed',
                 content: {
-                    title: `[Fun.Uncle] 네온 테트리스 도전!`,
-                    description: `최종점수 : ${score.toLocaleString()}점\n나 이길 수 있어?`,
+                    title: `NEON TETRIS Challenge!`,
+                    description: `Score: ${score.toLocaleString()}\nCan you beat me?`,
                     imageUrl: 'https://fun.uncledison.com/assets/tetris_share.png',
                     link: {
                         mobileWebUrl: 'https://fun.uncledison.com/tetris',
@@ -603,7 +603,7 @@ export const TetrisGame: React.FC = () => {
                 },
                 buttons: [
                     {
-                        title: '나도 도전하기',
+                        title: 'Play Now',
                         link: {
                             mobileWebUrl: 'https://fun.uncledison.com/tetris',
                             webUrl: 'https://fun.uncledison.com/tetris',
@@ -770,7 +770,7 @@ export const TetrisGame: React.FC = () => {
                             className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-8"
                         >
                             <h1 className="text-8xl font-black italic text-white mb-6 tracking-tighter drop-shadow-[0_0_25px_rgba(0,240,255,0.8)]">
-                                {isGameOver ? "GAME OVER" : "네온 테트리스"}
+                                {isGameOver ? "GAME OVER" : "NEON TETRIS"}
                             </h1>
 
                             {/* Difficulty Selector (Only on Start Screen) */}
@@ -780,19 +780,19 @@ export const TetrisGame: React.FC = () => {
                                         onClick={() => setDifficulty('beginner')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        초급
+                                        Easy
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('intermediate')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        중급
+                                        Normal
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('advanced')}
                                         className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        고급
+                                        Hard
                                     </button>
                                 </div>
                             )}
@@ -813,7 +813,7 @@ export const TetrisGame: React.FC = () => {
                                     onClick={startGame}
                                     className="w-full py-4 bg-[#007AFF] hover:bg-[#005bb5] rounded-full font-bold text-xl text-white shadow-lg transition-all active:scale-95"
                                 >
-                                    {isGameOver ? "재도전" : "시작하기"}
+                                    {isGameOver ? "RETRY" : "START"}
                                 </button>
 
                                 {isGameOver && (
@@ -825,13 +825,13 @@ export const TetrisGame: React.FC = () => {
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                                             </svg>
-                                            카카오톡 공유
+                                            Share
                                         </button>
                                         <button
                                             onClick={() => navigate('/')}
                                             className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-full font-bold text-lg text-white shadow-lg transition-all active:scale-95"
                                         >
-                                            홈으로
+                                            Home
                                         </button>
                                     </>
                                 )}

@@ -248,8 +248,8 @@ export const BentoGrid: React.FC = () => {
 
                         {/* Text Branding */}
                         <div className="z-10 text-center">
-                            <h3 className="text-5xl font-black italic text-white tracking-widest drop-shadow-[0_0_15px_#00f0ff] leading-tight">
-                                <span className="text-[#00f0ff]">네온</span><br />테트리스
+                            <h3 className="text-6xl font-black italic text-white tracking-tighter drop-shadow-[0_0_20px_#00f0ff] leading-none transform skew-x-[-10deg]">
+                                <span className="text-[#00f0ff] block mb-2">NEON</span>TETRIS
                             </h3>
                         </div>
 

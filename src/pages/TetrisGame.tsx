@@ -565,7 +565,7 @@ export const TetrisGame: React.FC = () => {
 
         if (nextPieceRef.current) {
             const piece = nextPieceRef.current;
-            const size = 12; // Compact Size (Reduced from 15 to fit)
+            const size = 10; // Extra Compact Size (Reduced to fit without cutoff)
             const offsetX = (canvas.width - piece.shape[0].length * size) / 2;
             const offsetY = (canvas.height - piece.shape.length * size) / 2;
 
@@ -661,13 +661,13 @@ export const TetrisGame: React.FC = () => {
 
 
     return (
-        <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
+        <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none pt-4 sm:pt-8 md:pt-12">
 
             {/* Container for Centered Content - EXACT MATCH to Board Width (300px) */}
             <div className="w-full max-w-[300px] mx-auto z-20 flex flex-col items-center">
 
                 {/* Header: Branding & Controls (Compact & Centered) */}
-                <div className="w-full pt-2 pb-1 flex justify-between items-center shrink-0">
+                <div className="w-full px-2 pt-1 pb-4 flex justify-between items-center shrink-0">
                     {/* Left: Branding (Home Link) */}
                     <div onClick={() => navigate('/')} className="cursor-pointer">
                         <motion.h1
@@ -680,41 +680,41 @@ export const TetrisGame: React.FC = () => {
                     </div>
 
                     {/* Right: Controls */}
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                         <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                            {isMuted ? <VolumeX size={16} color="#666" /> : <Volume2 size={16} color="#00f0ff" />}
+                            {isMuted ? <VolumeX size={18} color="#666" /> : <Volume2 size={18} color="#00f0ff" />}
                         </button>
                         <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                            {isPaused ? <Play size={16} color="#00f000" /> : <Pause size={16} color="#fff" />}
+                            {isPaused ? <Play size={18} color="#00f000" /> : <Pause size={18} color="#fff" />}
                         </button>
                     </div>
                 </div>
 
-                {/* Stats Bar: Time | Next | Score (Slim, Transparent, Aligned) */}
-                <div className="w-full grid grid-cols-[1fr_auto_1fr] gap-2 items-center shrink-0 mb-1">
+                {/* Stats Bar: Time | Next | Score (Unified Neon Borders) */}
+                <div className="w-full grid grid-cols-[1fr_auto_1fr] gap-3 items-center shrink-0 mb-2">
                     {/* Time */}
-                    <div className={`flex flex-col items-center justify-center border rounded-lg py-1 px-1 h-[42px] ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
-                        <div className={`text-[8px] font-bold tracking-widest leading-none mb-0.5 ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
-                        <div className={`text-base font-mono font-bold leading-none ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
+                    <div className={`flex flex-col items-center justify-center border rounded-lg py-1 px-1 h-[46px] ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-[#00f0ff]/30 bg-[#00f0ff]/5'}`}>
+                        <div className={`text-[9px] font-bold tracking-widest leading-none mb-1 ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
+                        <div className={`text-lg font-mono font-bold leading-none ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
                     </div>
 
                     {/* Next Piece (Wider) */}
                     <div className="flex items-center justify-center">
-                        <div className="border border-white/20 rounded-lg w-[50px] h-[40px] flex items-center justify-center bg-black/20">
-                            <canvas ref={nextCanvasRef} width={50} height={40} />
+                        <div className="border border-[#00f0ff]/30 rounded-lg w-[50px] h-[46px] flex items-center justify-center bg-[#00f0ff]/5">
+                            <canvas ref={nextCanvasRef} width={50} height={46} />
                         </div>
                     </div>
 
                     {/* Score */}
-                    <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1 px-1 h-[42px]">
-                        <div className="text-[8px] text-gray-400 font-bold tracking-widest leading-none mb-0.5">SCORE</div>
-                        <div className="text-base font-mono font-bold text-white/90 leading-none">{score.toLocaleString()}</div>
+                    <div className="flex flex-col items-center justify-center border border-[#00f0ff]/30 rounded-lg py-1 px-1 h-[46px] bg-[#00f0ff]/5">
+                        <div className="text-[9px] text-[#00f0ff]/70 font-bold tracking-widest leading-none mb-1">SCORE</div>
+                        <div className="text-lg font-mono font-bold text-white/90 leading-none">{score.toLocaleString()}</div>
                     </div>
                 </div>
 
             </div>
 
-            {/* Main Game Area (Reduced Height) */}
+            {/* Main Game Area (Maximized Height) */}
             <div className="flex-1 w-full flex items-start justify-center relative p-1 overflow-visible"
                 style={{ transform: `translate(${Math.random() * shake - shake / 2}px, ${Math.random() * shake - shake / 2}px)` }}
                 onTouchStart={handleTouchStart}
@@ -725,7 +725,7 @@ export const TetrisGame: React.FC = () => {
                     ref={canvasRef}
                     width={COLS * BLOCK_SIZE}
                     height={ROWS * BLOCK_SIZE}
-                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[72vh]"
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/30 rounded-lg h-full w-auto object-contain max-h-[78vh]"
                 />
 
                 {/* Combo Text Overlay (Flashy!) */}

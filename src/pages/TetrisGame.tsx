@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Volume2, VolumeX, Pause, Home } from 'lucide-react';
+import { Play, Volume2, VolumeX, Pause } from 'lucide-react';
 import { useFavicon } from '../hooks/useFavicon';
 
 // --- Constants & Types ---
@@ -584,35 +584,45 @@ export const TetrisGame: React.FC = () => {
     return (
         <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Top Bar: Clean UI per User Request */}
-            <div className="w-full px-6 pt-6 pb-2 grid grid-cols-3 items-center z-20">
-
-                {/* Left: Home Button (Replaces Logo) */}
-                <div className="flex justify-start">
-                    <button onClick={() => navigate('/')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
-                        <Home size={24} />
-                    </button>
+            {/* Header: Branding & Controls */}
+            <div className="w-full px-6 pt-6 pb-2 flex justify-between items-center z-20">
+                {/* Left: Branding (Home Link) */}
+                <div onClick={() => navigate('/')} className="cursor-pointer">
+                    <h1 className="text-2xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
+                        FUN.UNCLE
+                    </h1>
                 </div>
 
-                {/* Center: Score & Next Piece (Vertical alignment) */}
-                <div className="flex flex-col items-center gap-2">
-                    <div className="bg-[#1a1a2e]/80 border border-[#b026ff]/30 px-6 py-2 rounded-xl shadow-[0_0_15px_rgba(176,38,255,0.2)]">
-                        <div className="text-2xl font-mono font-black text-[#00f0ff] tracking-wider">{score.toLocaleString()}</div>
-                    </div>
-                    {/* Preview Box - Centered below Score */}
-                    <div className="bg-black/40 border border-white/10 rounded-lg w-[50px] h-[50px] flex items-center justify-center">
-                        <canvas ref={nextCanvasRef} width={50} height={50} />
-                    </div>
-                </div>
-
-                {/* Right: Controls (Volume & Pause) */}
-                <div className="flex justify-end gap-3">
+                {/* Right: Controls */}
+                <div className="flex gap-3">
                     <button onClick={toggleMute} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
                         {isMuted ? <VolumeX size={20} color="#666" /> : <Volume2 size={20} color="#00f0ff" />}
                     </button>
                     <button onClick={togglePause} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
                         {isPaused ? <Play size={20} color="#00f000" /> : <Pause size={20} color="#fff" />}
                     </button>
+                </div>
+            </div>
+
+            {/* Stats Bar: Level | Next | Score */}
+            <div className="w-full px-6 py-2 grid grid-cols-3 gap-4 items-center z-20">
+                {/* Level */}
+                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-2">
+                    <div className="text-[10px] text-gray-400 font-bold tracking-widest">LEVEL</div>
+                    <div className="text-xl font-mono font-bold text-[#b026ff]">{level}</div>
+                </div>
+
+                {/* Next Piece */}
+                <div className="flex items-center justify-center">
+                    <div className="bg-black/40 border border-white/10 rounded-lg w-[50px] h-[50px] flex items-center justify-center">
+                        <canvas ref={nextCanvasRef} width={50} height={50} />
+                    </div>
+                </div>
+
+                {/* Score */}
+                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-2">
+                    <div className="text-[10px] text-gray-400 font-bold tracking-widest">SCORE</div>
+                    <div className="text-xl font-mono font-bold text-white/90">{score.toLocaleString()}</div>
                 </div>
             </div>
 

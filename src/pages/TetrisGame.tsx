@@ -663,60 +663,60 @@ export const TetrisGame: React.FC = () => {
     return (
         <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Header: Branding & Controls */}
-            <div className="w-full px-6 pt-6 pb-2 flex justify-between items-center z-20">
+            {/* Header: Branding & Controls (Compact) */}
+            <div className="w-full px-5 pt-4 pb-1 flex justify-between items-center z-20 shrink-0">
                 {/* Left: Branding (Home Link) */}
                 <div onClick={() => navigate('/')} className="cursor-pointer">
-                    <h1 className="text-2xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
+                    <h1 className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
                         FUN.UNCLE
                     </h1>
                 </div>
 
                 {/* Right: Controls */}
-                <div className="flex gap-3">
-                    <button onClick={toggleMute} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
-                        {isMuted ? <VolumeX size={20} color="#666" /> : <Volume2 size={20} color="#00f0ff" />}
+                <div className="flex gap-2">
+                    <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                        {isMuted ? <VolumeX size={18} color="#666" /> : <Volume2 size={18} color="#00f0ff" />}
                     </button>
-                    <button onClick={togglePause} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
-                        {isPaused ? <Play size={20} color="#00f000" /> : <Pause size={20} color="#fff" />}
+                    <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                        {isPaused ? <Play size={18} color="#00f000" /> : <Pause size={18} color="#fff" />}
                     </button>
                 </div>
             </div>
 
-            {/* Stats Bar: Time | Next | Score */}
-            <div className="w-full px-6 py-2 grid grid-cols-3 gap-4 items-center z-20">
-                {/* Time (Replaces Level) */}
-                <div className={`flex flex-col items-center justify-center bg-white/5 border rounded-lg py-2 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/20' : 'border-white/10'}`}>
-                    <div className={`text-[10px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
-                    <div className={`text-xl font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
+            {/* Stats Bar: Time | Next | Score (Compact) */}
+            <div className="w-full px-6 py-1 grid grid-cols-3 gap-2 items-center z-20 shrink-0 mb-1">
+                {/* Time */}
+                <div className={`flex flex-col items-center justify-center bg-white/5 border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/20' : 'border-white/10'}`}>
+                    <div className={`text-[9px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
+                    <div className={`text-lg font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
                 </div>
 
                 {/* Next Piece */}
                 <div className="flex items-center justify-center">
-                    <div className="bg-black/40 border border-white/10 rounded-lg w-[50px] h-[50px] flex items-center justify-center">
-                        <canvas ref={nextCanvasRef} width={50} height={50} />
+                    <div className="bg-black/40 border border-white/10 rounded-lg w-[40px] h-[40px] flex items-center justify-center">
+                        <canvas ref={nextCanvasRef} width={40} height={40} />
                     </div>
                 </div>
 
                 {/* Score */}
-                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-2">
-                    <div className="text-[10px] text-gray-400 font-bold tracking-widest">SCORE</div>
-                    <div className="text-xl font-mono font-bold text-white/90">{score.toLocaleString()}</div>
+                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-1">
+                    <div className="text-[9px] text-gray-400 font-bold tracking-widest">SCORE</div>
+                    <div className="text-lg font-mono font-bold text-white/90">{score.toLocaleString()}</div>
                 </div>
             </div>
 
-            {/* Main Game Area */}
-            <div className="flex-1 flex items-center justify-center relative p-4"
+            {/* Main Game Area (Flex Grow to Fill Remaining Space) */}
+            <div className="flex-1 w-full flex items-start justify-center relative p-2 overflow-hidden"
                 style={{ transform: `translate(${Math.random() * shake - shake / 2}px, ${Math.random() * shake - shake / 2}px)` }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* Canvas */}
+                {/* Canvas - Force Height to Fit, Width Auto */}
                 <canvas
                     ref={canvasRef}
                     width={COLS * BLOCK_SIZE}
                     height={ROWS * BLOCK_SIZE}
-                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg max-h-full w-auto h-auto object-contain"
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[75vh]"
                 />
 
                 {/* Combo Text Overlay (Flashy!) */}

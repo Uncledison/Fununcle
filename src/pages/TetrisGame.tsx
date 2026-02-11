@@ -733,10 +733,10 @@ export const TetrisGame: React.FC = () => {
                     {comboText && (
                         <motion.div
                             initial={{ scale: 0.5, opacity: 0, y: 0, rotate: -10 }}
-                            animate={{ scale: 1.5, opacity: 1, y: -100, rotate: 0 }}
+                            animate={{ scale: 1.5, opacity: 1, y: -50, rotate: 0 }}
                             exit={{ scale: 2, opacity: 0 }}
                             transition={{ type: "spring", bounce: 0.5 }}
-                            className="absolute z-30 font-black italic text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] whitespace-nowrap"
+                            className="absolute z-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-black italic text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] whitespace-nowrap pointer-events-none"
                             style={{
                                 color: comboText.color,
                                 textShadow: `0 0 20px ${comboText.color}, 0 0 40px ${comboText.color}`

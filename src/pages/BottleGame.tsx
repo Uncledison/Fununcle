@@ -822,28 +822,29 @@ export const BottleGame: React.FC = () => {
                                 <span className="text-gray-400 text-sm mt-2">시도 횟수 : {gameState.tryCount}</span>
                             </div>
 
-                            {/* Main Action: Retry */}
+                            {/* Main Action: Retry (Blue Pill) */}
                             <button
                                 onClick={restartGame}
-                                className="w-48 py-3 mb-4 bg-[#00f0ff] text-black text-xl font-bold rounded-full shadow-[0_0_20px_rgba(0,240,255,0.4)] hover:scale-105 hover:bg-[#4dffff] transition-transform"
+                                className="w-48 py-3 mb-6 bg-[#007AFF] text-white text-xl font-bold rounded-full shadow-[0_4px_15px_rgba(0,122,255,0.4)] hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-2"
                             >
+                                <RefreshCw size={20} />
                                 다시
                             </button>
 
-                            {/* Sub Actions: Home & Share */}
-                            <div className="flex gap-4">
+                            {/* Sub Actions: Home & Kakao Icon Row */}
+                            <div className="flex gap-6 items-center">
                                 <button
                                     onClick={() => navigate('/')}
-                                    className="w-12 h-12 flex items-center justify-center bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors"
+                                    className="w-14 h-14 flex items-center justify-center bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors border border-white/10"
                                 >
-                                    <Home size={24} />
+                                    <Home size={28} />
                                 </button>
                                 <button
                                     onClick={shareResult}
-                                    className="w-12 h-12 flex items-center justify-center bg-[#FEE500] text-black rounded-full hover:scale-110 transition-transform"
+                                    className="w-14 h-14 flex items-center justify-center bg-[#FEE500] text-black rounded-full hover:scale-110 transition-transform shadow-lg"
                                     aria-label="카카오톡 공유하기"
                                 >
-                                    <MessageCircle size={24} fill="#000000" />
+                                    <MessageCircle size={28} fill="#000000" />
                                 </button>
                             </div>
                         </motion.div>

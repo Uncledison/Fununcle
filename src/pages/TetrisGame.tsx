@@ -661,13 +661,18 @@ export const TetrisGame: React.FC = () => {
 
 
     return (
-        <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
+        <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none"
+            style={{
+                paddingTop: 'max(8px, env(safe-area-inset-top))',
+                paddingBottom: 'max(8px, env(safe-area-inset-bottom))'
+            }}
+        >
 
             {/* Container for Centered Content - EXACT MATCH to Board Width (300px) */}
             <div className="w-full max-w-[300px] mx-auto z-20 flex flex-col items-center">
 
                 {/* Header: Branding & Controls (Compact & Centered) */}
-                <div className="w-full px-2 pt-2 pb-1 flex justify-between items-center shrink-0">
+                <div className="w-full px-2 pb-1 flex justify-between items-center shrink-0">
                     {/* Left: Branding (Home Link) */}
                     <div onClick={() => navigate('/')} className="cursor-pointer">
                         <motion.h1

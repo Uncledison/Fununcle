@@ -565,7 +565,7 @@ export const TetrisGame: React.FC = () => {
 
         if (nextPieceRef.current) {
             const piece = nextPieceRef.current;
-            const size = 15; // Compact Size
+            const size = 12; // Compact Size (Reduced from 15 to fit)
             const offsetX = (canvas.width - piece.shape[0].length * size) / 2;
             const offsetY = (canvas.height - piece.shape.length * size) / 2;
 
@@ -663,55 +663,59 @@ export const TetrisGame: React.FC = () => {
     return (
         <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Container for Centered Content to Match Board Width */}
-            <div className="w-full max-w-[320px] mx-auto z-20 flex flex-col items-center">
+            {/* Container for Centered Content - EXACT MATCH to Board Width (300px) */}
+            <div className="w-full max-w-[300px] mx-auto z-20 flex flex-col items-center">
 
                 {/* Header: Branding & Controls (Compact & Centered) */}
-                <div className="w-full px-2 pt-2 pb-1 flex justify-between items-center shrink-0">
+                <div className="w-full pt-2 pb-1 flex justify-between items-center shrink-0">
                     {/* Left: Branding (Home Link) */}
                     <div onClick={() => navigate('/')} className="cursor-pointer">
-                        <h1 className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
-                            FUN.UNCLE
-                        </h1>
+                        <motion.h1
+                            className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]"
+                            whileHover={{ scale: 1.1, rotate: [-1, 1, -1] }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            Fun.Uncle
+                        </motion.h1>
                     </div>
 
                     {/* Right: Controls */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                         <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                            {isMuted ? <VolumeX size={18} color="#666" /> : <Volume2 size={18} color="#00f0ff" />}
+                            {isMuted ? <VolumeX size={16} color="#666" /> : <Volume2 size={16} color="#00f0ff" />}
                         </button>
                         <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                            {isPaused ? <Play size={18} color="#00f000" /> : <Pause size={18} color="#fff" />}
+                            {isPaused ? <Play size={16} color="#00f000" /> : <Pause size={16} color="#fff" />}
                         </button>
                     </div>
                 </div>
 
                 {/* Stats Bar: Time | Next | Score (Slim, Transparent, Aligned) */}
-                <div className="w-full grid grid-cols-3 gap-2 items-center shrink-0 mb-1">
+                <div className="w-full grid grid-cols-[1fr_auto_1fr] gap-2 items-center shrink-0 mb-1">
                     {/* Time */}
-                    <div className={`flex flex-col items-center justify-center border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
-                        <div className={`text-[9px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
-                        <div className={`text-lg font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
+                    <div className={`flex flex-col items-center justify-center border rounded-lg py-1 px-1 h-[42px] ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
+                        <div className={`text-[8px] font-bold tracking-widest leading-none mb-0.5 ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
+                        <div className={`text-base font-mono font-bold leading-none ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
                     </div>
 
                     {/* Next Piece (Wider) */}
                     <div className="flex items-center justify-center">
-                        <div className="border border-white/20 rounded-lg w-full h-[40px] flex items-center justify-center">
-                            <canvas ref={nextCanvasRef} width={60} height={40} />
+                        <div className="border border-white/20 rounded-lg w-[50px] h-[40px] flex items-center justify-center bg-black/20">
+                            <canvas ref={nextCanvasRef} width={50} height={40} />
                         </div>
                     </div>
 
                     {/* Score */}
-                    <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1">
-                        <div className="text-[9px] text-gray-400 font-bold tracking-widest">SCORE</div>
-                        <div className="text-lg font-mono font-bold text-white/90">{score.toLocaleString()}</div>
+                    <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1 px-1 h-[42px]">
+                        <div className="text-[8px] text-gray-400 font-bold tracking-widest leading-none mb-0.5">SCORE</div>
+                        <div className="text-base font-mono font-bold text-white/90 leading-none">{score.toLocaleString()}</div>
                     </div>
                 </div>
 
             </div>
 
             {/* Main Game Area (Reduced Height) */}
-            <div className="flex-1 w-full flex items-start justify-center relative p-2 overflow-hidden"
+            <div className="flex-1 w-full flex items-start justify-center relative p-1 overflow-visible"
                 style={{ transform: `translate(${Math.random() * shake - shake / 2}px, ${Math.random() * shake - shake / 2}px)` }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
@@ -721,7 +725,7 @@ export const TetrisGame: React.FC = () => {
                     ref={canvasRef}
                     width={COLS * BLOCK_SIZE}
                     height={ROWS * BLOCK_SIZE}
-                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[70vh]"
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg h-full w-auto object-contain max-h-[72vh]"
                 />
 
                 {/* Combo Text Overlay (Flashy!) */}

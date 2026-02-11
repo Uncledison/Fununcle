@@ -32,7 +32,7 @@ const COLORS: any = {
     7: '#f0a000'  // Orange
 };
 
-const LEVEL_SPEEDS = [800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 80];
+
 
 class Piece {
     type: string;
@@ -100,6 +100,7 @@ class Particle {
 }
 
 
+
 export const TetrisGame: React.FC = () => {
     useFavicon('/favicon.ico');
     const navigate = useNavigate();
@@ -116,9 +117,9 @@ export const TetrisGame: React.FC = () => {
     const pieceBagRef = useRef<string[]>([]);
     const particlesRef = useRef<Particle[]>([]);
 
-    // UI State
+    // Time Attack State
     const [score, setScore] = useState(0);
-    const [level, setLevel] = useState(1);
+    const [timeLeft, setTimeLeft] = useState(60); // 60 Seconds Time Attack
     const [isGameOver, setIsGameOver] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -274,16 +275,9 @@ export const TetrisGame: React.FC = () => {
 
             if (navigator.vibrate) navigator.vibrate(50 * linesCleared);
 
-            // Level & Score Logic
-            setLevel(prev => {
-                // Simple level logic (every 10 lines is a bit much for quick play, maybe every 5?)
-                // Keeping original logic for now but based on total lines cleared potentially?
-                // Actually `board.js` says `game.lines / 10`.
-                return prev;
-            });
-
-            // Calculate Score
-            const points = [0, 100, 300, 500, 800][linesCleared] * level;
+            // Score Logic (Dynamic Multiplier based on speed/time left)
+            const speedMultiplier = timeLeft < 15 ? 4 : timeLeft < 30 ? 3 : timeLeft < 45 ? 2 : 1;
+            const points = [0, 100, 300, 500, 800][linesCleared] * speedMultiplier;
             setScore(prev => prev + points);
 
             if (linesCleared >= 2) {
@@ -359,7 +353,7 @@ export const TetrisGame: React.FC = () => {
             lockPiece();
             playSound('drop');
         }
-    }, [isPaused, isPlaying]);
+    }, [isPaused, isPlaying, timeLeft]); // Add timeLeft dependency for correct closure capture if needed, though mostly using Refs
 
     const hardDrop = useCallback(() => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
@@ -370,9 +364,16 @@ export const TetrisGame: React.FC = () => {
         playSound('drop');
     }, [isPaused, isPlaying]);
 
+    // --- Dynamic Speed Loop based on Time Left ---
     const startGameLoop = () => {
         if (gameLoopRef.current) clearInterval(gameLoopRef.current);
-        const speed = LEVEL_SPEEDS[Math.min(level - 1, LEVEL_SPEEDS.length - 1)];
+
+        // Speed Curve: 60s (800ms) -> 45s (500ms) -> 30s (300ms) -> 15s (150ms)
+        let speed = 800;
+        if (timeLeft < 15) speed = 150;
+        else if (timeLeft < 30) speed = 300;
+        else if (timeLeft < 45) speed = 500;
+
         gameLoopRef.current = setInterval(() => {
             drop();
         }, speed);
@@ -387,15 +388,29 @@ export const TetrisGame: React.FC = () => {
         setIsPaused(!isPaused);
     };
 
+    // --- Timer Logic ---
+    useEffect(() => {
+        let timerId: ReturnType<typeof setInterval>;
+        if (isPlaying && !isPaused && !isGameOver) {
+            timerId = setInterval(() => {
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        gameOver();
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timerId);
+    }, [isPlaying, isPaused, isGameOver]);
+
+    // Re-adjust speed when time changes (every 15s threshold ideally to avoid constant resets, but simple restart is fine)
     useEffect(() => {
         if (isPlaying && !isPaused) {
             startGameLoop();
-            if (!isMuted && soundsRef.current.bgm) soundsRef.current.bgm.play().catch(() => { });
-        } else {
-            stopGameLoop();
-            if (soundsRef.current.bgm) soundsRef.current.bgm.pause();
         }
-    }, [isPlaying, isPaused, level]);
+    }, [timeLeft, isPlaying, isPaused]);
 
 
     // --- Gestures ---
@@ -542,7 +557,7 @@ export const TetrisGame: React.FC = () => {
     const startGame = () => {
         boardRef.current = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         setScore(0);
-        setLevel(1);
+        setTimeLeft(60); // Reset Timer
         setIsGameOver(false);
         setIsPaused(false);
         setIsPlaying(true);
@@ -604,12 +619,12 @@ export const TetrisGame: React.FC = () => {
                 </div>
             </div>
 
-            {/* Stats Bar: Level | Next | Score */}
+            {/* Stats Bar: Time | Next | Score */}
             <div className="w-full px-6 py-2 grid grid-cols-3 gap-4 items-center z-20">
-                {/* Level */}
-                <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-lg py-2">
-                    <div className="text-[10px] text-gray-400 font-bold tracking-widest">LEVEL</div>
-                    <div className="text-xl font-mono font-bold text-[#b026ff]">{level}</div>
+                {/* Time (Replaces Level) */}
+                <div className={`flex flex-col items-center justify-center bg-white/5 border rounded-lg py-2 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/20' : 'border-white/10'}`}>
+                    <div className={`text-[10px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-gray-400'}`}>TIME</div>
+                    <div className={`text-xl font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#b026ff]'}`}>{timeLeft}s</div>
                 </div>
 
                 {/* Next Piece */}
@@ -692,13 +707,15 @@ export const TetrisGame: React.FC = () => {
                             className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-8"
                         >
                             <h1 className="text-6xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
-                                {isGameOver ? "GAME OVER" : "TETRIS"}
+                                {isGameOver ? "TIME'S UP!" : "TIME ATTACK"}
                             </h1>
 
                             <div className="flex flex-col gap-1 w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
                                 <div className="text-sm text-gray-400 font-bold tracking-widest">HIGHSCORE</div>
                                 <div className="text-4xl font-mono text-[#b026ff] font-black drop-shadow-md">{Math.max(score, highScore)}</div>
                             </div>
+
+                            <p className="text-gray-400 text-sm font-bold">Clear as many lines as possible in 60s!</p>
 
                             {isGameOver && (
                                 <div className="text-2xl text-white font-bold animate-pulse">SCORE: <span className="text-[#00f0ff]">{score}</span></div>
@@ -708,7 +725,7 @@ export const TetrisGame: React.FC = () => {
                                 onClick={startGame}
                                 className="w-full py-5 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-2xl text-white shadow-[0_0_40px_rgba(0,240,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
                             >
-                                <span className="relative z-10">{isGameOver ? "RETRY" : "START GAME"}</span>
+                                <span className="relative z-10">{isGameOver ? "RETRY" : "START (60s)"}</span>
                             </button>
                         </motion.div>
                     </motion.div>

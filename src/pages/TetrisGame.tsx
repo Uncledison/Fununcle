@@ -663,46 +663,51 @@ export const TetrisGame: React.FC = () => {
     return (
         <div className="relative w-full h-screen bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Header: Branding & Controls (Compact) */}
-            <div className="w-full px-5 pt-3 pb-1 flex justify-between items-center z-20 shrink-0">
-                {/* Left: Branding (Home Link) */}
-                <div onClick={() => navigate('/')} className="cursor-pointer">
-                    <h1 className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
-                        FUN.UNCLE
-                    </h1>
-                </div>
+            {/* Container for Centered Content to Match Board Width */}
+            <div className="w-full max-w-[320px] mx-auto z-20 flex flex-col items-center">
 
-                {/* Right: Controls */}
-                <div className="flex gap-2">
-                    <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                        {isMuted ? <VolumeX size={18} color="#666" /> : <Volume2 size={18} color="#00f0ff" />}
-                    </button>
-                    <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                        {isPaused ? <Play size={18} color="#00f000" /> : <Pause size={18} color="#fff" />}
-                    </button>
-                </div>
-            </div>
+                {/* Header: Branding & Controls (Compact & Centered) */}
+                <div className="w-full px-2 pt-2 pb-1 flex justify-between items-center shrink-0">
+                    {/* Left: Branding (Home Link) */}
+                    <div onClick={() => navigate('/')} className="cursor-pointer">
+                        <h1 className="text-xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
+                            FUN.UNCLE
+                        </h1>
+                    </div>
 
-            {/* Stats Bar: Time | Next | Score (Slim & Transparent) */}
-            <div className="w-full px-6 py-1 grid grid-cols-3 gap-2 items-center z-20 shrink-0 mb-1">
-                {/* Time */}
-                <div className={`flex flex-col items-center justify-center border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
-                    <div className={`text-[9px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
-                    <div className={`text-lg font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
-                </div>
-
-                {/* Next Piece (Wider) */}
-                <div className="flex items-center justify-center">
-                    <div className="border border-white/20 rounded-lg w-[60px] h-[40px] flex items-center justify-center">
-                        <canvas ref={nextCanvasRef} width={60} height={40} />
+                    {/* Right: Controls */}
+                    <div className="flex gap-2">
+                        <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                            {isMuted ? <VolumeX size={18} color="#666" /> : <Volume2 size={18} color="#00f0ff" />}
+                        </button>
+                        <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
+                            {isPaused ? <Play size={18} color="#00f000" /> : <Pause size={18} color="#fff" />}
+                        </button>
                     </div>
                 </div>
 
-                {/* Score */}
-                <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1">
-                    <div className="text-[9px] text-gray-400 font-bold tracking-widest">SCORE</div>
-                    <div className="text-lg font-mono font-bold text-white/90">{score.toLocaleString()}</div>
+                {/* Stats Bar: Time | Next | Score (Slim, Transparent, Aligned) */}
+                <div className="w-full grid grid-cols-3 gap-2 items-center shrink-0 mb-1">
+                    {/* Time */}
+                    <div className={`flex flex-col items-center justify-center border rounded-lg py-1 ${timeLeft < 10 ? 'border-red-500 animate-pulse bg-red-900/10' : 'border-white/20'}`}>
+                        <div className={`text-[9px] font-bold tracking-widest ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>TIME</div>
+                        <div className={`text-lg font-mono font-bold ${timeLeft < 10 ? 'text-red-500' : 'text-[#ff00ff]'}`}>{timeLeft}s</div>
+                    </div>
+
+                    {/* Next Piece (Wider) */}
+                    <div className="flex items-center justify-center">
+                        <div className="border border-white/20 rounded-lg w-full h-[40px] flex items-center justify-center">
+                            <canvas ref={nextCanvasRef} width={60} height={40} />
+                        </div>
+                    </div>
+
+                    {/* Score */}
+                    <div className="flex flex-col items-center justify-center border border-white/20 rounded-lg py-1">
+                        <div className="text-[9px] text-gray-400 font-bold tracking-widest">SCORE</div>
+                        <div className="text-lg font-mono font-bold text-white/90">{score.toLocaleString()}</div>
+                    </div>
                 </div>
+
             </div>
 
             {/* Main Game Area (Reduced Height) */}
@@ -829,21 +834,21 @@ export const TetrisGame: React.FC = () => {
                                 {isGameOver && (
                                     <div className="flex gap-6">
                                         <button
-                                            onClick={handleShare}
-                                            className="p-4 bg-[#FEE500] hover:bg-[#E6CF00] rounded-full text-[#191919] shadow-lg transition-all active:scale-95 flex items-center justify-center"
-                                            aria-label="공유"
-                                        >
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
-                                            </svg>
-                                        </button>
-                                        <button
                                             onClick={() => navigate('/')}
                                             className="p-4 bg-white/10 hover:bg-white/20 rounded-full text-white shadow-lg transition-all active:scale-95 flex items-center justify-center"
                                             aria-label="홈으로"
                                         >
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={handleShare}
+                                            className="p-4 bg-[#FEE500] hover:bg-[#E6CF00] rounded-full text-[#191919] shadow-lg transition-all active:scale-95 flex items-center justify-center"
+                                            aria-label="공유"
+                                        >
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
                                             </svg>
                                         </button>
                                     </div>

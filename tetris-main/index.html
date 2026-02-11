@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a15">
+    <title>Neon Tetris Mobile</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 게임 영역 -->
+        <div class="game-wrapper">
+            <!-- 상단 정보 영역 - 미니멀 1줄 -->
+            <div class="top-info">
+                <div class="score-display" id="score">0</div>
+                
+                <div class="next-preview">
+                    <canvas id="nextCanvas" width="50" height="50"></canvas>
+                </div>
+                
+                <div class="level-display">LV <span id="level">1</span></div>
+            </div>
+
+            <!-- 중앙: 게임 보드 -->
+            <div class="game-container">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                
+                <!-- 점수 팝업 컨테이너 -->
+                <div id="scorePopup" class="score-popup"></div>
+                
+                <div id="gameOver" class="game-over hidden">
+                    <h2>게임 오버</h2>
+                    <p>점수: <span id="finalScore">0</span></p>
+                    <p>최고 점수: <span id="highScore">0</span></p>
+                    <button id="restartBtn">다시 시작</button>
+                </div>
+            </div>
+
+            <!-- 게임 컨트롤 버튼 -->
+            <div class="game-controls">
+                <button id="pauseBtn" class="control-btn">일시정지</button>
+                <button id="restartGameBtn" class="control-btn">다시하기</button>
+            </div>
+        </div>
+
+        <!-- 게임 시작 화면 -->
+        <div class="start-screen" id="startScreen">
+            <h2>NEON TETRIS</h2>
+            <p>스와이프로 블록을 움직이세요</p>
+            <ul class="instructions">
+                <li>탭: 회전</li>
+                <li>← → 스와이프: 이동</li>
+                <li>↑ 스와이프: 회전</li>
+                <li>↓ 스와이프: 빠른 낙하</li>
+            </ul>
+            <button id="startBtn" class="start-btn">게임 시작</button>
+            <div class="high-score-start">최고 기록: <span id="highScoreDisplay">0</span></div>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일들 (순서 중요!) -->
+    <script src="js/game.js"></script>
+    <script src="js/tetromino.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/controls.js"></script>
+</body>
+</html>

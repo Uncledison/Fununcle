@@ -725,7 +725,7 @@ export const TetrisGame: React.FC = () => {
                     ref={canvasRef}
                     width={COLS * BLOCK_SIZE}
                     height={ROWS * BLOCK_SIZE}
-                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/30 rounded-lg h-full w-auto object-contain max-h-[78vh]"
+                    className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/30 rounded-lg h-full w-auto object-contain max-h-[74vh]"
                 />
 
                 {/* Combo Text Overlay (Flashy!) */}

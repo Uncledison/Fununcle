@@ -224,9 +224,52 @@ export const BentoGrid: React.FC = () => {
                 </BentoCard>
 
 
-                {/* 5. Coming Soon - Interaction Trigger */}
+                {/* 5. Neon Tetris (New Game) */}
                 <BentoCard
+                    href="/tetris"
                     delay={0.4}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-[#0f0f1e] overflow-hidden rounded-3xl aspect-video border border-[#00f0ff]/30 shadow-[0_0_20px_rgba(0,240,255,0.1)]"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 },
+                        borderColor: '#00f0ff',
+                        boxShadow: '0 0 30px rgba(0,240,255,0.3)'
+                    }}
+                >
+                    <div className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-[#0f0f1e] to-[#2a0e35] overflow-hidden">
+                        {/* Neon Background Grid */}
+                        <div className="absolute inset-0 opacity-20"
+                            style={{
+                                backgroundImage: `linear-gradient(#00f0ff 1px, transparent 1px), linear-gradient(90deg, #00f0ff 1px, transparent 1px)`,
+                                backgroundSize: '30px 30px'
+                            }}
+                        />
+
+                        {/* Text Branding */}
+                        <div className="z-10 text-center">
+                            <h3 className="text-5xl font-black italic text-white tracking-widest drop-shadow-[0_0_15px_#00f0ff] leading-tight">
+                                <span className="text-[#00f0ff]">네온</span><br />테트리스
+                            </h3>
+                        </div>
+
+                        {/* Floating Blocks Decor */}
+                        <motion.div
+                            animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute top-4 left-4 w-8 h-8 bg-[#f0f000] shadow-[0_0_15px_#f0f000] rounded-sm opacity-80"
+                        />
+                        <motion.div
+                            animate={{ y: [0, 15, 0], rotate: [0, -10, 0] }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                            className="absolute bottom-4 right-4 w-8 h-12 bg-[#a000f0] shadow-[0_0_15px_#a000f0] rounded-sm opacity-80"
+                        />
+                    </div>
+                </BentoCard>
+
+                {/* 6. Coming Soon - Interaction Trigger */}
+                <BentoCard
+                    delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"
                     onClick={handleComingSoonClick}
                     whileHover={{
@@ -266,52 +309,6 @@ export const BentoGrid: React.FC = () => {
                                 </div>
                             )}
                         </AnimatePresence>
-                    </div>
-                </BentoCard>
-
-                {/* 6. Neon Tetris (New Game) */}
-                <BentoCard
-                    href="/tetris"
-                    delay={0.5}
-                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-[#0f0f1e] overflow-hidden rounded-3xl aspect-video border border-[#00f0ff]/30 shadow-[0_0_20px_rgba(0,240,255,0.1)]"
-                    whileHover={{
-                        y: -5,
-                        scale: 1.02,
-                        transition: { type: "spring", stiffness: 300, damping: 20 },
-                        borderColor: '#00f0ff',
-                        boxShadow: '0 0 30px rgba(0,240,255,0.3)'
-                    }}
-                >
-                    <div className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-[#0f0f1e] to-[#2a0e35] overflow-hidden">
-                        {/* Neon Background Grid */}
-                        <div className="absolute inset-0 opacity-20"
-                            style={{
-                                backgroundImage: `linear-gradient(#00f0ff 1px, transparent 1px), linear-gradient(90deg, #00f0ff 1px, transparent 1px)`,
-                                backgroundSize: '30px 30px'
-                            }}
-                        />
-
-                        {/* Text Branding */}
-                        <div className="z-10 text-center">
-                            <h3 className="text-3xl font-black italic text-white tracking-widest drop-shadow-[0_0_10px_#00f0ff]">
-                                <span className="text-[#00f0ff]">NEON</span><br />TETRIS
-                            </h3>
-                            <div className="mt-2 text-[10px] text-[#b026ff] font-bold tracking-[0.2em] border border-[#b026ff] px-2 py-1 rounded inline-block bg-[#b026ff]/10">
-                                FUN.UNCLE
-                            </div>
-                        </div>
-
-                        {/* Floating Blocks Decor */}
-                        <motion.div
-                            animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute top-4 left-4 w-8 h-8 bg-[#f0f000] shadow-[0_0_15px_#f0f000] rounded-sm opacity-80"
-                        />
-                        <motion.div
-                            animate={{ y: [0, 15, 0], rotate: [0, -10, 0] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute bottom-4 right-4 w-8 h-12 bg-[#a000f0] shadow-[0_0_15px_#a000f0] rounded-sm opacity-80"
-                        />
                     </div>
                 </BentoCard>
             </div>

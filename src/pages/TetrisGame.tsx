@@ -430,10 +430,16 @@ export const TetrisGame: React.FC = () => {
     }, [isPlaying, isPaused, isGameOver]);
 
     // Re-adjust speed when time changes (every 15s threshold ideally to avoid constant resets, but simple restart is fine)
+    // Re-adjust speed when time changes (every 15s threshold ideally to avoid constant resets, but simple restart is fine)
     useEffect(() => {
         if (isPlaying && !isPaused) {
             startGameLoop();
+        } else {
+            if (gameLoopRef.current) clearInterval(gameLoopRef.current);
         }
+        return () => {
+            if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+        };
     }, [timeLeft, isPlaying, isPaused, difficulty]);
 
 
@@ -587,8 +593,8 @@ export const TetrisGame: React.FC = () => {
             kakao.Share.sendDefault({
                 objectType: 'feed',
                 content: {
-                    title: `Neon Tetris Challenge!`,
-                    description: `I scored ${score.toLocaleString()} in ${difficulty?.toUpperCase() || 'GAME'} Mode! Can you beat me?`,
+                    title: `[Fun.Uncle] 네온 테트리스 도전!`,
+                    description: `최종점수 : ${score.toLocaleString()}점\n나 이길 수 있어?`,
                     imageUrl: 'https://fun.uncledison.com/assets/tetris_share.png',
                     link: {
                         mobileWebUrl: 'https://fun.uncledison.com/tetris',
@@ -597,7 +603,7 @@ export const TetrisGame: React.FC = () => {
                 },
                 buttons: [
                     {
-                        title: 'Play Now',
+                        title: '나도 도전하기',
                         link: {
                             mobileWebUrl: 'https://fun.uncledison.com/tetris',
                             webUrl: 'https://fun.uncledison.com/tetris',
@@ -763,64 +769,73 @@ export const TetrisGame: React.FC = () => {
                             animate={{ scale: 1, y: 0 }}
                             className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-8"
                         >
-                            <h1 className="text-6xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
-                                {isGameOver ? "TIME'S UP!" : "TETRIS"}
+                            <h1 className="text-8xl font-black italic text-white mb-6 tracking-tighter drop-shadow-[0_0_25px_rgba(0,240,255,0.8)]">
+                                {isGameOver ? "GAME OVER" : "네온 테트리스"}
                             </h1>
 
                             {/* Difficulty Selector (Only on Start Screen) */}
                             {!isGameOver && (
-                                <div className="grid grid-cols-3 gap-2 w-full">
+                                <div className="flex gap-3 justify-center w-full mb-6">
                                     <button
                                         onClick={() => setDifficulty('beginner')}
-                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-[0_0_10px_#00f0ff]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'beginner' ? 'bg-[#00f0ff] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        초급 (5분)
+                                        초급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('intermediate')}
-                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-[0_0_10px_#f0f000]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'intermediate' ? 'bg-[#f0f000] text-black shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        중급 (3분)
+                                        중급
                                     </button>
                                     <button
                                         onClick={() => setDifficulty('advanced')}
-                                        className={`py-2 rounded-lg font-bold text-sm transition-all ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-[0_0_10px_#f00000]' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}
+                                        className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${difficulty === 'advanced' ? 'bg-[#f00000] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                                     >
-                                        고급 (1분)
+                                        고급
                                     </button>
                                 </div>
                             )}
 
-                            <div className="flex flex-col gap-1 w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
-                                <div className="text-sm text-gray-400 font-bold tracking-widest">HIGHSCORE</div>
-                                <div className="text-4xl font-mono text-[#b026ff] font-black drop-shadow-md">{Math.max(score, highScore)}</div>
+                            <div className="flex flex-col gap-1 w-full max-w-[200px] bg-white/5 p-3 rounded-2xl border border-white/10 shadow-sm mx-auto mb-4">
+                                <div className="text-xs text-gray-500 font-bold tracking-widest uppercase">High Score</div>
+                                <div className="text-2xl font-mono text-[#b026ff] font-black">{Math.max(score, highScore)}</div>
                             </div>
 
-                            <p className="text-gray-400 text-sm font-bold">Clear as many lines as possible in 60s!</p>
-
                             {isGameOver && (
-                                <div className="text-2xl text-white font-bold animate-pulse">SCORE: <span className="text-[#00f0ff]">{score}</span></div>
+                                <div className="text-3xl text-white font-bold animate-pulse mb-6">
+                                    최종 점수: <span className="text-[#00f0ff]">{score}</span>
+                                </div>
                             )}
 
-                            <button
-                                onClick={startGame}
-                                className="w-full py-5 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-2xl text-white shadow-[0_0_40px_rgba(0,240,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
-                            >
-                                <span className="relative z-10">{isGameOver ? "RETRY" : "START"}</span>
-                            </button>
-
-                            {/* Kakao Share Button (Game Over Only) */}
-                            {isGameOver && (
+                            <div className="flex flex-col gap-3 w-full">
                                 <button
-                                    onClick={handleShare}
-                                    className="flex items-center gap-2 px-6 py-3 bg-[#FEE500] hover:bg-[#FEE500]/90 rounded-full text-[#3C1E1E] font-bold shadow-lg transition-transform active:scale-95"
+                                    onClick={startGame}
+                                    className="w-full py-4 bg-[#007AFF] hover:bg-[#005bb5] rounded-full font-bold text-xl text-white shadow-lg transition-all active:scale-95"
                                 >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
-                                    </svg>
-                                    카카오톡 공유하기
+                                    {isGameOver ? "재도전" : "시작하기"}
                                 </button>
-                            )}
+
+                                {isGameOver && (
+                                    <>
+                                        <button
+                                            onClick={handleShare}
+                                            className="w-full py-4 bg-[#FEE500] hover:bg-[#E6CF00] rounded-full font-bold text-lg text-[#191919] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 3C6.48 3 2 6.58 2 11c0 2.9 1.88 5.45 4.68 7.01L5.5 21.5l4.25-2.55C10.47 19.3 11.22 19.5 12 19.5c5.52 0 10-3.58 10-8S17.52 3 12 3z" />
+                                            </svg>
+                                            카카오톡 공유
+                                        </button>
+                                        <button
+                                            onClick={() => navigate('/')}
+                                            className="w-full py-4 bg-white/10 hover:bg-white/20 rounded-full font-bold text-lg text-white shadow-lg transition-all active:scale-95"
+                                        >
+                                            홈으로
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

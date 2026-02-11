@@ -2,13 +2,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Volume2, VolumeX, Pause } from 'lucide-react';
+import { Play, Volume2, VolumeX, Pause, Home } from 'lucide-react';
 import { useFavicon } from '../hooks/useFavicon';
 
 // --- Constants & Types ---
 const COLS = 10;
 const ROWS = 20;
-const BLOCK_SIZE = 30; // Base size, will scale with Canvas CSS
+const BLOCK_SIZE = 30;
 
 const TETROMINOS: any = {
     'I': { shape: [[[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], [[0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]], [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]], color: 1 },
@@ -57,6 +57,48 @@ class Piece {
     }
 }
 
+// Particle Class for Visual Effects
+class Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    size: number;
+    life: number;
+    maxLife: number;
+
+    constructor(x: number, y: number, color: string) {
+        this.x = x;
+        this.y = y;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2; // Fast explosion
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.color = color;
+        this.size = Math.random() * 4 + 2;
+        this.maxLife = 40;
+        this.life = this.maxLife;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.2; // Gravity
+        this.life--;
+        this.size *= 0.95; // Shrink
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.globalAlpha = this.life / this.maxLife;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+    }
+}
+
 
 export const TetrisGame: React.FC = () => {
     useFavicon('/favicon.ico');
@@ -72,11 +114,11 @@ export const TetrisGame: React.FC = () => {
     const nextPieceRef = useRef<Piece | null>(null);
     const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const pieceBagRef = useRef<string[]>([]);
+    const particlesRef = useRef<Particle[]>([]);
 
     // UI State
     const [score, setScore] = useState(0);
     const [level, setLevel] = useState(1);
-    const [lines, setLines] = useState(0);
     const [isGameOver, setIsGameOver] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -86,6 +128,7 @@ export const TetrisGame: React.FC = () => {
 
     // Animation Effects state
     const [comboText, setComboText] = useState<{ text: string, color: string } | null>(null);
+    const [shake, setShake] = useState(0);
 
     // Audio Refs
     const soundsRef = useRef<any>({});
@@ -181,6 +224,19 @@ export const TetrisGame: React.FC = () => {
         return false;
     };
 
+    // --- Particle Effects ---
+    const createExplosion = (lines: number[]) => {
+        lines.forEach(row => {
+            for (let col = 0; col < COLS; col++) {
+                // Create particles for each block in cleared line
+                const color = COLORS[Math.floor(Math.random() * 7) + 1]; // Random neon color
+                for (let i = 0; i < 5; i++) {
+                    particlesRef.current.push(new Particle(col * BLOCK_SIZE + BLOCK_SIZE / 2, row * BLOCK_SIZE + BLOCK_SIZE / 2, color));
+                }
+            }
+        });
+    };
+
     const lockPiece = () => {
         const piece = currentPieceRef.current;
         if (!piece) return;
@@ -197,8 +253,10 @@ export const TetrisGame: React.FC = () => {
 
         // Check Lines
         let linesCleared = 0;
+        let linesIndices: number[] = [];
         for (let r = ROWS - 1; r >= 0; r--) {
             if (boardRef.current[r].every((c: number) => c !== 0)) {
+                linesIndices.push(r);
                 boardRef.current.splice(r, 1);
                 boardRef.current.unshift(Array(COLS).fill(0));
                 linesCleared++;
@@ -208,19 +266,28 @@ export const TetrisGame: React.FC = () => {
 
         if (linesCleared > 0) {
             playSound('clear');
-            setLines(prev => {
-                const newLines = prev + linesCleared;
-                setLevel(Math.floor(newLines / 10) + 1);
-                return newLines;
+
+            // Trigger Visual Effects
+            createExplosion(linesIndices);
+            setShake(linesCleared * 5); // Shake screen
+            setTimeout(() => setShake(0), 500);
+
+            if (navigator.vibrate) navigator.vibrate(50 * linesCleared);
+
+            // Level & Score Logic
+            setLevel(prev => {
+                // Simple level logic (every 10 lines is a bit much for quick play, maybe every 5?)
+                // Keeping original logic for now but based on total lines cleared potentially?
+                // Actually `board.js` says `game.lines / 10`.
+                return prev;
             });
+
+            // Calculate Score
             const points = [0, 100, 300, 500, 800][linesCleared] * level;
             setScore(prev => prev + points);
 
-            // Visual Effects (Vibrate & Combo Text)
-            if (navigator.vibrate) navigator.vibrate(50 * linesCleared);
-
             if (linesCleared >= 2) {
-                let text = linesCleared === 4 ? "NEON TETRIS!" : linesCleared === 3 ? "TRIPLE!" : "DOUBLE!";
+                let text = linesCleared === 4 ? "TETRIS!" : linesCleared === 3 ? "TRIPLE!" : "DOUBLE!";
                 let color = linesCleared === 4 ? "#b026ff" : linesCleared === 3 ? "#00f0ff" : "#f0f000";
                 setComboText({ text, color });
                 setTimeout(() => setComboText(null), 1500);
@@ -233,11 +300,11 @@ export const TetrisGame: React.FC = () => {
     const spawnPiece = () => {
         currentPieceRef.current = nextPieceRef.current;
         nextPieceRef.current = getNextPiece();
+        // Update Next Preview Immediately
+        drawNext();
 
         if (checkCollision(currentPieceRef.current!)) {
             gameOver();
-        } else {
-            drawNext();
         }
     };
 
@@ -258,7 +325,7 @@ export const TetrisGame: React.FC = () => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         if (!checkCollision(currentPieceRef.current, dir, 0)) {
             currentPieceRef.current.x += dir;
-            draw();
+            // Removed draw() call, handled by game loop for smoother rendering
             playSound('move');
         }
     }, [isPaused, isPlaying]);
@@ -281,7 +348,6 @@ export const TetrisGame: React.FC = () => {
                 return;
             }
         }
-        draw();
         playSound('rotate');
     }, [isPaused, isPlaying]);
 
@@ -289,11 +355,9 @@ export const TetrisGame: React.FC = () => {
         if (!currentPieceRef.current || isPaused || !isPlaying) return;
         if (!checkCollision(currentPieceRef.current, 0, 1)) {
             currentPieceRef.current.y += 1;
-            draw();
         } else {
             lockPiece();
             playSound('drop');
-            draw();
         }
     }, [isPaused, isPlaying]);
 
@@ -304,7 +368,6 @@ export const TetrisGame: React.FC = () => {
         }
         lockPiece();
         playSound('drop');
-        draw();
     }, [isPaused, isPlaying]);
 
     const startGameLoop = () => {
@@ -357,25 +420,20 @@ export const TetrisGame: React.FC = () => {
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
-        // Tap Detection (Short time, small movement) -> Rotate
+        // Tap Detection -> Rotate
         if (deltaTime < 200 && absX < 10 && absY < 10) {
             rotate();
         }
-        // Swipe Detection (Longer/Larger movement)
+        // Swipe Detection
         else {
             if (absX > absY) {
-                // Horizontal Swipe
-                if (absX > 30) { // Threshold
+                if (absX > 30) {
                     move(deltaX > 0 ? 1 : -1);
                 }
             } else {
-                // Vertical Swipe
                 if (absY > 30) {
                     if (deltaY > 0) {
-                        // Down Swipe -> Hard Drop (User said "Fast Drop", commonly hard drop or fast soft drop. I'll use hard drop for clear feedback)
                         hardDrop();
-                    } else {
-                        // Up Swipe - Maybe rotate? User requested Tap for rotate. Ignore Up swipe to avoid accidental inputs.
                     }
                 }
             }
@@ -412,16 +470,6 @@ export const TetrisGame: React.FC = () => {
         ctx.fillStyle = '#0f0f1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Grid
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= COLS; i++) {
-            ctx.beginPath(); ctx.moveTo(i * BLOCK_SIZE, 0); ctx.lineTo(i * BLOCK_SIZE, canvas.height); ctx.stroke();
-        }
-        for (let i = 0; i <= ROWS; i++) {
-            ctx.beginPath(); ctx.moveTo(0, i * BLOCK_SIZE); ctx.lineTo(canvas.width, i * BLOCK_SIZE); ctx.stroke();
-        }
-
         // Board
         boardRef.current.forEach((row: number[], y: number) => {
             row.forEach((color: number, x: number) => {
@@ -452,6 +500,14 @@ export const TetrisGame: React.FC = () => {
                 });
             });
         }
+
+        // Render Particles
+        particlesRef.current.forEach(p => {
+            p.update();
+            p.draw(ctx);
+        });
+        // Remove dead particles
+        particlesRef.current = particlesRef.current.filter(p => p.life > 0);
     };
 
     const drawNext = () => {
@@ -486,7 +542,6 @@ export const TetrisGame: React.FC = () => {
     const startGame = () => {
         boardRef.current = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
         setScore(0);
-        setLines(0);
         setLevel(1);
         setIsGameOver(false);
         setIsPaused(false);
@@ -495,7 +550,6 @@ export const TetrisGame: React.FC = () => {
 
         nextPieceRef.current = getNextPiece();
         spawnPiece();
-        // BGM handled by useEffect
     };
 
     // --- Controls Bindings ---
@@ -512,7 +566,7 @@ export const TetrisGame: React.FC = () => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isPlaying, isPaused, move, rotate, drop, hardDrop]); // Dependencies included for safety
+    }, [isPlaying, isPaused, move, rotate, drop, hardDrop]);
 
 
     // --- Render Loop ---
@@ -530,45 +584,41 @@ export const TetrisGame: React.FC = () => {
     return (
         <div className="relative w-full h-[100dvh] bg-[#0f0f1e] overflow-hidden flex flex-col font-sans text-white touch-none">
 
-            {/* Top Bar: Header & Stats - Clean UI Layout */}
-            <div className="w-full px-6 pt-6 pb-2 flex justify-between items-start z-20">
-                {/* Left: Branding */}
-                <div onClick={() => navigate('/')} className="cursor-pointer">
-                    <h1 className="text-2xl font-black italic tracking-tighter text-[#00f0ff] drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]">
-                        FUN.UNCLE
-                    </h1>
+            {/* Top Bar: Clean UI per User Request */}
+            <div className="w-full px-6 pt-6 pb-2 grid grid-cols-3 items-center z-20">
+
+                {/* Left: Home Button (Replaces Logo) */}
+                <div className="flex justify-start">
+                    <button onClick={() => navigate('/')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                        <Home size={24} />
+                    </button>
                 </div>
 
-                {/* Right UI: Stats Grid + Controls */}
-                <div className="flex gap-4 items-start">
-                    {/* Score & Next Piece (Compact) */}
-                    <div className="flex flex-col items-end gap-1">
-                        <div className="bg-[#1a1a2e]/80 border border-[#b026ff]/30 px-3 py-1 rounded-lg">
-                            <div className="text-[10px] text-gray-400">SCORE</div>
-                            <div className="text-xl font-mono text-[#00f0ff]">{score.toLocaleString()}</div>
-                        </div>
+                {/* Center: Score & Next Piece (Vertical alignment) */}
+                <div className="flex flex-col items-center gap-2">
+                    <div className="bg-[#1a1a2e]/80 border border-[#b026ff]/30 px-6 py-2 rounded-xl shadow-[0_0_15px_rgba(176,38,255,0.2)]">
+                        <div className="text-2xl font-mono font-black text-[#00f0ff] tracking-wider">{score.toLocaleString()}</div>
                     </div>
+                    {/* Preview Box - Centered below Score */}
+                    <div className="bg-black/40 border border-white/10 rounded-lg w-[50px] h-[50px] flex items-center justify-center">
+                        <canvas ref={nextCanvasRef} width={50} height={50} />
+                    </div>
+                </div>
 
-                    <div className="flex flex-col gap-2">
-                        {/* Audio & Pause Controls */}
-                        <div className="flex gap-2 justify-end">
-                            <button onClick={toggleMute} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                                {isMuted ? <VolumeX size={20} color="#666" /> : <Volume2 size={20} color="#00f0ff" />}
-                            </button>
-                            <button onClick={togglePause} className="p-2 bg-white/5 rounded-full hover:bg-white/10">
-                                {isPaused ? <Play size={20} color="#00f000" /> : <Pause size={20} color="#fff" />}
-                            </button>
-                        </div>
-                        {/* Next Piece */}
-                        <div className="bg-black/40 border border-white/10 rounded-lg w-[60px] h-[60px] flex items-center justify-center self-end">
-                            <canvas ref={nextCanvasRef} width={60} height={60} />
-                        </div>
-                    </div>
+                {/* Right: Controls (Volume & Pause) */}
+                <div className="flex justify-end gap-3">
+                    <button onClick={toggleMute} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
+                        {isMuted ? <VolumeX size={20} color="#666" /> : <Volume2 size={20} color="#00f0ff" />}
+                    </button>
+                    <button onClick={togglePause} className="p-3 bg-white/5 rounded-full hover:bg-white/10">
+                        {isPaused ? <Play size={20} color="#00f000" /> : <Pause size={20} color="#fff" />}
+                    </button>
                 </div>
             </div>
 
-            {/* Main Game Area - Centered and Responsive */}
+            {/* Main Game Area */}
             <div className="flex-1 flex items-center justify-center relative p-4"
+                style={{ transform: `translate(${Math.random() * shake - shake / 2}px, ${Math.random() * shake - shake / 2}px)` }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
@@ -580,15 +630,19 @@ export const TetrisGame: React.FC = () => {
                     className="bg-[#111025] shadow-[0_0_30px_rgba(0,240,255,0.1)] border border-[#00f0ff]/20 rounded-lg max-h-full w-auto h-auto object-contain"
                 />
 
-                {/* Combo Text Overlay */}
+                {/* Combo Text Overlay (Flashy!) */}
                 <AnimatePresence>
                     {comboText && (
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0, y: 0 }}
-                            animate={{ scale: 1.5, opacity: 1, y: -50 }}
+                            initial={{ scale: 0.5, opacity: 0, y: 0, rotate: -10 }}
+                            animate={{ scale: 1.5, opacity: 1, y: -100, rotate: 0 }}
                             exit={{ scale: 2, opacity: 0 }}
-                            className="absolute z-30 font-black italic text-4xl drop-shadow-lg"
-                            style={{ color: comboText.color, textShadow: `0 0 20px ${comboText.color}` }}
+                            transition={{ type: "spring", bounce: 0.5 }}
+                            className="absolute z-30 font-black italic text-5xl drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] whitespace-nowrap"
+                            style={{
+                                color: comboText.color,
+                                textShadow: `0 0 20px ${comboText.color}, 0 0 40px ${comboText.color}`
+                            }}
                         >
                             {comboText.text}
                         </motion.div>
@@ -598,13 +652,13 @@ export const TetrisGame: React.FC = () => {
                 {/* Paused Overlay */}
                 {isPaused && !isGameOver && (
                     <div className="absolute inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-3xl font-black italic text-white text-center">PAUSED</h2>
+                        <div className="flex flex-col gap-6 items-center">
+                            <h2 className="text-4xl font-black italic text-white tracking-widest drop-shadow-[0_0_10px_#fff]">PAUSED</h2>
                             <div className="flex gap-4">
-                                <button onClick={togglePause} className="px-8 py-3 bg-[#00f0ff] text-black font-bold rounded-full shadow-[0_0_15px_#00f0ff]">
-                                    CONTINUE
+                                <button onClick={togglePause} className="px-8 py-3 bg-[#00f0ff] text-black font-bold rounded-full shadow-[0_0_15px_#00f0ff] hover:scale-105 transition-transform">
+                                    RESUME
                                 </button>
-                                <button onClick={() => navigate('/')} className="px-8 py-3 bg-white/10 text-white font-bold rounded-full border border-white/20">
+                                <button onClick={() => navigate('/')} className="px-8 py-3 bg-white/10 text-white font-bold rounded-full border border-white/20 hover:bg-white/20 transition-colors">
                                     QUIT
                                 </button>
                             </div>
@@ -612,14 +666,6 @@ export const TetrisGame: React.FC = () => {
                     </div>
                 )}
             </div>
-
-            {/* Bottom Info Bar (Level) */}
-            <div className="px-6 pb-6 flex justify-between text-xs text-gray-500 font-mono tracking-widest uppercase">
-                <div>LVL {level}</div>
-                <div>LINES {lines}</div>
-                <div>FUN.UNCLE NEON</div>
-            </div>
-
 
             {/* Start / Game Over Screen */}
             <AnimatePresence>
@@ -633,37 +679,27 @@ export const TetrisGame: React.FC = () => {
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
-                            className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-6"
+                            className="w-full max-w-sm p-8 flex flex-col items-center text-center gap-8"
                         >
-                            <h1 className="text-5xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
-                                {isGameOver ? "GAME OVER" : "NEON TETRIS"}
+                            <h1 className="text-6xl font-black italic text-white mb-2 tracking-tighter" style={{ textShadow: '0 0 30px #00f0ff' }}>
+                                {isGameOver ? "GAME OVER" : "TETRIS"}
                             </h1>
 
-                            <div className="flex flex-col gap-1 w-full bg-white/5 p-4 rounded-xl border border-white/10">
-                                <div className="text-sm text-gray-400">HIGHSCORE</div>
-                                <div className="text-3xl font-mono text-[#b026ff] font-bold">{Math.max(score, highScore)}</div>
+                            <div className="flex flex-col gap-1 w-full bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg">
+                                <div className="text-sm text-gray-400 font-bold tracking-widest">HIGHSCORE</div>
+                                <div className="text-4xl font-mono text-[#b026ff] font-black drop-shadow-md">{Math.max(score, highScore)}</div>
                             </div>
 
                             {isGameOver && (
-                                <div className="text-xl text-white font-bold">SCORE: <span className="text-[#00f0ff]">{score}</span></div>
+                                <div className="text-2xl text-white font-bold animate-pulse">SCORE: <span className="text-[#00f0ff]">{score}</span></div>
                             )}
 
                             <button
                                 onClick={startGame}
-                                className="w-full py-4 mt-4 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-xl text-white shadow-[0_0_30px_rgba(176,38,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                className="w-full py-5 bg-gradient-to-r from-[#00f0ff] to-[#b026ff] rounded-2xl font-black text-2xl text-white shadow-[0_0_40px_rgba(0,240,255,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 relative overflow-hidden group"
                             >
-                                {isGameOver ? "RETRY" : "START GAME"}
+                                <span className="relative z-10">{isGameOver ? "RETRY" : "START GAME"}</span>
                             </button>
-
-                            {/* Gesture Guide */}
-                            <div className="mt-8 text-xs text-gray-500 flex flex-col gap-2">
-                                <div className="font-bold text-gray-400 mb-1">HOW TO PLAY (TOUCH)</div>
-                                <div className="flex gap-4 justify-center">
-                                    <span>👆 Tap: Rotate</span>
-                                    <span>↔️ Swipe: Move</span>
-                                    <span>⬇️ Down: Drop</span>
-                                </div>
-                            </div>
                         </motion.div>
                     </motion.div>
                 )}

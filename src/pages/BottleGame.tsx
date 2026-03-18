@@ -610,7 +610,7 @@ export const BottleGame: React.FC = () => {
             const speed = deltaY / deltaT;
             velocityRef.current.y = Math.min(Math.max(speed * 2, 12), 26);
             velocityRef.current.z = -3;
-            rotationVelocityRef.current = Math.min(Math.max(speed * 0.08, 5), 22) + (Math.random() * 2);
+            rotationVelocityRef.current = Math.min(Math.max(speed * 0.11, 6), 22) + (Math.random() * 2);
 
             playSound('throw');
         }

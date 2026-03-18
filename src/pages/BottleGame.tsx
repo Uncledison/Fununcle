@@ -599,7 +599,7 @@ export const BottleGame: React.FC = () => {
         const deltaY = startYRef.current - e.clientY;
         const deltaT = performance.now() - startTimeRef.current;
 
-        if (deltaY > 50 && deltaT > 50) {
+        if (deltaY > 100 && deltaT > 50) {
             setGameState(prev => ({
                 ...prev,
                 tryCount: prev.tryCount + 1,
@@ -608,9 +608,9 @@ export const BottleGame: React.FC = () => {
             }));
 
             const speed = deltaY / deltaT;
-            velocityRef.current.y = Math.min(Math.max(speed * 8, 12), 26);
+            velocityRef.current.y = Math.min(Math.max(speed * 4, 12), 26);
             velocityRef.current.z = -3;
-            rotationVelocityRef.current = Math.min(Math.max(speed * 0.45, 6), 22) + (Math.random() * 2);
+            rotationVelocityRef.current = Math.min(Math.max(speed * 0.225, 6), 22) + (Math.random() * 2);
 
             playSound('throw');
         }

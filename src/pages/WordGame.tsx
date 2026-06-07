@@ -1080,24 +1080,60 @@ export default function WordGame() {
     </div>
   );
 
+  // ── 카카오 공유 핸들러 ────────────────────────
+  const handleKakaoShare = () => {
+    const kakao = (window as any).Kakao;
+    if (!kakao) return;
+    if (!kakao.isInitialized()) kakao.init('8e68190d1ba932955a557fbf0ae0b659');
+    kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '영단어 플래시카드 🎴',
+        description: '교육부 권장 단어를 스와이프로 쉽게! 초등~수능까지',
+        imageUrl: 'https://fun.uncledison.com/assets/wordgame_banner.png',
+        link: {
+          mobileWebUrl: 'https://fun.uncledison.com/english',
+          webUrl: 'https://fun.uncledison.com/english',
+        },
+      },
+      buttons: [{ title: '공부하러 가기', link: { mobileWebUrl: 'https://fun.uncledison.com/english', webUrl: 'https://fun.uncledison.com/english' } }],
+    });
+  };
+
   // ── 하단 탭바 공통 컴포넌트 ─────────────────
   const TabBar = () => (
-    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#0d0d18", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", zIndex: 50 }}>
-      <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", display: "flex" }}>
-      {[
-        { key: "map",    label: "월드맵",  icon: "🗺️" },
-        { key: "search", label: "검색",    icon: "🔍" },
-        { key: "vocab",  label: "내 단어장", icon: "📖" },
-      ].map(t => (
-        <button key={t.key} onClick={() => setTab(t.key)}
-          style={{ flex: 1, padding: "12px 8px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-          <span style={{ fontSize: 20 }}>{t.icon}</span>
-          <span style={{ color: tab === t.key ? "#FFB800" : "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
-          {tab === t.key && <div style={{ width: 20, height: 2, background: "#FFB800", borderRadius: 2, marginTop: 2 }} />}
-        </button>
-      ))}
+    <>
+      {/* 카카오 플로팅 버튼 */}
+      <button
+        onClick={handleKakaoShare}
+        style={{ position: "fixed", bottom: 90, right: 16, width: 48, height: 48, background: "#FAE100", borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 60 }}
+        aria-label="카카오톡 공유"
+      >
+        <svg viewBox="0 0 512 512" style={{ width: 24, height: 24, marginLeft: 1, marginTop: 1 }} fill="#3C1E1E">
+          <path d="M408 64H104a56.16 56.16 0 00-56 56v192a56.16 56.16 0 0056 56h40v80l93.72-78.14a8 8 0 015.13-1.86H408a56.16 56.16 0 0056-56V120a56.16 56.16 0 00-56-56z" />
+          <circle cx="160" cy="216" r="32" fill="#FAE100" />
+          <circle cx="256" cy="216" r="32" fill="#FAE100" />
+          <circle cx="352" cy="216" r="32" fill="#FAE100" />
+        </svg>
+      </button>
+      {/* 탭바 */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#0d0d18", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", zIndex: 50 }}>
+        <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", display: "flex" }}>
+        {[
+          { key: "map",    label: "홈",      icon: "🏠" },
+          { key: "vocab",  label: "내 단어장", icon: "📖" },
+          { key: "search", label: "검색",     icon: "🔍" },
+        ].map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            style={{ flex: 1, padding: "12px 8px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 20 }}>{t.icon}</span>
+            <span style={{ color: tab === t.key ? "#FFB800" : "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
+            {tab === t.key && <div style={{ width: 20, height: 2, background: "#FFB800", borderRadius: 2, marginTop: 2 }} />}
+          </button>
+        ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 
   // ── 검색 화면 ──────────────────────────
@@ -1379,12 +1415,9 @@ export default function WordGame() {
   // ── 레벨 선택 화면 ───────────────────────
   if (screen === "levelselect") return (
     <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 22px 40px" }}>
-      <div style={{ width: "100%", marginBottom: 8 }}>
-        <FunUncleBar showLevel={false} />
-      </div>
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 22px 40px" }}>
       {/* 로고 */}
-      <div style={{ textAlign: "center", marginBottom: 48, marginTop: 24 }}>
+      <div style={{ textAlign: "center", marginBottom: 48 }}>
         <h1 style={{ color: "#fff", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
           영단어<br />
           <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>플래시카드</span>

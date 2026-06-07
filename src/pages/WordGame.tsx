@@ -1090,7 +1090,7 @@ export default function WordGame() {
       content: {
         title: '영단어 플래시카드 🎴',
         description: '교육부 권장 단어를 스와이프로 쉽게! 초등~수능까지',
-        imageUrl: 'https://fun.uncledison.com/assets/wordgame_banner.png',
+        imageUrl: 'https://fun.uncledison.com/assets/wordgame_thumb.png',
         link: {
           mobileWebUrl: 'https://fun.uncledison.com/english',
           webUrl: 'https://fun.uncledison.com/english',
@@ -1522,10 +1522,6 @@ export default function WordGame() {
       <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
         <FunUncleBar showLevel={true} />
         <div style={{ padding: "12px 22px 0" }}>
-        <div style={{ color: "#fff", fontSize: 28, fontWeight: 900, lineHeight: 1.1, marginBottom: 18 }}>
-          영단어<br />
-          <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>월드맵</span>
-        </div>
         {/* XP 바 */}
         <div style={{ marginBottom: 26 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
@@ -1680,7 +1676,7 @@ export default function WordGame() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <button onClick={() => setScreen("map")}
               style={{ background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "8px 14px", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              ← 맵
+              🏠 홈
             </button>
             <div style={{ textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
@@ -1867,7 +1863,7 @@ export default function WordGame() {
               )}
               <button onClick={() => setScreen("map")}
                 style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                월드맵으로
+                홈으로
               </button>
             </div>
           );
@@ -1960,7 +1956,7 @@ export default function WordGame() {
             )}
             <button onClick={() => setScreen("map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-              월드맵으로
+              홈으로
             </button>
           </div>
 
@@ -2014,7 +2010,7 @@ export default function WordGame() {
             )}
             <button onClick={() => setScreen("map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-              월드맵으로
+              홈으로
             </button>
           </div>
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>

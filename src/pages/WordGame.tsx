@@ -784,6 +784,7 @@ export default function WordGame() {
   const [vocabFilter,     setVocabFilter]     = useState("mastered");  // all | mastered | failed
   const [expandedCard,    setExpandedCard]    = useState(null);   // 펼친 단어 en
   const [searchQuery,    setSearchQuery]    = useState("");      // 검색어
+  const [showLevelConfirm, setShowLevelConfirm] = useState(false); // 레벨변경 확인 팝업
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
@@ -1032,9 +1033,57 @@ export default function WordGame() {
   );
   // vocabList → grouped 방식으로 대체됨
 
+  // ── 공통 Fun.Uncle 헤더 ──────────────────────
+  const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
+      <a href="https://fun.uncledison.com" style={{ textDecoration: "none", display: "flex", alignItems: "baseline", gap: 0 }}>
+        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>Fun</span>
+        <span style={{ color: "#fff", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>.Uncle</span>
+      </a>
+      {showLevel && (
+        <button
+          onClick={() => setShowLevelConfirm(true)}
+          style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px", cursor: "pointer" }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
+            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+          </div>
+          <div style={{ width: 1, height: 24, background: "rgba(255,184,0,0.2)" }} />
+          <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>레벨<br/>변경</div>
+        </button>
+      )}
+    </div>
+  );
+
+  // ── 레벨변경 확인 팝업 ────────────────────────
+  const LevelConfirmModal = () => !showLevelConfirm ? null : (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+        <div style={{ fontSize: 44, marginBottom: 16 }}>⚠️</div>
+        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>레벨을 변경할까요?</h3>
+        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+          현재 학습 기록이 모두<br />초기화됩니다.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setShowLevelConfirm(false)}
+            style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            취소
+          </button>
+          <button
+            onClick={() => { setShowLevelConfirm(false); setScreen("levelselect"); }}
+            style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+            변경하기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── 하단 탭바 공통 컴포넌트 ─────────────────
   const TabBar = () => (
     <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#0d0d18", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", zIndex: 50 }}>
+      <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", display: "flex" }}>
       {[
         { key: "map",    label: "월드맵",  icon: "🗺️" },
         { key: "search", label: "검색",    icon: "🔍" },
@@ -1047,6 +1096,7 @@ export default function WordGame() {
           {tab === t.key && <div style={{ width: 20, height: 2, background: "#FFB800", borderRadius: 2, marginTop: 2 }} />}
         </button>
       ))}
+      </div>
     </div>
   );
 
@@ -1058,10 +1108,13 @@ export default function WordGame() {
     );
 
     return (
-      <div style={{ minHeight:"100dvh", background:"#07070f", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", flexDirection:"column", paddingBottom:80 }}>
+      <div style={{ minHeight:"100dvh", background:"#07070f", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", justifyContent:"center" }}>
+        <LevelConfirmModal />
+        <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", paddingBottom:80 }}>
         {/* 헤더 */}
-        <div style={{ padding:"48px 22px 16px", background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
-          <div style={{ color:"rgba(255,184,0,0.5)", fontSize:10, fontWeight:700, letterSpacing:2, marginBottom:8 }}>⚡ ai.uncledison.com</div>
+        <div style={{ background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+          <FunUncleBar showLevel={true} />
+          <div style={{ padding:"12px 22px 16px" }}>
           <div style={{ color:"#fff", fontSize:24, fontWeight:900, marginBottom:16 }}>
             단어 <span style={{ background:"linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>검색</span>
           </div>
@@ -1088,6 +1141,7 @@ export default function WordGame() {
               {results.length > 0 ? `${results.length}개 검색됨` : "검색 결과 없음"}
             </div>
           )}
+          </div>
         </div>
 
         {/* 검색 결과 */}
@@ -1148,6 +1202,7 @@ export default function WordGame() {
           )}
         </div>
         <TabBar />
+        </div>
       </div>
     );
   }
@@ -1186,10 +1241,13 @@ export default function WordGame() {
     ];
 
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", paddingBottom: 80 }}>
+      <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+        <LevelConfirmModal />
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
-        <div style={{ padding: "48px 22px 20px", background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
-          <div style={{ color: "rgba(255,184,0,0.5)", fontSize: 10, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>⚡ ai.uncledison.com</div>
+        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+          <FunUncleBar showLevel={true} />
+          <div style={{ padding: "12px 22px 20px" }}>
           <div style={{ color: "#fff", fontSize: 26, fontWeight: 900, marginBottom: 18 }}>
             내 <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>단어장</span>
           </div>
@@ -1207,6 +1265,7 @@ export default function WordGame() {
                 </button>
               );
             })}
+          </div>
           </div>
         </div>
 
@@ -1312,16 +1371,20 @@ export default function WordGame() {
           <div style={{ height: 20 }} />
         </div>
         <TabBar />
+        </div>
       </div>
     );
   }
 
   // ── 레벨 선택 화면 ───────────────────────
   if (screen === "levelselect") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 22px" }}>
+    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 22px 40px" }}>
+      <div style={{ width: "100%", marginBottom: 8 }}>
+        <FunUncleBar showLevel={false} />
+      </div>
       {/* 로고 */}
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <div style={{ color: "rgba(255,184,0,0.5)", fontSize: 10, fontWeight: 700, letterSpacing: 2, marginBottom: 12 }}>⚡ ai.uncledison.com</div>
+      <div style={{ textAlign: "center", marginBottom: 48, marginTop: 24 }}>
         <h1 style={{ color: "#fff", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
           영단어<br />
           <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>플래시카드</span>
@@ -1411,35 +1474,24 @@ export default function WordGame() {
       </div>
 
       <div style={{ marginTop: 48, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
-        교육부 고시 제2022-33호 [별책 14] · ai.uncledison.com
+        교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
+      </div>
       </div>
     </div>
   );
 
   // ── MAP 화면 ─────────────────────────────
   if (screen === "map") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", paddingBottom: 80 }}>
+    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+      <LevelConfirmModal />
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
       {/* 헤더 */}
-      <div style={{ padding: "48px 22px 0", background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 18 }}>
-          <div>
-            <div style={{ color: "rgba(255,184,0,0.5)", fontSize: 10, fontWeight: 700, letterSpacing: 2, marginBottom: 6 }}>⚡ ai.uncledison.com</div>
-            <div style={{ color: "#fff", fontSize: 28, fontWeight: 900, lineHeight: 1.1 }}>
-              영단어<br />
-              <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>월드맵</span>
-            </div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-            <div style={{ background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.22)", borderRadius: 14, padding: "8px 14px", textAlign: "right" }}>
-              <div style={{ color: "#FFB800", fontSize: 18, fontWeight: 900 }}>Lv.{level}</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 10 }}>{xp} XP</div>
-            </div>
-            {/* 레벨 전환 버튼 */}
-            <button onClick={() => setScreen("levelselect")}
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "6px 12px", color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-              🎯 레벨 변경
-            </button>
-          </div>
+      <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+        <FunUncleBar showLevel={true} />
+        <div style={{ padding: "12px 22px 0" }}>
+        <div style={{ color: "#fff", fontSize: 28, fontWeight: 900, lineHeight: 1.1, marginBottom: 18 }}>
+          영단어<br />
+          <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>월드맵</span>
         </div>
         {/* XP 바 */}
         <div style={{ marginBottom: 26 }}>
@@ -1450,6 +1502,7 @@ export default function WordGame() {
           <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 5, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${xpMod}%`, background: "linear-gradient(90deg,#FFB800,#FF6B00)", borderRadius: 5, transition: "width 0.5s" }} />
           </div>
+        </div>
         </div>
       </div>
 
@@ -1549,9 +1602,10 @@ export default function WordGame() {
 
       <div style={{ textAlign: "center", padding: "0 20px 32px", color: "rgba(255,255,255,0.12)", fontSize: 10, lineHeight: 1.8 }}>
         교육부 고시 제2022-33호 [별책 14] 기준<br />
-        <span style={{ color: "rgba(255,184,0,0.25)" }}>⚡ ai.uncledison.com</span>
+        <span style={{ color: "rgba(255,184,0,0.25)" }}>fun.uncledison.com</span>
       </div>
       <TabBar />
+      </div>
     </div>
   );
 
@@ -1581,11 +1635,13 @@ export default function WordGame() {
 
     return (
       <div
-        style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", userSelect: "none", cursor: isDragging ? "grabbing" : "grab" }}
+        style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center", userSelect: "none" }}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
       >
+        <LevelConfirmModal />
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab" }}>
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -1728,13 +1784,16 @@ export default function WordGame() {
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
         </div>
+        </div>
       </div>
     );
   }
 
   // ── WORLD CLEAR ───────────────────────────
   if (screen === "worldclear") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+    <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+      <LevelConfirmModal />
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
         <div style={{ color: w.color, fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>WORLD {w.id} CLEAR!</div>
@@ -1781,6 +1840,7 @@ export default function WordGame() {
           );
         })()}
       </div>
+      </div>
     </div>
   );
 
@@ -1791,7 +1851,9 @@ export default function WordGame() {
     const rate      = finalTotal > 0 ? Math.round(finalCorrect / finalTotal * 100) : 0;
 
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+        <LevelConfirmModal />
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
 
           {/* 이모지 + 타이틀 */}
@@ -1870,8 +1932,9 @@ export default function WordGame() {
           </div>
 
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>
-            교육부 고시 제2022-33호 [별책 14] · ai.uncledison.com
+            교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
           </div>
+        </div>
         </div>
       </div>
     );
@@ -1882,7 +1945,9 @@ export default function WordGame() {
     const rate = finalTotal > 0 ? Math.round(finalCorrect / finalTotal * 100) : 0;
     const p    = progress.find(p => p.worldId === w.id);
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+        <LevelConfirmModal />
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>💪</div>
           <h2 style={{ color: "#fff", fontSize: 28, fontWeight: 900, margin: "0 0 6px" }}>다시 도전!</h2>
@@ -1920,8 +1985,9 @@ export default function WordGame() {
             </button>
           </div>
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>
-            교육부 고시 제2022-33호 [별책 14] · ai.uncledison.com
+            교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
           </div>
+        </div>
         </div>
       </div>
     );

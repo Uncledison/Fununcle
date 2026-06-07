@@ -5,6 +5,7 @@ import { ShapeGame } from './pages/ShapeGame';
 import { CareerGame } from './pages/CareerGame';
 import { BottleGame } from './pages/BottleGame';
 import { TetrisGame } from './pages/TetrisGame';
+import WordGame from './pages/WordGame';
 
 import { useCopyProtection } from './hooks/useCopyProtection';
 import { usePageTracking } from './hooks/usePageTracking';
@@ -22,6 +23,7 @@ function AppRoutes() {
       <Route path="/career" element={<CareerGame />} />
       <Route path="/bottle" element={<BottleGame />} />
       <Route path="/tetris" element={<TetrisGame />} />
+      <Route path="/english" element={<WordGame />} />
     </Routes>
   );
 }

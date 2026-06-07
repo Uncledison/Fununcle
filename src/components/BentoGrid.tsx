@@ -267,7 +267,27 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 6. Coming Soon - Interaction Trigger */}
+                {/* 6. Word Flashcard Game */}
+                <BentoCard
+                    href="/english"
+                    delay={0.45}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                    }}
+                >
+                    <div className="w-full h-full relative">
+                        <img
+                            src="/assets/wordgame_banner.png"
+                            alt="영단어 플래시카드"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                </BentoCard>
+
+                {/* 7. Coming Soon - Interaction Trigger */}
                 <BentoCard
                     delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"

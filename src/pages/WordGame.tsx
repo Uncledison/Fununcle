@@ -838,9 +838,16 @@ export default function WordGame() {
   // ── 레벨 선택 후 해당 월드로 자동 스크롤 ────────────────────────────
   useEffect(() => {
     if (screen === "map" && scrollToWorldId) {
-      const el = document.getElementById(`world-card-${scrollToWorldId}`);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setScrollToWorldId(null);
+      // DOM 렌더링 완료 후 스크롤 (모바일 호환)
+      setTimeout(() => {
+        const el = document.getElementById(`world-card-${scrollToWorldId}`);
+        if (el) {
+          const headerHeight = 110; // fixed 헤더 높이
+          const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 8;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
+        setScrollToWorldId(null);
+      }, 100);
     }
   }, [screen, scrollToWorldId]);
 
@@ -1581,25 +1588,27 @@ export default function WordGame() {
 
   // ── MAP 화면 ─────────────────────────────
   if (screen === "map") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <LevelConfirmModal />
-      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
-      {/* 헤더 */}
-      <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
-        <FunUncleBar showLevel={true} />
-        <div style={{ padding: "12px 22px 0" }}>
-        {/* XP 바 */}
-        <div style={{ marginBottom: 26 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
-            <span style={{ color: "#FFB800", fontSize: 10, fontWeight: 700 }}>{xpMod}/100</span>
+
+      {/* 고정 헤더 */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "#0e0e20", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ width: "100%", maxWidth: 480 }}>
+          <FunUncleBar showLevel={true} />
+          <div style={{ padding: "8px 22px 12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+              <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
+              <span style={{ color: "#FFB800", fontSize: 10, fontWeight: 700 }}>{xpMod}/100</span>
+            </div>
+            <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 5, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${xpMod}%`, background: "linear-gradient(90deg,#FFB800,#FF6B00)", borderRadius: 5, transition: "width 0.5s" }} />
+            </div>
           </div>
-          <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 5, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${xpMod}%`, background: "linear-gradient(90deg,#FFB800,#FF6B00)", borderRadius: 5, transition: "width 0.5s" }} />
-          </div>
-        </div>
         </div>
       </div>
+
+      {/* 스크롤 본문 — 헤더 높이(약 110px) + 탭바(80px) 만큼 여백 */}
+      <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: 118, paddingBottom: 96 }}>
 
       {streak > 2 && (
         <div style={{ margin: "0 22px 14px", background: "rgba(255,100,0,0.08)", border: "1px solid rgba(255,100,0,0.18)", borderRadius: 12, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -1609,7 +1618,7 @@ export default function WordGame() {
       )}
 
       {/* 월드 카드 */}
-      <div style={{ padding: "0 22px 48px", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ padding: "0 22px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
         {worlds.map((world) => {
           const p          = progress.find(p => p.worldId === world.id);
           const totalStages = getStageCount(world);
@@ -1699,8 +1708,8 @@ export default function WordGame() {
         교육부 고시 제2022-33호 [별책 14] 기준<br />
         <span style={{ color: "rgba(255,184,0,0.25)" }}>fun.uncledison.com</span>
       </div>
-      <TabBar />
       </div>
+      <TabBar />
     </div>
   );
 

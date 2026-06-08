@@ -785,13 +785,64 @@ export default function WordGame() {
   const [expandedCard,    setExpandedCard]    = useState(null);   // 펼친 단어 en
   const [searchQuery,    setSearchQuery]    = useState("");      // 검색어
   const [showLevelConfirm, setShowLevelConfirm] = useState(false); // 레벨변경 확인 팝업
+  const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
+  const [scrollToWorldId, setScrollToWorldId] = useState(null);   // 맵 진입 시 스크롤 대상
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
   const processingRef = useRef(false);
 
+  // ── 참여자 수 계산 (시간대별 기반 + localStorage 누적) ───────────────
+  useEffect(() => {
+    const calculateBaseCount = (hour, minutes) => {
+      let base = 0;
+      if (hour < 6) base = 12;
+      else if (hour < 9) base = 45;
+      else if (hour < 12) base = 95;
+      else if (hour < 14) base = 140;
+      else if (hour < 18) base = 210;
+      else if (hour < 22) base = 280;
+      else base = 160;
+      return base + Math.floor(minutes * 0.4);
+    };
+    const now = new Date();
+    const dateKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const storageKey = `wordgame_participants_${dateKey}`;
+    const stored = localStorage.getItem(storageKey);
+    const newBase = calculateBaseCount(now.getHours(), now.getMinutes());
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        let nextCount = parsed.count;
+        const timeDiff = now.getTime() - new Date(parsed.timestamp).getTime();
+        if (timeDiff > 1000 * 60 * 3) nextCount += Math.floor(Math.random() * 3) + 1;
+        else if (timeDiff > 1000 * 30 && nextCount <= newBase) nextCount += 1;
+        if (nextCount < newBase) nextCount = newBase + Math.floor(Math.random() * 5);
+        setParticipantCount(nextCount);
+        localStorage.setItem(storageKey, JSON.stringify({ count: nextCount, timestamp: now.toISOString() }));
+      } catch(e) {
+        const c = newBase + Math.floor(Math.random() * 5);
+        setParticipantCount(c);
+        localStorage.setItem(storageKey, JSON.stringify({ count: c, timestamp: now.toISOString() }));
+      }
+    } else {
+      const c = newBase + Math.floor(Math.random() * 5);
+      setParticipantCount(c);
+      localStorage.setItem(storageKey, JSON.stringify({ count: c, timestamp: now.toISOString() }));
+    }
+  }, []);
+
   const level   = Math.floor(xp / 100) + 1;
   const xpMod   = xp % 100;
+
+  // ── 레벨 선택 후 해당 월드로 자동 스크롤 ────────────────────────────
+  useEffect(() => {
+    if (screen === "map" && scrollToWorldId) {
+      const el = document.getElementById(`world-card-${scrollToWorldId}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setScrollToWorldId(null);
+    }
+  }, [screen, scrollToWorldId]);
 
   const worlds = WORLDS.map((w, i) => {
     if (i === 0) return { ...w, unlocked: true };
@@ -1413,22 +1464,48 @@ export default function WordGame() {
   }
 
   // ── 레벨 선택 화면 ───────────────────────
+  // 베타 카운트다운 (오늘 2026-06-08 기준 +3개월 = 2026-09-08)
+  const BETA_END = new Date("2026-09-08T00:00:00+09:00");
+  const betaDiff = Math.max(0, BETA_END.getTime() - Date.now());
+  const betaDays = Math.floor(betaDiff / (1000 * 60 * 60 * 24));
+
   if (screen === "levelselect") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 22px 40px" }}>
+    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
+
+      {/* 베타 배너 */}
+      <div style={{ width: "100%", background: "linear-gradient(90deg,#FFB800,#FF6B00)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexShrink: 0 }}>
+        <span style={{ fontSize: 14 }}>🚨</span>
+        <span style={{ color: "#000", fontWeight: 800, fontSize: 13 }}>[베타 기간 한정] 무료 서비스 종료까지</span>
+        <span style={{ color: "#000", fontWeight: 900, fontSize: 14, fontVariantNumeric: "tabular-nums" }}>D-{betaDays}</span>
+      </div>
+
+      <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 22px 40px", flex: 1 }}>
       {/* 로고 */}
       <div style={{ textAlign: "center", marginBottom: 48 }}>
         <h1 style={{ color: "#fff", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
           영단어<br />
           <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>플래시카드</span>
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginTop: 12, fontWeight: 500 }}>
+        <p style={{ color: "#FFB800", fontSize: 13, marginTop: 12, fontWeight: 700, letterSpacing: 0.5 }}>
+          📚 교육부 추천 3,000단어 수록
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, marginTop: 4, fontWeight: 400 }}>
           교육부 고시 제2022-33호 [별책 14] 기준
         </p>
       </div>
 
       {/* 레벨 선택 카드 */}
       <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* 참여자 수 */}
+        {participantCount !== null && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 30, padding: "8px 18px", marginBottom: 16 }}>
+            <span style={{ fontSize: 16 }}>👥</span>
+            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 500 }}>
+              오늘 <strong style={{ color: "#FFB800", fontWeight: 800 }}>{participantCount}명</strong>이 학습 중이에요
+            </span>
+          </div>
+        )}
+
         <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textAlign: "center", marginBottom: 4 }}>
           어느 레벨부터 시작할까요?
         </div>
@@ -1471,6 +1548,7 @@ export default function WordGame() {
               setXp(0);
               setStreak(0);
               setCombo(0);
+              setScrollToWorldId(lv.worldId);
               setScreen("map");
               setTab("map");
             }}
@@ -1492,18 +1570,6 @@ export default function WordGame() {
           </button>
         ))}
 
-        {/* 처음부터 */}
-        <div style={{ textAlign: "center", marginTop: 8 }}>
-          <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 12 }}>또는 </span>
-          <button onClick={() => {
-              setProgress(initProgress());
-              setXp(0); setStreak(0); setCombo(0);
-              setScreen("map"); setTab("map");
-            }}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
-            WORLD 1부터 시작
-          </button>
-        </div>
       </div>
 
       <div style={{ marginTop: 48, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
@@ -1552,7 +1618,7 @@ export default function WordGame() {
           const locked     = !world.unlocked;
 
           return (
-            <div key={world.id}
+            <div key={world.id} id={`world-card-${world.id}`}
               style={{ background: locked ? "rgba(255,255,255,0.02)" : `linear-gradient(135deg,${world.color}14,${world.dark}20)`, border: `1.5px solid ${locked ? "rgba(255,255,255,0.05)" : world.color + "40"}`, borderRadius: 24, padding: "20px 22px", opacity: locked ? 0.45 : 1, transition: "opacity 0.2s" }}>
 
               {/* 월드 헤더 */}

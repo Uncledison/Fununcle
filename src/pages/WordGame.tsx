@@ -1736,7 +1736,7 @@ export default function WordGame() {
         onMouseLeave={onMouseUp}
       >
         <LevelConfirmModal />
-        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab" }}>
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab", paddingBottom: 80 }}>
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -1879,6 +1879,7 @@ export default function WordGame() {
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
         </div>
+        <TabBar />
         </div>
       </div>
     );

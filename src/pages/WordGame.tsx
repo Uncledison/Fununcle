@@ -786,7 +786,7 @@ export default function WordGame() {
   const [searchQuery,    setSearchQuery]    = useState("");      // 검색어
   const [showLevelConfirm, setShowLevelConfirm] = useState(false); // 레벨변경 확인 팝업
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
-  const [scrollToWorldId, setScrollToWorldId] = useState(null);   // 맵 진입 시 스크롤 대상
+  const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
@@ -837,19 +837,20 @@ export default function WordGame() {
 
   // ── 레벨 선택 후 해당 월드로 자동 스크롤 ────────────────────────────
   useEffect(() => {
-    if (screen === "map" && scrollToWorldId) {
-      // DOM 렌더링 완료 후 스크롤 (모바일 호환)
+    if (screen === "map" && scrollTargetRef.current) {
+      const targetId = scrollTargetRef.current;
+      scrollTargetRef.current = null;
+      // 모바일 렌더링 완료 대기 후 스크롤
       setTimeout(() => {
-        const el = document.getElementById(`world-card-${scrollToWorldId}`);
+        const el = document.getElementById(`world-card-${targetId}`);
         if (el) {
-          const headerHeight = 110; // fixed 헤더 높이
+          const headerHeight = 118;
           const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 8;
-          window.scrollTo({ top, behavior: "smooth" });
+          window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
         }
-        setScrollToWorldId(null);
-      }, 100);
+      }, 300);
     }
-  }, [screen, scrollToWorldId]);
+  }, [screen]);
 
   const worlds = WORLDS.map((w, i) => {
     if (i === 0) return { ...w, unlocked: true };
@@ -1555,7 +1556,7 @@ export default function WordGame() {
               setXp(0);
               setStreak(0);
               setCombo(0);
-              setScrollToWorldId(lv.worldId);
+              scrollTargetRef.current = lv.worldId;
               setScreen("map");
               setTab("map");
             }}

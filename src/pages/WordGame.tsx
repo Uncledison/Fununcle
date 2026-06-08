@@ -1,5 +1,5 @@
 ﻿// @ts-nocheck
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const WORLDS = [

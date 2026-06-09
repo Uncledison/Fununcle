@@ -300,7 +300,7 @@ export const BentoGrid: React.FC = () => {
                 >
                     <div className="w-full h-full relative">
                         <img
-                            src="/brainbanner.png"
+                            src="/assets/brainbanner.png"
                             alt="뇌과학 자녀 진단센터"
                             className="w-full h-full object-cover"
                         />

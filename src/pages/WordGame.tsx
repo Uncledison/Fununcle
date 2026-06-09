@@ -789,6 +789,7 @@ export default function WordGame() {
   const [quitTarget,      setQuitTarget]        = useState("map"); // 나가기 후 이동할 탭
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
   const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
+  const levelStartWorldRef = useRef(1);   // 현재 선택된 레벨의 시작 월드 ID
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
@@ -1163,6 +1164,9 @@ export default function WordGame() {
               setShowQuitConfirm(false);
               setScreen("map");
               setTab(quitTarget);
+              if (levelStartWorldRef.current > 1 && quitTarget === "map") {
+                scrollTargetRef.current = levelStartWorldRef.current;
+              }
             }}
             style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
             나가기
@@ -1221,7 +1225,13 @@ export default function WordGame() {
               setQuitTarget(t.key);
               setShowQuitConfirm(true);
             } else {
-              if (t.key === "map") setScreen("map");
+              if (t.key === "map") {
+                setScreen("map");
+                // 레벨 시작 월드로 스크롤 복원 (초등=1이면 스크롤 불필요)
+                if (levelStartWorldRef.current > 1) {
+                  scrollTargetRef.current = levelStartWorldRef.current;
+                }
+              }
               setTab(t.key);
               // GA 탭 방문 이벤트
               try { (window as any).gtag?.('event', 'tab_view', { tab: t.key, page: '/english' }); } catch(e) {}
@@ -1600,6 +1610,7 @@ export default function WordGame() {
               setStreak(0);
               setCombo(0);
               scrollTargetRef.current = lv.worldId;
+              levelStartWorldRef.current = lv.worldId;
               setScreen("map");
               setTab("map");
             }}

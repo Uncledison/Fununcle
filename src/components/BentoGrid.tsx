@@ -29,7 +29,6 @@ const BentoCard = ({
     onClick?: () => void
 }) => {
     // Base classes that are always present
-    const baseClasses = `transition-all duration-300 w-full h-full relative z-10`;
     const defaultVisuals = "bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl";
 
 

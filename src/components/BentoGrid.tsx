@@ -287,7 +287,27 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 7. Coming Soon - Interaction Trigger */}
+                {/* 7. Brain Diagnosis (External Link) */}
+                <BentoCard
+                    href="https://brain.uncledison.com"
+                    delay={0.5}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                    }}
+                >
+                    <div className="w-full h-full relative">
+                        <img
+                            src="/brainbanner.png"
+                            alt="뇌과학 자녀 진단센터"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                </BentoCard>
+
+                {/* 8. Coming Soon - Interaction Trigger */}
                 <BentoCard
                     delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"

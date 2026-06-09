@@ -840,15 +840,17 @@ export default function WordGame() {
     if (screen === "map" && scrollTargetRef.current) {
       const targetId = scrollTargetRef.current;
       scrollTargetRef.current = null;
-      // 모바일 렌더링 완료 대기 후 스크롤
-      setTimeout(() => {
+      // instant scroll → 모바일에서 smooth 미지원 대비
+      const doScroll = () => {
         const el = document.getElementById(`world-card-${targetId}`);
         if (el) {
-          const headerHeight = 118;
-          const top = el.getBoundingClientRect().top + window.scrollY - headerHeight - 8;
-          window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+          el.scrollIntoView({ block: "start" });
+          window.scrollBy(0, -126); // fixed 헤더 높이만큼 보정
         }
-      }, 300);
+      };
+      // 두 번 시도: 첫 렌더 직후 + 레이아웃 안정화 후
+      setTimeout(doScroll, 50);
+      setTimeout(doScroll, 400);
     }
   }, [screen]);
 

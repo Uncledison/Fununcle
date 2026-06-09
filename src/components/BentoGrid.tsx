@@ -61,27 +61,31 @@ const BentoCard = ({
     // 2. External Link
     if (href && href !== '#') {
         return (
-            <motion.a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                {...motionProps}
-                className={`block ${combinedClassName}`}
-            >
-                {children}
-            </motion.a>
+            <div className={`block ${className || ''} relative z-10 overflow-hidden rounded-3xl`}>
+                <motion.a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    {...motionProps}
+                    className={`block ${defaultVisuals} w-full h-full`}
+                >
+                    {children}
+                </motion.a>
+            </div>
         );
     }
 
     // 3. Static Card or Clickable Div
     return (
-        <motion.div
-            {...motionProps}
-            className={`${defaultVisuals} ${baseClasses} ${className || ''}`}
-            onClick={onClick}
-        >
-            {children}
-        </motion.div>
+        <div className={`${className || ''} relative z-10 overflow-hidden rounded-3xl`}>
+            <motion.div
+                {...motionProps}
+                className={`${defaultVisuals} w-full h-full`}
+                onClick={onClick}
+            >
+                {children}
+            </motion.div>
+        </div>
     );
 };
 

@@ -1686,6 +1686,26 @@ export default function WordGame() {
                   <div style={{ color: locked ? "rgba(255,255,255,0.18)" : world.color, fontWeight: 700, fontSize: 14 }}>{world.title}</div>
                   <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11, marginTop: 2 }}>{clearedStages}/{totalStages} 스테이지 클리어</div>
                 </div>
+                {/* 플레이 버튼 */}
+                {!locked && (() => {
+                  const nextStageIdx = p?.stageCleared?.findIndex(v => !v) ?? 0;
+                  const startIdx = nextStageIdx === -1 ? 0 : nextStageIdx;
+                  return (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); startWorld(world, startIdx); }}
+                      style={{
+                        flexShrink: 0, width: 48, height: 48,
+                        background: `linear-gradient(135deg,${world.color},${world.dark})`,
+                        border: "none", borderRadius: 14, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: `0 4px 14px ${world.color}44`,
+                      }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#000">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </button>
+                  );
+                })()}
               </div>
 
               {!locked && (

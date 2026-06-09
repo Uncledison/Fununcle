@@ -307,7 +307,27 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 8. Coming Soon - Interaction Trigger */}
+                {/* 8. Today Memory (External Link) */}
+                <BentoCard
+                    href="https://todaymemory.vercel.app"
+                    delay={0.55}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                    }}
+                >
+                    <div className="w-full h-full relative">
+                        <img
+                            src="/assets/todaymemory_banner.png"
+                            alt="오늘의 기억력"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                </BentoCard>
+
+                {/* 9. Coming Soon - Interaction Trigger */}
                 <BentoCard
                     delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"

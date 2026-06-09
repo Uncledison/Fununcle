@@ -785,6 +785,8 @@ export default function WordGame() {
   const [expandedCard,    setExpandedCard]    = useState(null);   // 펼친 단어 en
   const [searchQuery,    setSearchQuery]    = useState("");      // 검색어
   const [showLevelConfirm, setShowLevelConfirm] = useState(false); // 레벨변경 확인 팝업
+  const [showQuitConfirm, setShowQuitConfirm]   = useState(false); // 게임 중 나가기 팝업
+  const [quitTarget,      setQuitTarget]        = useState("map"); // 나가기 후 이동할 탭
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
   const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
 
@@ -840,17 +842,16 @@ export default function WordGame() {
     if (screen === "map" && scrollTargetRef.current) {
       const targetId = scrollTargetRef.current;
       scrollTargetRef.current = null;
-      // instant scroll → 모바일에서 smooth 미지원 대비
+      const HEADER = 126; // fixed 헤더 높이 + 여백
       const doScroll = () => {
         const el = document.getElementById(`world-card-${targetId}`);
-        if (el) {
-          el.scrollIntoView({ block: "start" });
-          window.scrollBy(0, -126); // fixed 헤더 높이만큼 보정
-        }
+        if (!el) return;
+        // 문서 절대 좌표로 계산 (pageYOffset은 현재 스크롤 위치 무관)
+        const elTop = el.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top: Math.max(0, elTop - HEADER) });
       };
-      // 두 번 시도: 첫 렌더 직후 + 레이아웃 안정화 후
-      setTimeout(doScroll, 50);
-      setTimeout(doScroll, 400);
+      setTimeout(doScroll, 80);
+      setTimeout(doScroll, 450); // 모바일 느린 렌더 대비 재시도
     }
   }, [screen]);
 
@@ -1141,6 +1142,35 @@ export default function WordGame() {
     </div>
   );
 
+  // ── 게임 중 나가기 확인 팝업 ──────────────────
+  const QuitConfirmModal = () => !showQuitConfirm ? null : (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
+      <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+        <div style={{ fontSize: 44, marginBottom: 16 }}>🚪</div>
+        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>학습을 종료할까요?</h3>
+        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+          현재 스테이지 진행 기록은<br />저장되지 않습니다.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={() => setShowQuitConfirm(false)}
+            style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            계속하기
+          </button>
+          <button
+            onClick={() => {
+              setShowQuitConfirm(false);
+              setScreen("map");
+              setTab(quitTarget);
+            }}
+            style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+            나가기
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── 카카오 공유 핸들러 ────────────────────────
   const handleKakaoShare = () => {
     const kakao = (window as any).Kakao;
@@ -1185,7 +1215,17 @@ export default function WordGame() {
           { key: "vocab",  label: "내 단어장", icon: "📖" },
           { key: "search", label: "검색",     icon: "🔍" },
         ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
+          <button key={t.key} onClick={() => {
+            if (screen === "game") {
+              // 게임 중 → 나가기 확인 팝업
+              setQuitTarget(t.key);
+              setShowQuitConfirm(true);
+            } else {
+              // 홈 탭은 screen도 "map"으로 확실히 전환
+              if (t.key === "map") setScreen("map");
+              setTab(t.key);
+            }
+          }}
             style={{ flex: 1, padding: "12px 8px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
             <span style={{ fontSize: 20 }}>{t.icon}</span>
             <span style={{ color: tab === t.key ? "#FFB800" : "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
@@ -1748,11 +1788,12 @@ export default function WordGame() {
         onMouseLeave={onMouseUp}
       >
         <LevelConfirmModal />
+        <QuitConfirmModal />
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab", paddingBottom: 80 }}>
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <button onClick={() => setScreen("map")}
+            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
               style={{ background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "8px 14px", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               🏠 홈
             </button>

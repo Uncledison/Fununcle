@@ -842,16 +842,24 @@ export default function WordGame() {
     if (screen === "map" && scrollTargetRef.current) {
       const targetId = scrollTargetRef.current;
       scrollTargetRef.current = null;
-      const HEADER = 126; // fixed 헤더 높이 + 여백
-      const doScroll = () => {
-        const el = document.getElementById(`world-card-${targetId}`);
-        if (!el) return;
-        // 문서 절대 좌표로 계산 (pageYOffset은 현재 스크롤 위치 무관)
-        const elTop = el.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top: Math.max(0, elTop - HEADER) });
-      };
-      setTimeout(doScroll, 80);
-      setTimeout(doScroll, 450); // 모바일 느린 렌더 대비 재시도
+      const HEADER = 126;
+
+      // rAF 두 번 → 브라우저 레이아웃 완전히 끝난 뒤 실행
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const tryScroll = (attempts = 0) => {
+            const el = document.getElementById(`world-card-${targetId}`);
+            if (!el) {
+              // 아직 DOM 없으면 최대 10회 재시도
+              if (attempts < 10) setTimeout(() => tryScroll(attempts + 1), 80);
+              return;
+            }
+            const elTop = el.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({ top: Math.max(0, elTop - HEADER) });
+          };
+          tryScroll();
+        });
+      });
     }
   }, [screen]);
 
@@ -1217,13 +1225,13 @@ export default function WordGame() {
         ].map(t => (
           <button key={t.key} onClick={() => {
             if (screen === "game") {
-              // 게임 중 → 나가기 확인 팝업
               setQuitTarget(t.key);
               setShowQuitConfirm(true);
             } else {
-              // 홈 탭은 screen도 "map"으로 확실히 전환
               if (t.key === "map") setScreen("map");
               setTab(t.key);
+              // GA 탭 방문 이벤트
+              try { (window as any).gtag?.('event', 'tab_view', { tab: t.key, page: '/english' }); } catch(e) {}
             }
           }}
             style={{ flex: 1, padding: "12px 8px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>

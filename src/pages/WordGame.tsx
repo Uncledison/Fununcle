@@ -1,5 +1,5 @@
 ﻿// @ts-nocheck
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const WORLDS = [
@@ -837,30 +837,22 @@ export default function WordGame() {
   const level   = Math.floor(xp / 100) + 1;
   const xpMod   = xp % 100;
 
-  // ── 레벨 선택 후 해당 월드로 자동 스크롤 ────────────────────────────
-  useEffect(() => {
+  // ── 레벨 선택 후 해당 월드로 자동 스크롤 (페인트 전 실행) ──────────
+  useLayoutEffect(() => {
     if (screen === "map" && scrollTargetRef.current) {
       const targetId = scrollTargetRef.current;
       scrollTargetRef.current = null;
       const HEADER = 126;
 
-      const doScroll = () => {
-        const el = document.getElementById(`world-card-${targetId}`);
-        if (!el) return false;
-        // offsetTop 누산: 포지션 관계없이 문서 최상단 기준 절대 Y
+      const el = document.getElementById(`world-card-${targetId}`);
+      if (el) {
         let top = 0;
         let cur = el;
         while (cur) { top += cur.offsetTop; cur = cur.offsetParent; }
         const target = Math.max(0, top - HEADER);
-        document.documentElement.scrollTop = target; // Chrome, Firefox
-        document.body.scrollTop = target;            // iOS Safari
-        return true;
-      };
-
-      // 500ms 후 한 번 (레이아웃 확실히 완료 후)
-      setTimeout(() => {
-        if (!doScroll()) setTimeout(doScroll, 300); // 실패 시 1회 재시도
-      }, 500);
+        document.documentElement.scrollTop = target;
+        document.body.scrollTop = target;
+      }
     }
   }, [screen]);
 

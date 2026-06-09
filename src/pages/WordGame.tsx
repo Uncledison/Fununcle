@@ -790,6 +790,7 @@ export default function WordGame() {
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
   const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
   const levelStartWorldRef = useRef(1);   // 현재 선택된 레벨의 시작 월드 ID
+  const [scrollTrigger, setScrollTrigger] = useState(0); // 스크롤 강제 실행 트리거
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
@@ -838,24 +839,22 @@ export default function WordGame() {
   const level   = Math.floor(xp / 100) + 1;
   const xpMod   = xp % 100;
 
-  // ── 레벨 선택 후 해당 월드로 자동 스크롤 (페인트 전 실행) ──────────
+  // ── 해당 월드로 스크롤 (scrollTrigger 증가 시 항상 실행) ────────────
   useLayoutEffect(() => {
-    if (screen === "map" && scrollTargetRef.current) {
-      const targetId = scrollTargetRef.current;
-      scrollTargetRef.current = null;
-      const HEADER = 126;
-
-      const el = document.getElementById(`world-card-${targetId}`);
-      if (el) {
-        let top = 0;
-        let cur = el;
-        while (cur) { top += cur.offsetTop; cur = cur.offsetParent; }
-        const target = Math.max(0, top - HEADER);
-        document.documentElement.scrollTop = target;
-        document.body.scrollTop = target;
-      }
+    if (!scrollTargetRef.current) return;
+    const targetId = scrollTargetRef.current;
+    scrollTargetRef.current = null;
+    const HEADER = 126;
+    const el = document.getElementById(`world-card-${targetId}`);
+    if (el) {
+      let top = 0;
+      let cur = el;
+      while (cur) { top += cur.offsetTop; cur = cur.offsetParent; }
+      const target = Math.max(0, top - HEADER);
+      document.documentElement.scrollTop = target;
+      document.body.scrollTop = target;
     }
-  }, [screen]);
+  }, [scrollTrigger]);
 
   const worlds = WORLDS.map((w, i) => {
     if (i === 0) return { ...w, unlocked: true };
@@ -1166,6 +1165,7 @@ export default function WordGame() {
               setTab(quitTarget);
               if (levelStartWorldRef.current > 1 && quitTarget === "map") {
                 scrollTargetRef.current = levelStartWorldRef.current;
+                setScrollTrigger(t => t + 1);
               }
             }}
             style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
@@ -1227,9 +1227,9 @@ export default function WordGame() {
             } else {
               if (t.key === "map") {
                 setScreen("map");
-                // 레벨 시작 월드로 스크롤 복원 (초등=1이면 스크롤 불필요)
                 if (levelStartWorldRef.current > 1) {
                   scrollTargetRef.current = levelStartWorldRef.current;
+                  setScrollTrigger(t => t + 1);
                 }
               }
               setTab(t.key);
@@ -1609,8 +1609,9 @@ export default function WordGame() {
               setXp(0);
               setStreak(0);
               setCombo(0);
-              scrollTargetRef.current = lv.worldId;
               levelStartWorldRef.current = lv.worldId;
+              scrollTargetRef.current = lv.worldId;
+              setScrollTrigger(t => t + 1);
               setScreen("map");
               setTab("map");
             }}

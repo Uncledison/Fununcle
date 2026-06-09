@@ -844,22 +844,23 @@ export default function WordGame() {
       scrollTargetRef.current = null;
       const HEADER = 126;
 
-      // rAF 두 번 → 브라우저 레이아웃 완전히 끝난 뒤 실행
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const tryScroll = (attempts = 0) => {
-            const el = document.getElementById(`world-card-${targetId}`);
-            if (!el) {
-              // 아직 DOM 없으면 최대 10회 재시도
-              if (attempts < 10) setTimeout(() => tryScroll(attempts + 1), 80);
-              return;
-            }
-            const elTop = el.getBoundingClientRect().top + window.pageYOffset;
-            window.scrollTo({ top: Math.max(0, elTop - HEADER) });
-          };
-          tryScroll();
-        });
-      });
+      const doScroll = () => {
+        const el = document.getElementById(`world-card-${targetId}`);
+        if (!el) return false;
+        // offsetTop 누산: 포지션 관계없이 문서 최상단 기준 절대 Y
+        let top = 0;
+        let cur = el;
+        while (cur) { top += cur.offsetTop; cur = cur.offsetParent; }
+        const target = Math.max(0, top - HEADER);
+        document.documentElement.scrollTop = target; // Chrome, Firefox
+        document.body.scrollTop = target;            // iOS Safari
+        return true;
+      };
+
+      // 500ms 후 한 번 (레이아웃 확실히 완료 후)
+      setTimeout(() => {
+        if (!doScroll()) setTimeout(doScroll, 300); // 실패 시 1회 재시도
+      }, 500);
     }
   }, [screen]);
 

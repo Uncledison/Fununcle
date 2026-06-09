@@ -292,17 +292,12 @@ export const BentoGrid: React.FC = () => {
                     href="https://brain.uncledison.com"
                     delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
-                    whileHover={{
-                        y: -5,
-                        scale: 1.02,
-                        transition: { type: "spring", stiffness: 300, damping: 20 }
-                    }}
                 >
-                    <div className="w-full h-full relative">
+                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
                         <img
                             src="/assets/brainbanner.png"
                             alt="뇌과학 자녀 진단센터"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
                         />
                     </div>
                 </BentoCard>
@@ -312,17 +307,12 @@ export const BentoGrid: React.FC = () => {
                     href="https://todaymemory.vercel.app"
                     delay={0.55}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
-                    whileHover={{
-                        y: -5,
-                        scale: 1.02,
-                        transition: { type: "spring", stiffness: 300, damping: 20 }
-                    }}
                 >
-                    <div className="w-full h-full relative">
+                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
                         <img
                             src="/assets/todaymemory_banner.png"
                             alt="오늘의 기억력"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
                         />
                     </div>
                 </BentoCard>

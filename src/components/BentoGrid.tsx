@@ -322,10 +322,6 @@ export const BentoGrid: React.FC = () => {
                     delay={0.5}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"
                     onClick={handleComingSoonClick}
-                    whileHover={{
-                        scale: 1.05,
-                        transition: { duration: 0.2 }
-                    }}
                 >
                     <div className="w-full h-full relative overflow-hidden">
                         <img

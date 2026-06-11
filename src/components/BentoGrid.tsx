@@ -147,6 +147,87 @@ export const BentoGrid: React.FC = () => {
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
+                {/* 0. 4ATT 우리 가족 동물검사 (정적 하위앱 /4att) */}
+                <a
+                    href="/4att/"
+                    className="md:col-span-1 md:row-span-1 relative group block overflow-hidden rounded-3xl aspect-video z-10"
+                    aria-label="우리 가족 동물검사 4ATT"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.5 }}
+                        whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                        className="w-full h-full relative flex flex-col items-center justify-center"
+                        style={{ background: 'radial-gradient(circle at 30% 18%, #FBEFD8, #FDF6EA 65%)' }}
+                    >
+                        <div className="absolute top-3 right-3 bg-[#E8A33D] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm tracking-wide">
+                            NEW
+                        </div>
+
+                        <svg viewBox="0 0 240 68" className="w-[74%] mb-2 transition-transform duration-300 group-hover:scale-105">
+                            {/* 사자 */}
+                            <g>
+                                <circle cx="30" cy="33" r="25" fill="#E8A33D" />
+                                <circle cx="30" cy="6" r="5" fill="#E8A33D" />
+                                <circle cx="11" cy="16" r="5" fill="#E8A33D" />
+                                <circle cx="49" cy="16" r="5" fill="#E8A33D" />
+                                <circle cx="6" cy="36" r="5" fill="#E8A33D" />
+                                <circle cx="54" cy="36" r="5" fill="#E8A33D" />
+                                <circle cx="30" cy="33" r="18" fill="#F8CD7A" />
+                                <circle cx="23.5" cy="31" r="2.6" fill="#3A2E25" />
+                                <circle cx="36.5" cy="31" r="2.6" fill="#3A2E25" />
+                                <circle cx="24.5" cy="30" r="0.8" fill="#fff" />
+                                <circle cx="37.5" cy="30" r="0.8" fill="#fff" />
+                                <path d="M25 38 Q30 42 35 38" fill="none" stroke="#3A2E25" strokeWidth="1.6" strokeLinecap="round" />
+                            </g>
+                            {/* 돌고래 */}
+                            <g>
+                                <circle cx="92" cy="33" r="22" fill="#6CC3EF" />
+                                <ellipse cx="92" cy="43" rx="12" ry="7" fill="#D6EEFB" />
+                                <circle cx="85.5" cy="30" r="2.6" fill="#3A2E25" />
+                                <circle cx="98.5" cy="30" r="2.6" fill="#3A2E25" />
+                                <circle cx="86.5" cy="29" r="0.8" fill="#fff" />
+                                <circle cx="99.5" cy="29" r="0.8" fill="#fff" />
+                                <path d="M85 36 Q92 43 99 36 Q92 40 85 36 Z" fill="#2B4150" />
+                            </g>
+                            {/* 강아지 */}
+                            <g>
+                                <ellipse cx="135" cy="20" rx="7" ry="12" fill="#C9935E" transform="rotate(22 135 20)" />
+                                <ellipse cx="165" cy="20" rx="7" ry="12" fill="#C9935E" transform="rotate(-22 165 20)" />
+                                <circle cx="150" cy="34" r="22" fill="#F2D8B4" />
+                                <circle cx="143.5" cy="31" r="2.6" fill="#3A2E25" />
+                                <circle cx="156.5" cy="31" r="2.6" fill="#3A2E25" />
+                                <circle cx="144.5" cy="30" r="0.8" fill="#fff" />
+                                <circle cx="157.5" cy="30" r="0.8" fill="#fff" />
+                                <ellipse cx="150" cy="37" rx="3" ry="2.3" fill="#5C4632" />
+                                <path d="M150 39 Q150 43 145 43 M150 39 Q150 43 155 43" fill="none" stroke="#3A2E25" strokeWidth="1.4" strokeLinecap="round" />
+                            </g>
+                            {/* 비버 */}
+                            <g>
+                                <circle cx="210" cy="33" r="22" fill="#B07B52" />
+                                <circle cx="196" cy="14" r="5" fill="#8F5E3C" />
+                                <circle cx="224" cy="14" r="5" fill="#8F5E3C" />
+                                <ellipse cx="210" cy="40" rx="10" ry="7.5" fill="#EBD3AE" />
+                                <rect x="206.4" y="40" width="3.3" height="6.5" rx="1" fill="#fff" stroke="#D8C9A8" strokeWidth="0.4" />
+                                <rect x="210.3" y="40" width="3.3" height="6.5" rx="1" fill="#fff" stroke="#D8C9A8" strokeWidth="0.4" />
+                                <circle cx="203.5" cy="29" r="2.6" fill="#3A2E25" />
+                                <circle cx="216.5" cy="29" r="2.6" fill="#3A2E25" />
+                                <circle cx="204.5" cy="28" r="0.8" fill="#fff" />
+                                <circle cx="217.5" cy="28" r="0.8" fill="#fff" />
+                            </g>
+                        </svg>
+
+                        <h3 style={{ fontFamily: '"Do Hyeon", sans-serif' }} className="text-[#3A2E25] text-xl md:text-2xl leading-none">
+                            우리 가족 동물검사
+                        </h3>
+                        <p className="text-[#3A2E25]/55 text-[11px] mt-1.5 font-medium tracking-wide">
+                            사자 · 돌고래 · 강아지 · 비버 · 5분
+                        </p>
+                    </motion.div>
+                </a>
+
                 {/* 1. Career Compass (Internal via iframe) */}
                 <BentoCard
                     href="/career"

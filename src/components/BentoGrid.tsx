@@ -88,6 +88,18 @@ const BentoCard = ({
     );
 };
 
+// NEW 배지: 추가일(addedDate)로부터 60일(2개월) 동안만 자동 표시
+const NEW_DURATION_DAYS = 60;
+const isNew = (addedISO: string) =>
+    Date.now() - new Date(addedISO).getTime() < NEW_DURATION_DAYS * 24 * 60 * 60 * 1000;
+
+const NewBadge = ({ date }: { date: string }) =>
+    isNew(date) ? (
+        <div className="absolute top-3 right-3 z-20 bg-[#E8A33D] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm tracking-wide">
+            NEW
+        </div>
+    ) : null;
+
 export const BentoGrid: React.FC = () => {
     const [clickCount, setClickCount] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -147,7 +159,7 @@ export const BentoGrid: React.FC = () => {
 
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                {/* 0. 4ATT 우리 가족 동물검사 (정적 하위앱 /4att) */}
+                {/* 1. 4ATT 우리 가족 동물검사 (정적 하위앱 /4att) */}
                 <a
                     href="/4att/"
                     className="md:col-span-1 md:row-span-1 relative group block overflow-hidden rounded-3xl aspect-video z-10"
@@ -166,15 +178,30 @@ export const BentoGrid: React.FC = () => {
                             alt="우리 가족 동물검사"
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="absolute top-3 right-3 bg-[#E8A33D] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm tracking-wide">
-                            NEW
-                        </div>
+                        <NewBadge date="2026-06-12" />
                     </motion.div>
                 </a>
 
-                {/* 1. Career Compass (Internal via iframe) */}
+                {/* 2. 우리 아이 맞춤형 두뇌진단 (External Link) */}
+                <BentoCard
+                    href="https://brain.uncledison.com"
+                    delay={0.05}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                >
+                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
+                        <img
+                            src="/assets/brainbanner.png"
+                            alt="뇌과학 자녀 진단센터"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
+                        />
+                        <NewBadge date="2026-06-12" />
+                    </div>
+                </BentoCard>
+
+                {/* 3. Career Compass (Internal via iframe) */}
                 <BentoCard
                     href="/career"
+                    delay={0.1}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,
@@ -191,10 +218,10 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 2. Human Evolution (Internal Game) */}
+                {/* 4. Word Flashcard Game (영단어 플래시카드) */}
                 <BentoCard
-                    href="/history"
-                    delay={0.1}
+                    href="/english"
+                    delay={0.15}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,
@@ -204,17 +231,34 @@ export const BentoGrid: React.FC = () => {
                 >
                     <div className="w-full h-full relative">
                         <img
-                            src={humanEvolutionBanner}
-                            alt="Human Evolution"
+                            src="/assets/wordgame_banner.png"
+                            alt="영단어 플래시카드"
                             className="w-full h-full object-cover"
                         />
+                        <NewBadge date="2026-06-12" />
                     </div>
                 </BentoCard>
 
-                {/* 3. Perfect Circle (New Game) */}
+                {/* 5. Today Memory (엄마 기억력 - External Link) */}
+                <BentoCard
+                    href="https://todaymemory.vercel.app"
+                    delay={0.2}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                >
+                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
+                        <img
+                            src="/assets/todaymemory_banner.png"
+                            alt="오늘의 기억력"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
+                        />
+                        <NewBadge date="2026-06-12" />
+                    </div>
+                </BentoCard>
+
+                {/* 6. Perfect Circle (동그라미) */}
                 <BentoCard
                     href="/circle"
-                    delay={0.2}
+                    delay={0.25}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,
@@ -231,7 +275,7 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 4. Bottle Flip (New Game) */}
+                {/* 7. Bottle Flip (물병 세우기) */}
                 <BentoCard
                     href="/bottle"
                     delay={0.3}
@@ -251,11 +295,10 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-
-                {/* 5. Neon Tetris (New Game) */}
+                {/* 8. Neon Tetris (네온 테트리스) */}
                 <BentoCard
                     href="/tetris"
-                    delay={0.4}
+                    delay={0.35}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-[#0f0f1e] overflow-hidden rounded-3xl aspect-video border border-[#00f0ff]/30 shadow-[0_0_20px_rgba(0,240,255,0.1)]"
                     whileHover={{
                         y: -5,
@@ -295,10 +338,10 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 6. Word Flashcard Game */}
+                {/* 9. Human Evolution (인류의 진화) */}
                 <BentoCard
-                    href="/english"
-                    delay={0.45}
+                    href="/history"
+                    delay={0.4}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{
                         y: -5,
@@ -308,46 +351,16 @@ export const BentoGrid: React.FC = () => {
                 >
                     <div className="w-full h-full relative">
                         <img
-                            src="/assets/wordgame_banner.png"
-                            alt="영단어 플래시카드"
+                            src={humanEvolutionBanner}
+                            alt="Human Evolution"
                             className="w-full h-full object-cover"
                         />
                     </div>
                 </BentoCard>
 
-                {/* 7. Brain Diagnosis (External Link) */}
+                {/* 10. Coming Soon - Interaction Trigger */}
                 <BentoCard
-                    href="https://brain.uncledison.com"
-                    delay={0.5}
-                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
-                >
-                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
-                        <img
-                            src="/assets/brainbanner.png"
-                            alt="뇌과학 자녀 진단센터"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
-                        />
-                    </div>
-                </BentoCard>
-
-                {/* 8. Today Memory (External Link) */}
-                <BentoCard
-                    href="https://todaymemory.vercel.app"
-                    delay={0.55}
-                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
-                >
-                    <div className="w-full h-full relative overflow-hidden rounded-3xl">
-                        <img
-                            src="/assets/todaymemory_banner.png"
-                            alt="오늘의 기억력"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-hover:-translate-y-1"
-                        />
-                    </div>
-                </BentoCard>
-
-                {/* 9. Coming Soon - Interaction Trigger */}
-                <BentoCard
-                    delay={0.5}
+                    delay={0.45}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"
                     onClick={handleComingSoonClick}
                 >

@@ -215,6 +215,7 @@ export const BentoGrid: React.FC = () => {
                             alt="Career Compass"
                             className="w-full h-full object-cover"
                         />
+                        <NewBadge date="2026-06-12" />
                     </div>
                 </BentoCard>
 

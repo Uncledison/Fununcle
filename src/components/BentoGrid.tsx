@@ -203,9 +203,9 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 3. Career Compass (Internal via iframe) */}
+                {/* 3. Career Compass (career.uncledison.com 직접 연결) */}
                 <BentoCard
-                    href="/career"
+                    href="https://career.uncledison.com"
                     delay={0.1}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{

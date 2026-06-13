@@ -247,7 +247,7 @@ export const BentoGrid: React.FC = () => {
 
                 {/* 5. Today Memory (엄마 기억력 - External Link) */}
                 <BentoCard
-                    href="https://todaymemory.vercel.app"
+                    href="https://memory.uncledison.com"
                     delay={0.2}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
                     whileHover={{

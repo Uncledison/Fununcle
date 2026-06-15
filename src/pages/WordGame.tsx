@@ -1,5 +1,6 @@
 ﻿// @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import { usePageSeo } from "../hooks/usePageSeo";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const WORLDS = [
@@ -760,6 +761,13 @@ const initProgress = () => WORLDS.map(w => ({
 
 // ── 메인 앱 ────────────────────────────────────────────────
 export default function WordGame() {
+  usePageSeo({
+    title: "초중고 영단어 플래시카드 | 교육부 필수 영단어 암기",
+    description: "교육부 권장 3,000 영단어를 플래시카드로 재미있게 암기. 초등 797·중고등 2,210 필수 영어단어. 가입 없이 무료 영단어 암기 학습.",
+    keywords: "영단어 암기, 영어단어장, 초등 영단어, 중학 영단어, 고등 영단어, 교육부 영단어, 플래시카드 영어, 영단어 앱",
+    url: "https://fun.uncledison.com/english",
+    image: "https://fun.uncledison.com/assets/wordgame_banner.png",
+  });
   const [progress,        setProgress]        = useState(initProgress);
   const [xp,              setXp]              = useState(0);
   const [streak,          setStreak]          = useState(0);

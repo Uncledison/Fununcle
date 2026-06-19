@@ -412,6 +412,11 @@ export const BentoGrid: React.FC = () => {
             </div>
 
             <div className="text-center mt-20 text-gray-400 text-sm font-medium border-t border-gray-100 pt-8">
+                <div className="flex justify-center gap-6 mb-3 text-xs text-gray-500">
+                    <a href="https://ai.uncledison.com" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">ai.uncledison.com</a>
+                    <span className="text-gray-700">·</span>
+                    <a href="https://tool.uncledison.com" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">tool.uncledison.com</a>
+                </div>
                 © 2026 fun.uncledison.com
             </div>
         </div>

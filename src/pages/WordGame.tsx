@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
 
@@ -760,6 +760,25 @@ const initProgress = () => WORLDS.map(w => ({
 }));
 
 // ── 메인 앱 ────────────────────────────────────────────────
+
+// ── 커스텀 단어장 파싱 ──────────────────────────────────
+const parseCustomWords = (text) => {
+  if (!text) return [];
+  const lines = text.split(/\r?\n/);
+  const result = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = trimmed.match(/^([^\t, ]+)[\t, ]+(.+)$/);
+    if (match) {
+      result.push({ en: match[1].trim(), ko: match[2].trim(), tip: "" });
+    } else {
+      result.push({ en: trimmed, ko: "", tip: "" });
+    }
+  }
+  return result;
+};
+
 export default function WordGame() {
   usePageSeo({
     title: "초중고 영단어 플래시카드 | 교육부 필수 영단어 암기",
@@ -771,7 +790,7 @@ export default function WordGame() {
   const [progress,        setProgress]        = useState(initProgress);
   const [xp,              setXp]              = useState(0);
   const [streak,          setStreak]          = useState(0);
-  const [screen,          setScreen]          = useState("levelselect");
+  const [screen,          setScreen]          = useState(() => { try { return localStorage.getItem("custom_only_mode") === "true" ? "customVocab" : "levelselect"; } catch(e) { return "levelselect"; } });
   const [activeWorld,     setActiveWorld]     = useState(null);
   const [activeStage,     setActiveStage]     = useState(0);    // 현재 스테이지 (0부터)
   const [queue,           setQueue]           = useState([]);
@@ -796,6 +815,17 @@ export default function WordGame() {
   const [showQuitConfirm, setShowQuitConfirm]   = useState(false); // 게임 중 나가기 팝업
   const [quitTarget,      setQuitTarget]        = useState("map"); // 나가기 후 이동할 탭
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
+  const [customWorlds, setCustomWorlds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('custom_worlds');
+      return stored ? JSON.parse(stored) : [];
+    } catch(e) { return []; }
+  });
+  const [customTitle, setCustomTitle] = useState("");
+  const [customInput, setCustomInput] = useState("");
+  const [customOnlyMode, setCustomOnlyMode] = useState(() => {
+    try { return localStorage.getItem('custom_only_mode') === 'true'; } catch(e) { return false; }
+  });
   const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
   const levelStartWorldRef = useRef(1);   // 현재 선택된 레벨의 시작 월드 ID
   const [scrollTrigger, setScrollTrigger] = useState(0); // 스크롤 강제 실행 트리거
@@ -924,6 +954,41 @@ export default function WordGame() {
     setScreen("game");
   };
 
+
+  const startCustomWorld = (world) => {
+    let currentProgress = [...progress];
+    let p = currentProgress.find(p => p.worldId === world.id);
+    if (!p) {
+      p = {
+        worldId: world.id,
+        mastered: [],
+        failed: [],
+        cleared: false,
+        stageCleared: [false],
+      };
+      currentProgress.push(p);
+      setProgress(currentProgress);
+    }
+    
+    const targetStage = 0;
+    const failed = world.words.filter(w => p?.failed.includes(w.en));
+    const others = shuffle(world.words.filter(w => !p?.failed.includes(w.en)));
+
+    setActiveWorld({ ...world, unlocked: true, isCustom: true });
+    setActiveStage(targetStage);
+    setQueue([...failed, ...others]);
+    setCardIdx(0);
+    setFlipped(false);
+    setSwipeDir(null);
+    setDragX(0);
+    setSessionCorrect(0);
+    setSessionTotal(0);
+    setCombo(0);
+    setIsReview(false);
+    processingRef.current = false;
+    setScreen("game");
+  };
+
   // ── 복습 모드 시작 ────────────────────────
   const startReview = (world) => {
     const p = progress.find(p => p.worldId === world.id);
@@ -990,6 +1055,13 @@ export default function WordGame() {
       if (nextIdx >= queue.length) {
         setFinalCorrect(sc);
         setFinalTotal(st);
+
+        const count = parseInt(localStorage.getItem('play_count') || '0') + 1;
+        localStorage.setItem('play_count', count.toString());
+        if (!localStorage.getItem('feedback_done') && [3, 10, 25, 50].includes(count)) {
+          setTimeout(() => window.dispatchEvent(new Event("showFeedback")), 1200);
+        }
+
         if (isReview) {
           setScreen("reviewdone");
         } else if (sc / st >= PASS_RATE) {
@@ -1079,22 +1151,24 @@ export default function WordGame() {
   const swipeProgress = Math.min(absDx / SWIPE_THRESH, 1); // 0~1
 
   // ── 전체 단어 집계 ────────────────────────
-  // 검색용 전체 단어 flat
-  const searchAllWords = WORLDS.flatMap(w =>
+  const targetWorlds = customOnlyMode ? customWorlds : WORLDS;
+
+// 검색용 전체 단어 flat
+  const searchAllWords = targetWorlds.flatMap(w =>
     w.words.map(word => ({ ...word, worldId: w.id, worldTitle: w.title, worldColor: w.color, worldEmoji: w.emoji }))
   );
 
-  const allMastered = WORLDS.flatMap(w => {
+  const allMastered = targetWorlds.flatMap(w => {
     const p = progress.find(p => p.worldId === w.id);
     return w.words.filter(word => p?.mastered.includes(word.en))
       .map(word => ({ ...word, worldTitle: w.title, worldColor: w.color, worldEmoji: w.emoji }));
   });
-  const allFailed = WORLDS.flatMap(w => {
+  const allFailed = targetWorlds.flatMap(w => {
     const p = progress.find(p => p.worldId === w.id);
     return w.words.filter(word => p?.failed.includes(word.en))
       .map(word => ({ ...word, worldTitle: w.title, worldColor: w.color, worldEmoji: w.emoji }));
   });
-  const allWords = WORLDS.flatMap(w =>
+  const allWords = targetWorlds.flatMap(w =>
     w.words.map(word => {
       const p = progress.find(p => p.worldId === w.id);
       const isMastered = p?.mastered.includes(word.en);
@@ -1111,18 +1185,26 @@ export default function WordGame() {
         <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>Fun</span>
         <span style={{ color: "#fff", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>.Uncle</span>
       </a>
-      {showLevel && (
-        <button
-          onClick={() => setShowLevelConfirm(true)}
-          style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px", cursor: "pointer" }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
-            <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
+        {showLevel ? (
+          <button
+            onClick={() => setShowLevelConfirm(true)}
+            style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px", cursor: "pointer" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+            </div>
+            <div style={{ width: 1, height: 24, background: "rgba(255,184,0,0.2)" }} />
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>레벨<br/>변경</div>
+          </button>
+        ) : (
+          <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 14 }}>⚡</span>
+            <span style={{ color: "#FFB800", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
           </div>
-          <div style={{ width: 1, height: 24, background: "rgba(255,184,0,0.2)" }} />
-          <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>레벨<br/>변경</div>
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 
@@ -1142,7 +1224,7 @@ export default function WordGame() {
             취소
           </button>
           <button
-            onClick={() => { setShowLevelConfirm(false); setScreen("levelselect"); }}
+            onClick={() => { setShowLevelConfirm(false); setScreen(customOnlyMode ? "customVocab" : "levelselect"); }}
             style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
             변경하기
           </button>
@@ -1169,9 +1251,13 @@ export default function WordGame() {
           <button
             onClick={() => {
               setShowQuitConfirm(false);
-              setScreen("map");
-              setTab(quitTarget);
-              if (levelStartWorldRef.current > 1 && quitTarget === "map") {
+              if (customOnlyMode && quitTarget === "map") {
+                setScreen("customVocab");
+              } else {
+                setScreen("map");
+                setTab(quitTarget);
+              }
+              if (!customOnlyMode && levelStartWorldRef.current > 1 && quitTarget === "map") {
                 scrollTargetRef.current = levelStartWorldRef.current;
                 setScrollTrigger(t => t + 1);
               }
@@ -1234,11 +1320,13 @@ export default function WordGame() {
               setShowQuitConfirm(true);
             } else {
               if (t.key === "map") {
-                setScreen("map");
-                if (levelStartWorldRef.current > 1) {
+                setScreen(customOnlyMode ? "customVocab" : "map");
+                if (!customOnlyMode && levelStartWorldRef.current > 1) {
                   scrollTargetRef.current = levelStartWorldRef.current;
                   setScrollTrigger(t => t + 1);
                 }
+              } else {
+                setScreen("map");
               }
               setTab(t.key);
               // GA 탭 방문 이벤트
@@ -1306,7 +1394,7 @@ export default function WordGame() {
             <div style={{ textAlign:"center", padding:"60px 20px" }}>
               <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
               <div style={{ color:"rgba(255,255,255,0.2)", fontSize:14, fontWeight:700 }}>영어 단어나 한글 뜻으로 검색하세요</div>
-              <div style={{ color:"rgba(255,255,255,0.12)", fontSize:12, marginTop:8 }}>전체 3,010개 단어 검색 가능</div>
+              <div style={{ color:"rgba(255,255,255,0.12)", fontSize:12, marginTop:8 }}>{customOnlyMode ? `등록된 ${allWords.length}개 단어 검색 가능` : "전체 3,010개 단어 검색 가능"}</div>
             </div>
           ) : results.length === 0 ? (
             <div style={{ textAlign:"center", padding:"60px 20px" }}>
@@ -1371,7 +1459,7 @@ export default function WordGame() {
       : allWords;
 
     // 카테고리(월드)별 그룹핑
-    const grouped = WORLDS.map(world => {
+    const grouped = targetWorlds.map(world => {
       const p = progress.find(p => p.worldId === world.id);
       const words = world.words
         .filter(word => {
@@ -1433,13 +1521,13 @@ export default function WordGame() {
               onClick={() => {
                 // 모든 틀린 단어를 월드 구분 없이 한번에 복습
                 // 가장 많이 틀린 월드의 world 객체로 시작
-                const worldWithMostFailed = WORLDS.reduce((acc, w) => {
+                const worldWithMostFailed = targetWorlds.reduce((acc, w) => {
                   const p = progress.find(p => p.worldId === w.id);
                   const cnt = p ? p.failed.length : 0;
                   return cnt > (progress.find(p => p.worldId === acc.id)?.failed.length || 0) ? w : acc;
-                }, WORLDS[0]);
+                }, targetWorlds[0]);
                 // 전체 틀린 단어를 하나의 큰 복습 세트로
-                const allFailedWords = WORLDS.flatMap(w => {
+                const allFailedWords = targetWorlds.flatMap(w => {
                   const p = progress.find(p => p.worldId === w.id);
                   return (w.words || []).filter(word => p?.failed.includes(word.en));
                 });
@@ -1481,7 +1569,7 @@ export default function WordGame() {
                   const gp = progress.find(p => p.worldId === group.id);
                   const hasFailed = gp && gp.failed.length > 0;
                   return hasFailed ? (
-                    <button onClick={() => startReview({ ...WORLDS.find(w2 => w2.id === group.id), unlocked: true })}
+                    <button onClick={() => startReview({ ...(targetWorlds.find(w2 => w2.id === group.id) || group), unlocked: true })}
                       style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 8, padding: "3px 10px", color: "#EF4444", fontSize: 10, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" }}>
                       🔁 {gp.failed.length}개
                     </button>
@@ -1579,7 +1667,7 @@ export default function WordGame() {
           어느 레벨부터 시작할까요?
         </div>
 
-        {[
+                {[
           {
             key: "elementary",
             emoji: "🌱", label: "초등", sublabel: "Elementary",
@@ -1604,10 +1692,21 @@ export default function WordGame() {
             color: "#F472B6", dark: "#be185d",
             worldId: 15,
           },
+          {
+            key: "custom",
+            emoji: "✍️", label: "나만의 단어장", sublabel: "Custom",
+            desc: "내가 직접 만든 단어장으로 학습",
+            tag: "최대 5개 저장",
+            color: "#A78BFA", dark: "#6d28d9",
+            isCustomBtn: true,
+          },
         ].map(lv => (
           <button key={lv.key}
             onClick={() => {
-              // 전체 완전 리셋 후 이전 월드는 cleared만 true (잠금 해제용)
+              if (lv.isCustomBtn) {
+                setScreen("customVocab");
+                return;
+              }
               const fresh = initProgress();
               const worldIdx = WORLDS.findIndex(w => w.id === lv.worldId);
               const reset = fresh.map((p, i) =>
@@ -1649,6 +1748,128 @@ export default function WordGame() {
       </div>
     </div>
   );
+
+
+  // ── 커스텀 단어장 화면 ─────────────────────────────
+  if (screen === "customVocab") {
+    return (
+      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", padding: "40px 22px 80px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
+          
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ color: "#fff", fontSize: 24, margin: 0, fontWeight: 800 }}>나만의 단어장 ✍️</h2>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "8px 12px", borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 13 }}>💌 피드백</button>
+              <button onClick={() => setScreen("levelselect")} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "8px 16px", borderRadius: 16, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>처음으로</button>
+            </div>
+          </div>
+
+          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ color: "#fff", fontWeight: 700, fontSize: 16, marginBottom: 4 }}>나만의 단어장만 쓰기</div>
+              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>내 단어장과 검색 메뉴에서 등록한 단어만 보여집니다</div>
+            </div>
+            <button 
+              onClick={() => {
+                const newVal = !customOnlyMode;
+                setCustomOnlyMode(newVal);
+                localStorage.setItem('custom_only_mode', newVal ? 'true' : 'false');
+              }}
+              style={{ width: 50, height: 28, background: customOnlyMode ? "#A78BFA" : "rgba(255,255,255,0.2)", borderRadius: 14, position: "relative", cursor: "pointer", border: "none", transition: "all 0.2s" }}
+            >
+              <div style={{ width: 22, height: 22, background: "#fff", borderRadius: "50%", position: "absolute", top: 3, left: customOnlyMode ? 25 : 3, transition: "all 0.2s" }} />
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {customWorlds.map((cw, i) => (
+              <div key={cw.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <button onClick={() => startCustomWorld(cw)} style={{ flex: 1, padding: "20px", background: "linear-gradient(135deg,#A78BFA14,#6d28d920)", border: "1.5px solid #A78BFA40", borderRadius: 20, textAlign: "left", cursor: "pointer" }}>
+                  <div style={{ color: "#fff", fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{cw.title}</div>
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>단어 {cw.words.length}개</div>
+                </button>
+                <button onClick={() => {
+                  if(!confirm('정말 삭제하시겠습니까?')) return;
+                  const newCw = customWorlds.filter(w => w.id !== cw.id);
+                  setCustomWorlds(newCw);
+                  localStorage.setItem('custom_worlds', JSON.stringify(newCw));
+                }} style={{ padding: "16px", background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 16, color: "#EF4444", cursor: "pointer", flexShrink: 0 }}>삭제</button>
+              </div>
+            ))}
+            {customWorlds.length === 0 && (
+              <div style={{ color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "40px 0" }}>생성된 단어장이 없습니다.<br/>아래에서 만들어보세요!</div>
+            )}
+          </div>
+
+          {customWorlds.length < 5 ? (
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: 24, marginTop: 12 }}>
+              <h3 style={{ color: "#fff", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>새 단어장 만들기</h3>
+              
+              <input type="text" placeholder="단어장 이름 (미입력 시 날짜로 저장)" value={customTitle} onChange={e => setCustomTitle(e.target.value)} 
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", marginBottom: 12 }} />
+              
+              <div
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files[0];
+                  if (file && (file.name.endsWith('.txt') || file.name.endsWith('.csv'))) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      setCustomInput(prev => prev + (prev ? '\n' : '') + evt.target.result);
+                    };
+                    reader.readAsText(file);
+                  } else {
+                    alert('txt 또는 csv 파일만 가능합니다.');
+                  }
+                }}
+              >
+                <textarea 
+                  placeholder="sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요" 
+                  value={customInput} 
+                  onChange={e => setCustomInput(e.target.value)}
+                  style={{ width: "100%", height: 220, padding: "16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(255,255,255,0.2)", color: "#fff", marginBottom: 12, resize: "none" }} 
+                />
+              </div>
+              
+              <div style={{ marginBottom: 16, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+                ※ 텍스트 파일(txt, csv)을 여기에 드래그앤드롭 하면 내용이 자동으로 채워집니다.
+              </div>
+
+              <button onClick={() => {
+                const words = parseCustomWords(customInput);
+                if (words.length === 0) return alert('단어를 입력해주세요.');
+                
+                const now = new Date();
+                const defaultTitle = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} 단어장`;
+                
+                const newWorld = {
+                  id: 1000 + Date.now() % 100000,
+                  title: customTitle || defaultTitle,
+                  emoji: "📝",
+                  color: "#A78BFA", dark: "#6d28d9",
+                  desc: "사용자 생성 단어장",
+                  words: words,
+                  isCustom: true
+                };
+                
+                const newWorlds = [...customWorlds, newWorld];
+                setCustomWorlds(newWorlds);
+                localStorage.setItem('custom_worlds', JSON.stringify(newWorlds));
+                setCustomInput("");
+                setCustomTitle("");
+              }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>추가하기 ({customWorlds.length}/5)</button>
+            </div>
+          ) : (
+            <div style={{ color: "#EF4444", textAlign: "center", padding: "20px", background: "rgba(239,68,68,0.1)", borderRadius: 16 }}>
+              최대 5개까지만 생성 가능합니다.
+            </div>
+          )}
+        </div>
+        <TabBar />
+      </div>
+    );
+  }
 
   // ── MAP 화면 ─────────────────────────────
   if (screen === "map") return (
@@ -2022,7 +2243,7 @@ export default function WordGame() {
               ) : (
                 <div style={{ color: "#FFB800", fontWeight: 800, fontSize: 15, textAlign: "center", padding: "10px" }}>🏆 모든 단어 완료!</div>
               )}
-              <button onClick={() => setScreen("map")}
+              <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
                 style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                 홈으로
               </button>
@@ -2115,7 +2336,7 @@ export default function WordGame() {
                 🔁 한 번 더 복습!
               </button>
             )}
-            <button onClick={() => setScreen("map")}
+            <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               홈으로
             </button>
@@ -2164,12 +2385,12 @@ export default function WordGame() {
             })()}
             {/* 틀린 단어 복습 */}
             {p.failed.length > 0 && (
-              <button onClick={() => startReview({ ...WORLDS.find(w2 => w2.id === w.id), unlocked: true })}
+              <button onClick={() => startReview(w)}
                 style={{ padding: "16px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 18, color: "#EF4444", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 🔁 틀린 단어 복습 <span style={{ background: "rgba(239,68,68,0.18)", borderRadius: 20, padding: "1px 8px", fontSize: 12 }}>{p.failed.length}개</span>
               </button>
             )}
-            <button onClick={() => setScreen("map")}
+            <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               홈으로
             </button>

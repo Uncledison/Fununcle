@@ -10,21 +10,26 @@ import WordGame from './pages/WordGame';
 import { useCopyProtection } from './hooks/useCopyProtection';
 import { usePageTracking } from './hooks/usePageTracking';
 
+import { FeedbackModal } from './components/FeedbackModal';
+
 // 라우터 내부에서 훅을 사용하기 위한 래퍼 컴포넌트
 function AppRoutes() {
   useCopyProtection();
   usePageTracking(); // Google Analytics 페이지뷰 추적
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/history" element={<HistoryGame />} />
-      <Route path="/circle" element={<ShapeGame />} />
-      <Route path="/career" element={<CareerGame />} />
-      <Route path="/bottle" element={<BottleGame />} />
-      <Route path="/tetris" element={<TetrisGame />} />
-      <Route path="/english" element={<WordGame />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/history" element={<HistoryGame />} />
+        <Route path="/circle" element={<ShapeGame />} />
+        <Route path="/career" element={<CareerGame />} />
+        <Route path="/bottle" element={<BottleGame />} />
+        <Route path="/tetris" element={<TetrisGame />} />
+        <Route path="/english" element={<WordGame />} />
+      </Routes>
+      <FeedbackModal />
+    </>
   );
 }
 

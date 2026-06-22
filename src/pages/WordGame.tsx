@@ -1825,7 +1825,7 @@ export default function WordGame() {
                 }}
               >
                 <textarea 
-                  placeholder="sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요" 
+                  placeholder={"sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요"}
                   value={customInput} 
                   onChange={e => setCustomInput(e.target.value)}
                   style={{ width: "100%", height: 220, padding: "16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(255,255,255,0.2)", color: "#fff", marginBottom: 12, resize: "none" }} 

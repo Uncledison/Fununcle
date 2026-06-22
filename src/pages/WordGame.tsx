@@ -1279,7 +1279,7 @@ export default function WordGame() {
       objectType: 'feed',
       content: {
         title: '영단어 플래시카드 🎴',
-        description: '교육부 권장 단어를 스와이프로 쉽게! 초등~수능까지',
+        description: "교육부 권장 단어부터 '나만의 단어장'까지! 스와이프로 쉽게 외워요✨",
         imageUrl: 'https://fun.uncledison.com/assets/wordgame_thumb.png',
         link: {
           mobileWebUrl: 'https://fun.uncledison.com/english',

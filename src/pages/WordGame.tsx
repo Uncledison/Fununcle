@@ -2,6 +2,8 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
 import { speak } from "../lib/pronunciation";
+import { supabase } from "../lib/supabase";
+import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const RAW_WORLDS = [
@@ -925,6 +927,13 @@ export default function WordGame() {
   const [showQuitConfirm, setShowQuitConfirm]   = useState(false); // 게임 중 나가기 팝업
   const [quitTarget,      setQuitTarget]        = useState("map"); // 나가기 후 이동할 탭
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
+  // ── 로그인/동기화 상태 ──────────────
+  const [session,         setSession]         = useState(null);  // Supabase 세션(로그인 여부)
+  const [showAuthModal,   setShowAuthModal]   = useState(false);
+  const [authEmail,       setAuthEmail]       = useState("");
+  const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
+  const syncedRef = useRef(false);
+  const maxSets = session ? 10 : 3; // 비로그인 3개 / 로그인 10개
   const [customWorlds, setCustomWorlds] = useState(() => {
     try {
       const stored = localStorage.getItem('custom_worlds');
@@ -982,6 +991,116 @@ export default function WordGame() {
       localStorage.setItem(PROGRESS_KEY, JSON.stringify({ progress, xp, streak, levelStartWorld: levelStartWorldRef.current }));
     } catch (e) { /* 저장 실패 무시 */ }
   }, [progress, xp, streak]);
+
+  // ── 로그인 후 클라우드 상태를 화면에 반영 ──────────────
+  const reloadStatesFromLocal = () => {
+    try { setProgress(loadProgress()); } catch (e) {}
+    setXp(loadStat("xp", 0));
+    setStreak(loadStat("streak", 0));
+    try { setCustomWorlds(JSON.parse(localStorage.getItem("custom_worlds") || "[]")); } catch (e) {}
+    try { setCustomResume(JSON.parse(localStorage.getItem("custom_resume") || "{}")); } catch (e) {}
+    try { setUnlockedStarts(JSON.parse(localStorage.getItem("wordgame_unlocked_starts") || "[]")); } catch (e) {}
+    setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
+  };
+  // 로그인 감지 시 1회: 클라우드에 데이터 있으면 받아오고, 없으면 현재 로컬을 올림
+  const handleSignedIn = async (userId) => {
+    if (syncedRef.current) return;
+    syncedRef.current = true;
+    const cloud = await pullCloud(userId);
+    if (cloud && Object.keys(cloud).length) {
+      applyLocalState(cloud);
+      reloadStatesFromLocal();
+    } else {
+      await pushCloud(userId);
+    }
+  };
+
+  // ── 세션 감지 (마운트 시 + 변경 시) ──────────────
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session);
+      if (data.session) handleSignedIn(data.session.user.id);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+      if (sess) handleSignedIn(sess.user.id);
+      else syncedRef.current = false;
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  // ── 로그인 상태에서 변경되면 클라우드에 자동 저장 (디바운스) ──────────────
+  useEffect(() => {
+    if (!session) return;
+    const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
+    return () => clearTimeout(t);
+  }, [session, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts]);
+
+  // ── 로그인 액션 ──────────────
+  const sendMagicLink = async () => {
+    const email = authEmail.trim();
+    if (!email) return;
+    setAuthStatus("sending");
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.origin + "/english" },
+      });
+      setAuthStatus(error ? "error" : "sent");
+    } catch (e) {
+      setAuthStatus("error");
+    }
+  };
+  const signOut = async () => {
+    try { await supabase.auth.signOut(); } catch (e) {}
+    syncedRef.current = false;
+    setSession(null);
+    setShowAuthModal(false);
+  };
+
+  // ── 로그인/계정 모달 ──────────────
+  const AuthModal = () => {
+    if (!showAuthModal) return null;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 360, width: "100%", textAlign: "center" }}>
+          {session ? (
+            <>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
+              <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 6px" }}>로그인됨</h3>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 6px" }}>{session.user.email}</p>
+              <p style={{ color: "#4ADE80", fontSize: 12, margin: "0 0 24px" }}>☁️ 기기간 동기화 중</p>
+              <button onClick={signOut} style={{ width: "100%", padding: "14px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 16, color: "#EF4444", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>로그아웃</button>
+              <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+              <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>로그인</h3>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>이메일로 로그인 링크를 보내드려요.<br />로그인하면 폰·PC에서 진도가 같이 저장됩니다.</p>
+              {authStatus === "sent" ? (
+                <div style={{ color: "#4ADE80", fontSize: 14, fontWeight: 700, padding: "16px", background: "rgba(74,222,128,0.1)", borderRadius: 14, marginBottom: 16 }}>
+                  📩 메일을 확인하세요!<br /><span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 400 }}>받은 링크를 누르면 로그인됩니다.</span>
+                </div>
+              ) : (
+                <>
+                  <input type="email" placeholder="이메일 주소" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 15, marginBottom: 12, boxSizing: "border-box" }} />
+                  {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 10 }}>전송 실패. 이메일을 확인하고 다시 시도해주세요.</div>}
+                  <button onClick={sendMagicLink} disabled={authStatus === "sending"} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>
+                    {authStatus === "sending" ? "전송 중..." : "로그인 링크 받기"}
+                  </button>
+                </>
+              )}
+              <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   // ── 참여자 수 계산 (시간대별 기반 + localStorage 누적) ───────────────
   useEffect(() => {
@@ -1427,6 +1546,7 @@ export default function WordGame() {
     }
   };
   const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
+    <>
     <div style={{ padding: "16px 20px 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
@@ -1434,6 +1554,7 @@ export default function WordGame() {
           <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`, padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 800, color: session ? "#4ADE80" : "rgba(255,255,255,0.6)" }}>{session ? "👤" : "로그인"}</button>
           <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
           {showLevel ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
@@ -1458,6 +1579,8 @@ export default function WordGame() {
           style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customOnlyMode ? "#A78BFA" : "transparent", color: customOnlyMode ? "#241452" : "rgba(255,255,255,0.45)" }}>내 단어장</button>
       </div>
     </div>
+    <AuthModal />
+    </>
   );
 
   // ── 레벨변경 확인 팝업 ────────────────────────
@@ -2102,7 +2225,7 @@ export default function WordGame() {
             )}
           </div>
 
-          {(editingId !== null || customWorlds.length < 5) ? (
+          {(editingId !== null || customWorlds.length < maxSets) ? (
             <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${editingId !== null ? "#A78BFA66" : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: 24, marginTop: 12 }}>
               <h3 style={{ color: "#fff", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
               
@@ -2172,7 +2295,7 @@ export default function WordGame() {
                 setCustomInput("");
                 setCustomTitle("");
               }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
-                {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/5)`}
+                {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/${maxSets})`}
               </button>
               {editingId !== null && (
                 <button onClick={cancelEditCustom} style={{ width: "100%", padding: "13px", marginTop: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
@@ -2181,8 +2304,10 @@ export default function WordGame() {
               )}
             </div>
           ) : (
-            <div style={{ color: "#EF4444", textAlign: "center", padding: "20px", background: "rgba(239,68,68,0.1)", borderRadius: 16 }}>
-              최대 5개까지만 생성 가능합니다.
+            <div style={{ color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "20px", background: "rgba(255,255,255,0.04)", borderRadius: 16, fontSize: 14 }}>
+              {session
+                ? "최대 10개까지 만들 수 있어요."
+                : <>비로그인은 3개까지예요.<br /><button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ marginTop: 10, padding: "10px 18px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>로그인하고 10개까지 쓰기</button></>}
             </div>
           )}
         </div>

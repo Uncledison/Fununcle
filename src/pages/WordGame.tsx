@@ -1103,9 +1103,9 @@ export default function WordGame() {
     setScreen("game");
   };
 
-  // 오늘 여기까지 — 현재 위치 저장 후 내 단어장으로
-  const saveCustomAndExit = () => {
-    if (activeWorld?.isCustom) {
+  // 현재 진행 위치를 북마크에 저장 (복습 중이면 메인 위치를 덮어쓰지 않음)
+  const persistCurrentResume = () => {
+    if (activeWorld?.isCustom && !isReview) {
       saveCustomResume(activeWorld.id, {
         order: queue.map(c => c.en),
         pos: cardIdx,
@@ -1113,8 +1113,18 @@ export default function WordGame() {
         total: sessionTotal,
       });
     }
+  };
+  // 오늘 여기까지 — 현재 위치 저장 후 내 단어장으로
+  const saveCustomAndExit = () => {
+    persistCurrentResume();
     setShowQuitConfirm(false);
     setScreen("customVocab");
+  };
+  // 틀린 문제 풀기 — 현재 위치 자동 저장 후 복습 시작
+  const reviewWithSave = () => {
+    persistCurrentResume();
+    setShowQuitConfirm(false);
+    startReview(activeWorld);
   };
 
   // 커스텀 세트 편집 시작 (폼에 기존 내용 채움)
@@ -1379,7 +1389,9 @@ export default function WordGame() {
   // ── 게임 중 나가기 확인 팝업 ──────────────────
   const QuitConfirmModal = () => {
     if (!showQuitConfirm) return null;
-    const isCustom = activeWorld?.isCustom;
+    const isCustom = activeWorld?.isCustom && !isReview;   // 복습 중엔 일반 나가기
+    const cp = progress.find(pp => pp.worldId === activeWorld?.id);
+    const hasFailed = (cp?.failed?.length || 0) > 0;
     const plainExit = () => {
       setShowQuitConfirm(false);
       if (isCustom) { setScreen("customVocab"); return; }
@@ -1410,12 +1422,14 @@ export default function WordGame() {
               style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
               💾 저장하고 나가기
             </button>
-            <button onClick={plainExit}
-              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-              저장 없이 나가기
-            </button>
+            {hasFailed && (
+              <button onClick={reviewWithSave}
+                style={{ padding: "15px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 16, color: "#EF4444", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+                🔁 틀린 문제 풀기 ({cp.failed.length}개)
+              </button>
+            )}
             <button onClick={() => setShowQuitConfirm(false)}
-              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
               계속하기
             </button>
           </div>
@@ -2321,12 +2335,6 @@ export default function WordGame() {
           <div style={{ height: 4, background: "rgba(255,255,255,0.07)", borderRadius: 4, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${progressPct}%`, background: `linear-gradient(90deg,${w.dark},${w.color})`, borderRadius: 4, transition: "width 0.3s" }} />
           </div>
-          {activeWorld?.isCustom && (
-            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
-              style={{ width: "100%", marginTop: 12, padding: "11px", background: "rgba(167,139,250,0.12)", border: "1px solid #A78BFA40", borderRadius: 14, color: "#C4B5FD", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
-              📌 오늘은 여기까지 (저장하고 나가기)
-            </button>
-          )}
         </div>
 
         {/* 콤보 팝업 */}
@@ -2474,6 +2482,12 @@ export default function WordGame() {
             </div>
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
+          {activeWorld?.isCustom && !isReview && (
+            <button onClick={saveCustomAndExit}
+              style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: "rgba(167,139,250,0.14)", border: "1.5px solid #A78BFA55", borderRadius: 16, color: "#C4B5FD", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+              📌 오늘은 여기까지
+            </button>
+          )}
         </div>
         <TabBar />
         </div>
@@ -2628,9 +2642,9 @@ export default function WordGame() {
                 🔁 한 번 더 복습!
               </button>
             )}
-            <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
+            <button onClick={() => setScreen(activeWorld?.isCustom ? "customVocab" : "map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-              홈으로
+              {activeWorld?.isCustom ? "내 단어장으로" : "홈으로"}
             </button>
           </div>
 
@@ -2689,9 +2703,9 @@ export default function WordGame() {
                 🔁 틀린 단어 복습 <span style={{ background: "rgba(239,68,68,0.18)", borderRadius: 20, padding: "1px 8px", fontSize: 12 }}>{p.failed.length}개</span>
               </button>
             )}
-            <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
+            <button onClick={() => setScreen(activeWorld?.isCustom ? "customVocab" : "map")}
               style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-              홈으로
+              {activeWorld?.isCustom ? "내 단어장으로" : "홈으로"}
             </button>
           </div>
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>

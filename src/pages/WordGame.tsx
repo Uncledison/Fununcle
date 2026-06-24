@@ -844,7 +844,12 @@ export default function WordGame() {
   const [screen,          setScreen]          = useState(() => {
     try {
       if (localStorage.getItem("custom_only_mode") === "true") return "customVocab";
-      // 저장된 진행 기록이 있으면 레벨선택 화면(진행을 초기화함)을 건너뛰고 맵으로 복귀.
+      // 학년을 한 번이라도 골랐으면(열어뒀으면) 맵으로 복귀
+      try {
+        const us = JSON.parse(localStorage.getItem('wordgame_unlocked_starts') || '[]');
+        if (Array.isArray(us) && us.length > 0) return "map";
+      } catch(e) {}
+      // 저장된 진행 기록이 있으면 레벨선택 화면을 건너뛰고 맵으로 복귀.
       // 모바일 재로드 시 1판부터 다시 시작되던 오류 방지.
       const raw = localStorage.getItem(PROGRESS_KEY);
       if (raw) {
@@ -913,6 +918,17 @@ export default function WordGame() {
   const [customOnlyMode, setCustomOnlyMode] = useState(() => {
     try { return localStorage.getItem('custom_only_mode') === 'true'; } catch(e) { return false; }
   });
+  // 사용자가 "열어둔" 학년 시작 월드 id 목록 (학년 선택은 비파괴 — 진도 초기화 안 함)
+  const [unlockedStarts, setUnlockedStarts] = useState(() => {
+    try { const v = JSON.parse(localStorage.getItem('wordgame_unlocked_starts') || '[]'); return Array.isArray(v) ? v : []; } catch(e) { return []; }
+  });
+  const unlockGradeStart = (worldId) => {
+    setUnlockedStarts(prev => {
+      const next = prev.includes(worldId) ? prev : [...prev, worldId];
+      try { localStorage.setItem('wordgame_unlocked_starts', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  };
   const levelStartWorldRef = useRef(loadStat("levelStartWorld", 1));   // 현재 선택된 레벨의 시작 월드 ID (복원)
   const scrollTargetRef = useRef(levelStartWorldRef.current > 1 ? levelStartWorldRef.current : null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
   const [scrollTrigger, setScrollTrigger] = useState(0); // 스크롤 강제 실행 트리거
@@ -993,8 +1009,10 @@ export default function WordGame() {
   const worlds = WORLDS.map((w, i) => {
     if (i === 0) return { ...w, unlocked: true };
     const prev = progress[i - 1];
-    // cleared 플래그 OR mastered 비율 70% 이상이면 해제
-    const unlocked = prev?.cleared || (prev ? prev.mastered.length / WORLDS[i - 1].words.length >= PASS_RATE : false);
+    // 학년 선택으로 열어둔 시작 월드 OR 이전 월드 클리어 OR mastered 70% 이상이면 해제
+    const unlocked = unlockedStarts.includes(w.id)
+      || prev?.cleared
+      || (prev ? prev.mastered.length / WORLDS[i - 1].words.length >= PASS_RATE : false);
     return { ...w, unlocked };
   });
 
@@ -1370,14 +1388,14 @@ export default function WordGame() {
         <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
         {showLevel ? (
           <button
-            onClick={() => setShowLevelConfirm(true)}
+            onClick={() => setScreen("levelselect")}
             style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px", cursor: "pointer" }}>
             <div style={{ textAlign: "right" }}>
               <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
               <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
             </div>
             <div style={{ width: 1, height: 24, background: "rgba(255,184,0,0.2)" }} />
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>레벨<br/>변경</div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>처음<br/>으로</div>
           </button>
         ) : (
           <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
@@ -1948,15 +1966,8 @@ export default function WordGame() {
                 setScreen("customVocab");
                 return;
               }
-              const fresh = initProgress();
-              const worldIdx = WORLDS.findIndex(w => w.id === lv.worldId);
-              const reset = fresh.map((p, i) =>
-                i < worldIdx ? { ...p, cleared: true } : p
-              );
-              setProgress(reset);
-              setXp(0);
-              setStreak(0);
-              setCombo(0);
+              // 비파괴: 진도 초기화 없이 해당 학년만 "열고" 그 위치로 이동
+              unlockGradeStart(lv.worldId);
               levelStartWorldRef.current = lv.worldId;
               scrollTargetRef.current = lv.worldId;
               setScrollTrigger(t => t + 1);

@@ -4,7 +4,7 @@ import { usePageSeo } from "../hooks/usePageSeo";
 import { speak } from "../lib/pronunciation";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
-const WORLDS = [
+const RAW_WORLDS = [
   {
     id:1, title:"자연의 땅", emoji:"🌿",
     color:"#4ADE80", dark:"#15803d",
@@ -741,6 +741,43 @@ const WORLDS = [
     ]
   },
 ];
+
+// ── 학년 내 단어 배치 셔플 (고정 시드) ──────────────────────────
+// 각 학년(초등 1~8 / 중학 9~14 / 고등 15~19) 안에서만 단어를 섞어,
+// 스테이지 1이 'a'로만 채워지는 단조로움을 없앤다. 시드 고정이라 항상 동일 배치
+// → 진행 체크/이어하기가 안정적이고 기기가 달라도 같다. 월드·스테이지 제목/개수는 유지.
+const seededShuffle = (arr, seed) => {
+  const a = [...arr];
+  let s = seed >>> 0;
+  const rand = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const GRADE_RANGES = [
+  { min: 1,  max: 8,  seed: 0x9e3779b1 },  // 초등
+  { min: 9,  max: 14, seed: 0x85ebca77 },  // 중학
+  { min: 15, max: 19, seed: 0xc2b2ae3d },  // 고등·수능
+];
+const applyGradeShuffle = (worlds) => {
+  const result = worlds.map(w => ({ ...w }));
+  for (const g of GRADE_RANGES) {
+    const idxs = result.map((w, i) => i).filter(i => result[i].id >= g.min && result[i].id <= g.max);
+    if (!idxs.length) continue;
+    const flat = idxs.flatMap(i => result[i].words);
+    const shuffled = seededShuffle(flat, g.seed);
+    let p = 0;
+    for (const i of idxs) {
+      const len = result[i].words.length;
+      result[i] = { ...result[i], words: shuffled.slice(p, p + len) };
+      p += len;
+    }
+  }
+  return result;
+};
+const WORLDS = applyGradeShuffle(RAW_WORLDS);
 
 const PASS_RATE     = 0.7;
 const STAGE_SIZE    = 20;   // 한 스테이지당 단어 수

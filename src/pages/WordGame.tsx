@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
+import { useManifest } from "../hooks/useManifest";
 import { speak } from "../lib/pronunciation";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
@@ -826,6 +827,7 @@ const parseCustomWords = (text) => {
 };
 
 export default function WordGame() {
+  useManifest('/manifest-english.json');
   usePageSeo({
     title: "초중고 영단어 플래시카드 | 교육부 필수 영단어 암기",
     description: "교육부 권장 3,000 영단어를 플래시카드로 재미있게 암기. 초등 797·중고등 2,210 필수 영어단어. 가입 없이 무료 영단어 암기 학습.",

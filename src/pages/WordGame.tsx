@@ -1387,16 +1387,12 @@ export default function WordGame() {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
         {showLevel ? (
-          <button
-            onClick={() => setScreen("levelselect")}
-            style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px", cursor: "pointer" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
             <div style={{ textAlign: "right" }}>
               <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
               <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
             </div>
-            <div style={{ width: 1, height: 24, background: "rgba(255,184,0,0.2)" }} />
-            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 700, lineHeight: 1.3 }}>처음<br/>으로</div>
-          </button>
+          </div>
         ) : (
           <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 14 }}>⚡</span>
@@ -1900,7 +1896,7 @@ export default function WordGame() {
       <div style={{ textAlign: "center", marginBottom: 48 }}>
         <h1 style={{ color: "#fff", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
           영단어<br />
-          <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>플래시카드</span>
+          <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 26 }}>플래시카드</span>
         </h1>
         <p style={{ color: "#FFB800", fontSize: 13, marginTop: 12, fontWeight: 700, letterSpacing: 0.5 }}>
           📚 교육부 추천 3,000단어 수록
@@ -1995,7 +1991,7 @@ export default function WordGame() {
       </div>
 
       <div style={{ marginTop: 48, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
-        교육부 고시 제2022-33호 [별책 14] · <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
+        <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
       </div>
       </div>
     </div>

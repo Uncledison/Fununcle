@@ -36,18 +36,22 @@ function playUrl(src: string): Promise<void> {
   });
 }
 
-function browserTTS(text: string) {
-  try {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = 0.9;
-    synth.speak(u);
-  } catch {
-    /* 무시 */
-  }
+function browserTTS(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return resolve();
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 0.9;
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      synth.speak(u);
+    } catch {
+      resolve();
+    }
+  });
 }
 
 /** 단어/문장 발음 재생. 어디서든 await 없이 호출해도 됨. */
@@ -74,6 +78,6 @@ export async function speak(rawWord: string) {
     return;
   } catch {
     // 3) 최종 폴백: 브라우저 TTS
-    browserTTS(word);
+    await browserTTS(word);
   }
 }

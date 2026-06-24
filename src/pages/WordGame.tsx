@@ -866,6 +866,7 @@ export default function WordGame() {
   const [combo,           setCombo]           = useState(0);
   const [comboPopup,      setComboPopup]      = useState(false);
   const [animKey,         setAnimKey]         = useState(0);
+  const [speakingWord,    setSpeakingWord]    = useState(null); // 발음 재생 중인 단어
   const [finalCorrect,    setFinalCorrect]    = useState(0);
   const [finalTotal,      setFinalTotal]      = useState(0);
   const [isReview,        setIsReview]        = useState(false); // 복습 모드 여부
@@ -2122,6 +2123,12 @@ export default function WordGame() {
       >
         <LevelConfirmModal />
         <QuitConfirmModal />
+        <style>{`
+          @keyframes spkPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+          @keyframes spkBarA { 0%,100%{height:5px} 50%{height:17px} }
+          @keyframes spkBarB { 0%,100%{height:15px} 50%{height:5px} }
+          @keyframes spkBarC { 0%,100%{height:8px} 50%{height:18px} }
+        `}</style>
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab", paddingBottom: 80 }}>
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
@@ -2214,14 +2221,38 @@ export default function WordGame() {
                   <div style={{ color: "#fff", fontSize: card.en.length > 11 ? 32 : card.en.length > 8 ? 38 : 46, fontWeight: 900, textAlign: "center", letterSpacing: 0.5, lineHeight: 1.1, marginBottom: 16 }}>
                     {card.en}
                   </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); speak(card.en); }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    aria-label="발음 듣기"
-                    style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 auto 28px", padding: "10px 18px", background: `${w.color}1f`, border: `1.5px solid ${w.color}55`, borderRadius: 999, color: "#fff", fontSize: 18, fontWeight: 800, cursor: "pointer" }}>
-                    🔊 <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>발음</span>
-                  </button>
+                  {(() => {
+                    const speaking = speakingWord === card.en;
+                    const onSpeak = (e) => {
+                      e.stopPropagation();
+                      if (speaking) return;
+                      const wd = card.en;
+                      setSpeakingWord(wd);
+                      Promise.resolve(speak(wd)).finally(() =>
+                        setSpeakingWord((cur) => (cur === wd ? null : cur))
+                      );
+                    };
+                    const bar = (anim) => (
+                      <i style={{ display: "inline-block", width: 3, height: 6, background: "#fff", borderRadius: 2, animation: `${anim} 0.5s ease-in-out infinite` }} />
+                    );
+                    return (
+                      <button
+                        onClick={onSpeak}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        aria-label="발음 듣기"
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minWidth: 110, margin: "0 auto 28px", padding: "11px 20px", background: speaking ? w.color : `${w.color}1f`, border: `1.5px solid ${speaking ? w.color : w.color + "55"}`, borderRadius: 999, color: speaking ? "#000" : "#fff", fontSize: 18, fontWeight: 800, cursor: "pointer", transform: speaking ? "scale(1.06)" : "scale(1)", boxShadow: speaking ? `0 0 18px ${w.color}99` : "none", transition: "transform .15s, background .15s, box-shadow .15s" }}>
+                        <span style={{ display: "inline-block", animation: speaking ? "spkPulse 0.6s ease-in-out infinite" : "none" }}>🔊</span>
+                        {speaking ? (
+                          <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, height: 18 }}>
+                            {bar("spkBarA")}{bar("spkBarB")}{bar("spkBarC")}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>발음</span>
+                        )}
+                      </button>
+                    );
+                  })()}
                   <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>탭해서 뜻 확인 👆</div>
                 </>
               )}

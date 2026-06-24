@@ -1990,7 +1990,7 @@ export default function WordGame() {
 
       </div>
 
-      <div style={{ marginTop: 48, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
+      <div style={{ marginTop: 16, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
         <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
       </div>
       </div>

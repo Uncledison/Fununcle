@@ -757,7 +757,8 @@ const initProgress = () => WORLDS.map(w => ({
   mastered: [],
   failed: [],
   cleared: false,
-  stageCleared: new Array(getStageCount(w)).fill(false),
+  stageCleared: new Array(getStageCount(w)).fill(false), // 70% 통과(잠금해제용)
+  stageDone:    new Array(getStageCount(w)).fill(false), // 끝까지 풂(체크 표시용, 점수 무관)
 }));
 
 // ── 진행 상태 영구 저장 (localStorage) ───────────────────
@@ -780,12 +781,16 @@ const loadProgress = () => {
       const stageCleared = w.stageCleared.map((v, i) =>
         Array.isArray(s.stageCleared) ? !!s.stageCleared[i] : v
       );
+      const stageDone = w.stageDone.map((v, i) =>
+        Array.isArray(s.stageDone) ? !!s.stageDone[i] : (stageCleared[i] || v)
+      );
       return {
         ...w,
         mastered: Array.isArray(s.mastered) ? s.mastered : [],
         failed:   Array.isArray(s.failed)   ? s.failed   : [],
         cleared:  stageCleared.length > 0 && stageCleared.every(Boolean),
         stageCleared,
+        stageDone,
       };
     });
   } catch (e) {
@@ -1010,35 +1015,51 @@ export default function WordGame() {
     return 0;
   };
 
-  // ── 게임 시작 (스테이지 기반) ────────────
+  // ── 게임 시작 (스테이지 기반 + 스테이지 도중 이어하기) ────────────
   const startWorld = (world, stageIdx = null) => {
     if (!world.unlocked) return;
     const p = progress.find(p => p.worldId === world.id);
 
-    // 스테이지 결정 — 명시적으로 전달되면 그거, 아니면 첫 미클리어 스테이지
-    let targetStage = stageIdx;
-    if (targetStage === null) {
-      const totalStages = getStageCount(world);
-      targetStage = 0;
-      for (let i = 0; i < totalStages; i++) {
-        if (!p?.stageCleared?.[i]) { targetStage = i; break; }
-      }
-    }
+    // 스테이지 도중에 저장한 북마크가 있으면 그 위치부터 이어하기
+    // (명시적 stageIdx가 주어지면 = "다음 스테이지" 등 → 이어하기 무시)
+    const rec = customResume[world.id];
+    const canResume = stageIdx === null && rec && Array.isArray(rec.order) && rec.pos > 0 && rec.pos < rec.order.length;
 
-    const stageWords = getStageWords(world, targetStage);
-    // 틀린 단어 우선
-    const failed = stageWords.filter(w => p?.failed.includes(w.en));
-    const others = shuffle(stageWords.filter(w => !p?.failed.includes(w.en)));
+    let targetStage, queueArr, startIdx, correct, total;
+    if (canResume) {
+      targetStage = rec.stage || 0;
+      const byEn = Object.fromEntries(world.words.map(w => [w.en, w]));
+      queueArr = rec.order.map(en => byEn[en]).filter(Boolean);
+      startIdx = Math.min(rec.pos, Math.max(0, queueArr.length - 1));
+      correct = rec.correct || 0;
+      total = rec.total || 0;
+    } else {
+      // 스테이지 결정 — 명시적으로 전달되면 그거, 아니면 첫 미클리어 스테이지
+      targetStage = stageIdx;
+      if (targetStage === null) {
+        const totalStages = getStageCount(world);
+        targetStage = 0;
+        for (let i = 0; i < totalStages; i++) {
+          if (!p?.stageCleared?.[i]) { targetStage = i; break; }
+        }
+      }
+      const stageWords = getStageWords(world, targetStage);
+      const failed = stageWords.filter(w => p?.failed.includes(w.en));   // 틀린 단어 우선
+      const others = shuffle(stageWords.filter(w => !p?.failed.includes(w.en)));
+      queueArr = [...failed, ...others];
+      startIdx = 0; correct = 0; total = 0;
+      clearCustomResume(world.id);   // 새 스테이지 시작 → 오래된 북마크 제거
+    }
 
     setActiveWorld(world);
     setActiveStage(targetStage);
-    setQueue([...failed, ...others]);
-    setCardIdx(0);
+    setQueue(queueArr);
+    setCardIdx(startIdx);
     setFlipped(false);
     setSwipeDir(null);
     setDragX(0);
-    setSessionCorrect(0);
-    setSessionTotal(0);
+    setSessionCorrect(correct);
+    setSessionTotal(total);
     setCombo(0);
     setIsReview(false);
     processingRef.current = false;
@@ -1105,20 +1126,26 @@ export default function WordGame() {
 
   // 현재 진행 위치를 북마크에 저장 (복습 중이면 메인 위치를 덮어쓰지 않음)
   const persistCurrentResume = () => {
-    if (activeWorld?.isCustom && !isReview) {
+    if (activeWorld && !isReview) {
       saveCustomResume(activeWorld.id, {
         order: queue.map(c => c.en),
         pos: cardIdx,
         correct: sessionCorrect,
         total: sessionTotal,
+        stage: activeStage,   // 고정 단어장: 어느 스테이지인지 기억
       });
     }
   };
-  // 오늘 여기까지 — 현재 위치 저장 후 내 단어장으로
+  // 오늘 여기까지 — 현재 위치 저장 후 홈(커스텀=내 단어장 / 고정=맵)
   const saveCustomAndExit = () => {
     persistCurrentResume();
     setShowQuitConfirm(false);
-    setScreen("customVocab");
+    if (activeWorld?.isCustom) {
+      setScreen("customVocab");
+    } else {
+      if (activeWorld) { scrollTargetRef.current = activeWorld.id; setScrollTrigger(t => t + 1); }
+      setScreen("map");
+    }
   };
   // 틀린 문제 풀기 — 현재 위치 자동 저장 후 복습 시작
   const reviewWithSave = () => {
@@ -1206,8 +1233,8 @@ export default function WordGame() {
         setFinalCorrect(sc);
         setFinalTotal(st);
 
-        // 커스텀 세트 "본 학습"을 완주했을 때만 북마크 삭제 (복습 완료는 제외)
-        if (activeWorld?.isCustom && !isReview) clearCustomResume(activeWorld.id);
+        // 본 학습(스테이지)을 끝까지 풂 → 이어하기 북마크 삭제 (복습 완료는 제외)
+        if (!isReview) clearCustomResume(activeWorld.id);
 
         const count = parseInt(localStorage.getItem('play_count') || '0') + 1;
         localStorage.setItem('play_count', count.toString());
@@ -1217,30 +1244,31 @@ export default function WordGame() {
 
         if (isReview) {
           setScreen("reviewdone");
-        } else if (sc / st >= PASS_RATE) {
-          // 스테이지 클리어 처리
-          const totalStages = getStageCount(activeWorld);
-          const allStagesCleared = updatedProgress
-            .find(p => p.worldId === activeWorld.id)
-            ?.stageCleared.map((v, i) => i === activeStage ? true : v)
-            .every(Boolean);
-
-          const clearedProgress = updatedProgress.map(p => {
+        } else {
+          const passed = sc / st >= PASS_RATE;
+          // 끝까지 푼 스테이지: stageDone 체크(점수 무관) + 70% 이상이면 stageCleared(잠금해제)
+          const finalProgress = updatedProgress.map(p => {
             if (p.worldId !== activeWorld.id) return p;
-            const newStageCleared = p.stageCleared.map((v, i) =>
-              i === activeStage ? true : v
-            );
+            const cnt = getStageCount(activeWorld);
+            const baseDone = Array.isArray(p.stageDone) ? p.stageDone : new Array(cnt).fill(false);
+            const newStageDone = baseDone.map((v, i) => i === activeStage ? true : v);
+            const newStageCleared = passed
+              ? p.stageCleared.map((v, i) => i === activeStage ? true : v)
+              : p.stageCleared;
             return {
               ...p,
+              stageDone: newStageDone,
               stageCleared: newStageCleared,
-              cleared: newStageCleared.every(Boolean),
+              cleared: newStageCleared.length > 0 && newStageCleared.every(Boolean),
             };
           });
-          setProgress(clearedProgress);
-          setXp(x => x + XP_WORLD);
-          setScreen("worldclear");
-        } else {
-          setScreen("result");
+          setProgress(finalProgress);
+          if (passed) {
+            setXp(x => x + XP_WORLD);
+            setScreen("worldclear");
+          } else {
+            setScreen("result");
+          }
         }
       } else {
         setCardIdx(nextIdx);
@@ -1389,12 +1417,12 @@ export default function WordGame() {
   // ── 게임 중 나가기 확인 팝업 ──────────────────
   const QuitConfirmModal = () => {
     if (!showQuitConfirm) return null;
-    const isCustom = activeWorld?.isCustom && !isReview;   // 복습 중엔 일반 나가기
+    const canSave = !!activeWorld && !isReview;   // 복습 중엔 일반 나가기
     const cp = progress.find(pp => pp.worldId === activeWorld?.id);
     const hasFailed = (cp?.failed?.length || 0) > 0;
     const plainExit = () => {
       setShowQuitConfirm(false);
-      if (isCustom) { setScreen("customVocab"); return; }
+      if (activeWorld?.isCustom) { setScreen("customVocab"); return; }
       if (customOnlyMode && quitTarget === "map") {
         setScreen("customVocab");
       } else {
@@ -1409,14 +1437,14 @@ export default function WordGame() {
     return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
       <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 44, marginBottom: 16 }}>{isCustom ? "📌" : "🚪"}</div>
-        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{isCustom ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
+        <div style={{ fontSize: 44, marginBottom: 16 }}>{canSave ? "📌" : "🚪"}</div>
+        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
         <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
-          {isCustom
+          {canSave
             ? <>지금 위치를 저장하면<br />다음에 <b style={{ color: "#A78BFA" }}>이어서 하기</b>로 계속할 수 있어요.</>
             : <>현재 스테이지 진행 기록은<br />저장되지 않습니다.</>}
         </p>
-        {isCustom ? (
+        {canSave ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <button onClick={saveCustomAndExit}
               style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
@@ -2159,6 +2187,8 @@ export default function WordGame() {
           const clearedStages = p?.stageCleared?.filter(Boolean).length || 0;
           const pct        = Math.round(clearedStages / totalStages * 100);
           const locked     = !world.unlocked;
+          const wrec       = customResume[world.id];
+          const hasWorldResume = !!(wrec && Array.isArray(wrec.order) && wrec.pos > 0 && wrec.pos < wrec.order.length);
 
           return (
             <div key={world.id} id={`world-card-${world.id}`}
@@ -2173,17 +2203,16 @@ export default function WordGame() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                     <span style={{ color: locked ? "rgba(255,255,255,0.25)" : "#fff", fontWeight: 800, fontSize: 15 }}>WORLD {world.id}</span>
                     {p?.cleared && <span style={{ background: world.color, color: "#000", fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 20, letterSpacing: 1 }}>CLEAR ✓</span>}
+                    {hasWorldResume && !p?.cleared && <span style={{ background: `${world.color}22`, color: world.color, fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 20 }}>이어하기</span>}
                   </div>
                   <div style={{ color: locked ? "rgba(255,255,255,0.18)" : world.color, fontWeight: 700, fontSize: 14 }}>{world.title}</div>
                   <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11, marginTop: 2 }}>{clearedStages}/{totalStages} 스테이지 클리어</div>
                 </div>
-                {/* 플레이 버튼 */}
+                {/* 플레이 버튼 — 북마크 있으면 이어하기, 없으면 첫 미클리어 스테이지 */}
                 {!locked && (() => {
-                  const nextStageIdx = p?.stageCleared?.findIndex(v => !v) ?? 0;
-                  const startIdx = nextStageIdx === -1 ? 0 : nextStageIdx;
                   return (
                     <button
-                      onClick={(e) => { e.stopPropagation(); startWorld(world, startIdx); }}
+                      onClick={(e) => { e.stopPropagation(); startWorld(world); }}
                       style={{
                         flexShrink: 0, width: 48, height: 48,
                         background: `linear-gradient(135deg,${world.color},${world.dark})`,
@@ -2213,31 +2242,36 @@ export default function WordGame() {
                   {/* 스테이지 버튼 그리드 */}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: p.failed.length > 0 ? 10 : 0 }}>
                     {Array.from({ length: totalStages }, (_, i) => {
-                      const isCleared  = p?.stageCleared?.[i];
+                      const isCleared  = p?.stageCleared?.[i];           // 70% 통과
+                      const isDone     = p?.stageDone?.[i];              // 끝까지 풂(점수 무관)
                       const isNext     = !isCleared && (i === 0 || p?.stageCleared?.[i-1]);
                       const stageLocked = !isCleared && !isNext;
+                      // 통과(초록 ✓) > 완료했지만 미통과(주황 ✓·다시) > 다음(번호) > 잠금
+                      const checkColor = isCleared ? world.color : "#FFB800";
+                      const showCheck  = isCleared || (isDone && isNext);
                       return (
                         <button key={i}
                           onClick={(e) => { e.stopPropagation(); if (!stageLocked) startWorld(world, i); }}
                           disabled={stageLocked}
+                          title={isDone && !isCleared ? "끝까지 했어요 (70% 미달 — 다시 도전 시 잠금해제)" : undefined}
                           style={{
                             width: 36, height: 36,
                             borderRadius: 10,
-                            background: isCleared ? `${world.color}33`
+                            background: showCheck ? `${checkColor}33`
                               : isNext ? `${world.color}18`
                               : "rgba(255,255,255,0.04)",
-                            border: `1.5px solid ${isCleared ? world.color + "88"
+                            border: `1.5px solid ${showCheck ? checkColor + "88"
                               : isNext ? world.color + "44"
                               : "rgba(255,255,255,0.07)"}`,
-                            color: isCleared ? world.color
+                            color: showCheck ? checkColor
                               : isNext ? "rgba(255,255,255,0.7)"
                               : "rgba(255,255,255,0.2)",
-                            fontSize: isCleared ? 14 : 11,
+                            fontSize: showCheck ? 14 : 11,
                             fontWeight: 800,
                             cursor: stageLocked ? "not-allowed" : "pointer",
                             display: "flex", alignItems: "center", justifyContent: "center",
                           }}>
-                          {isCleared ? "✓" : i + 1}
+                          {showCheck ? "✓" : i + 1}
                         </button>
                       );
                     })}
@@ -2482,9 +2516,9 @@ export default function WordGame() {
             </div>
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
-          {activeWorld?.isCustom && !isReview && (
+          {activeWorld && !isReview && (
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
-              style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: "rgba(167,139,250,0.14)", border: "1.5px solid #A78BFA55", borderRadius: 16, color: "#C4B5FD", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+              style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: activeWorld?.isCustom ? "rgba(167,139,250,0.14)" : `${w.color}18`, border: `1.5px solid ${activeWorld?.isCustom ? "#A78BFA55" : w.color + "55"}`, borderRadius: 16, color: activeWorld?.isCustom ? "#C4B5FD" : w.color, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
               📌 오늘은 여기까지
             </button>
           )}

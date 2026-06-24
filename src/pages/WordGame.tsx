@@ -1380,10 +1380,10 @@ export default function WordGame() {
   // ── 공통 Fun.Uncle 헤더 ──────────────────────
   const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
-      <a href="https://fun.uncledison.com" style={{ textDecoration: "none", display: "flex", alignItems: "baseline", gap: 0 }}>
-        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>Fun</span>
-        <span style={{ color: "#fff", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>.Uncle</span>
-      </a>
+      <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>영단어</span>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 11 }}>플래시카드</span>
+      </button>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
         {showLevel ? (
@@ -1995,7 +1995,7 @@ export default function WordGame() {
       </div>
 
       <div style={{ marginTop: 48, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
-        교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
+        교육부 고시 제2022-33호 [별책 14] · <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
       </div>
       </div>
     </div>
@@ -2305,7 +2305,7 @@ export default function WordGame() {
 
       <div style={{ textAlign: "center", padding: "0 20px 32px", color: "rgba(255,255,255,0.12)", fontSize: 10, lineHeight: 1.8 }}>
         교육부 고시 제2022-33호 [별책 14] 기준<br />
-        <span style={{ color: "rgba(255,184,0,0.25)" }}>fun.uncledison.com</span>
+        <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
       </div>
       </div>
       <TabBar />
@@ -2694,7 +2694,7 @@ export default function WordGame() {
           </div>
 
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>
-            교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
+            교육부 고시 제2022-33호 [별책 14] · <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
           </div>
         </div>
         </div>
@@ -2754,7 +2754,7 @@ export default function WordGame() {
             </button>
           </div>
           <div style={{ marginTop: 24, color: "rgba(255,184,0,0.25)", fontSize: 10 }}>
-            교육부 고시 제2022-33호 [별책 14] · fun.uncledison.com
+            교육부 고시 제2022-33호 [별책 14] · <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
           </div>
         </div>
         </div>

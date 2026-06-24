@@ -2012,6 +2012,7 @@ export default function WordGame() {
             </button>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "8px 12px", borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 13 }}>💌 피드백</button>
+              <button onClick={() => setScreen("levelselect")} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "8px 16px", borderRadius: 16, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>처음으로</button>
             </div>
           </div>
 

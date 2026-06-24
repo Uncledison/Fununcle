@@ -932,6 +932,7 @@ export default function WordGame() {
   const [showAuthModal,   setShowAuthModal]   = useState(false);
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
+  const [authError,       setAuthError]       = useState("");    // 실제 에러 메시지
   const syncedRef = useRef(false);
   const maxSets = session ? 10 : 3; // 비로그인 3개 / 로그인 10개
   const [customWorlds, setCustomWorlds] = useState(() => {
@@ -1048,9 +1049,22 @@ export default function WordGame() {
         email,
         options: { emailRedirectTo: window.location.origin + "/english" },
       });
-      setAuthStatus(error ? "error" : "sent");
+      if (error) { setAuthError(error.message || "전송 실패"); setAuthStatus("error"); }
+      else setAuthStatus("sent");
     } catch (e) {
-      setAuthStatus("error");
+      setAuthError(String((e as any)?.message || e)); setAuthStatus("error");
+    }
+  };
+  // 소셜 로그인 (카카오/구글)
+  const signInWithProvider = async (provider) => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + "/english" },
+      });
+      if (error) { setAuthError(error.message); setAuthStatus("error"); }
+    } catch (e) {
+      setAuthError(String((e as any)?.message || e)); setAuthStatus("error");
     }
   };
   const signOut = async () => {
@@ -1079,7 +1093,23 @@ export default function WordGame() {
             <>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
               <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>로그인</h3>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>이메일로 로그인 링크를 보내드려요.<br />로그인하면 폰·PC에서 진도가 같이 저장됩니다.</p>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>로그인하면 폰·PC·가족이 진도를 함께 저장해요.</p>
+
+              {/* 소셜 로그인 */}
+              <button onClick={() => signInWithProvider("kakao")} style={{ width: "100%", padding: "14px", background: "#FEE500", border: "none", borderRadius: 14, color: "#191600", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                💬 카카오로 로그인
+              </button>
+              <button onClick={() => signInWithProvider("google")} style={{ width: "100%", padding: "14px", background: "#fff", border: "none", borderRadius: 14, color: "#1a1a1a", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <span style={{ color: "#4285F4" }}>G</span> 구글로 로그인
+              </button>
+
+              {/* 구분선 */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 14px" }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>또는 이메일</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+
               {authStatus === "sent" ? (
                 <div style={{ color: "#4ADE80", fontSize: 14, fontWeight: 700, padding: "16px", background: "rgba(74,222,128,0.1)", borderRadius: 14, marginBottom: 16 }}>
                   📩 메일을 확인하세요!<br /><span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 400 }}>받은 링크를 누르면 로그인됩니다.</span>
@@ -1088,9 +1118,9 @@ export default function WordGame() {
                 <>
                   <input type="email" placeholder="이메일 주소" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                     style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 15, marginBottom: 12, boxSizing: "border-box" }} />
-                  {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 10 }}>전송 실패. 이메일을 확인하고 다시 시도해주세요.</div>}
-                  <button onClick={sendMagicLink} disabled={authStatus === "sending"} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>
-                    {authStatus === "sending" ? "전송 중..." : "로그인 링크 받기"}
+                  {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 10, lineHeight: 1.5 }}>{authError || "전송 실패. 다시 시도해주세요."}</div>}
+                  <button onClick={sendMagicLink} disabled={authStatus === "sending"} style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", marginBottom: 8 }}>
+                    {authStatus === "sending" ? "전송 중..." : "이메일 링크 받기"}
                   </button>
                 </>
               )}

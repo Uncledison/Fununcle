@@ -1634,9 +1634,6 @@ export default function WordGame() {
         <div style={{ background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
           <FunUncleBar showLevel={true} />
           <div style={{ padding:"12px 22px 16px" }}>
-          <div style={{ color:"#fff", fontSize:24, fontWeight:900, marginBottom:16 }}>
-            단어 <span style={{ background:"linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>검색</span>
-          </div>
           {/* 검색창 */}
           <div style={{ position:"relative" }}>
             <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", fontSize:16 }}>🔍</span>
@@ -1767,10 +1764,6 @@ export default function WordGame() {
         <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
           <FunUncleBar showLevel={true} />
           <div style={{ padding: "12px 22px 20px" }}>
-          <div style={{ color: "#fff", fontSize: 26, fontWeight: 900, marginBottom: 18 }}>
-            내 <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>단어장</span>
-          </div>
-
           {/* 통계 카드 = 필터 버튼 (클릭하면 필터 전환) */}
           <div style={{ display: "flex", gap: 10 }}>
             {filters.map(f => {
@@ -2030,13 +2023,8 @@ export default function WordGame() {
         <ResumePromptModal />
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
-        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)", paddingBottom: 8 }}>
           <FunUncleBar showLevel={true} />
-          <div style={{ padding: "12px 22px 20px" }}>
-            <div style={{ color: "#fff", fontSize: 26, fontWeight: 900 }}>
-              나만의 <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>단어장</span>
-            </div>
-          </div>
         </div>
 
         <div style={{ padding: "16px 22px 0", display: "flex", flexDirection: "column", gap: 16 }}>

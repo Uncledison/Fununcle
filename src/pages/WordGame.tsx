@@ -1378,27 +1378,47 @@ export default function WordGame() {
   // vocabList → grouped 방식으로 대체됨
 
   // ── 공통 Fun.Uncle 헤더 ──────────────────────
+  // 라이브러리 전환 (교과서 3000 ↔ 내 단어장)
+  const switchLibrary = (toCustom) => {
+    setCustomOnlyMode(toCustom);
+    try { localStorage.setItem('custom_only_mode', toCustom ? 'true' : 'false'); } catch (e) {}
+    if (toCustom) {
+      setScreen("customVocab");
+    } else {
+      setTab("map");
+      setScreen("map");
+    }
+  };
   const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
-      <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ color: "#fff", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
-        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
-      </button>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
-        {showLevel ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+    <div style={{ padding: "16px 20px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
+          <span style={{ color: "#fff", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
+          <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
+          {showLevel ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 14 }}>⚡</span>
-            <span style={{ color: "#FFB800", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
-          </div>
-        )}
+          ) : (
+            <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 14 }}>⚡</span>
+              <span style={{ color: "#FFB800", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* 라이브러리 전환 토글 */}
+      <div style={{ marginTop: 12, display: "flex", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 3 }}>
+        <button onClick={() => switchLibrary(false)}
+          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !customOnlyMode ? "#FF8C00" : "transparent", color: !customOnlyMode ? "#3a1e00" : "rgba(255,255,255,0.45)" }}>교과서 3000</button>
+        <button onClick={() => switchLibrary(true)}
+          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customOnlyMode ? "#A78BFA" : "transparent", color: customOnlyMode ? "#241452" : "rgba(255,255,255,0.45)" }}>내 단어장</button>
       </div>
     </div>
   );
@@ -1959,9 +1979,14 @@ export default function WordGame() {
           <button key={lv.key}
             onClick={() => {
               if (lv.isCustomBtn) {
+                setCustomOnlyMode(true);
+                try { localStorage.setItem('custom_only_mode', 'true'); } catch(e) {}
                 setScreen("customVocab");
                 return;
               }
+              // 교과서 3000 라이브러리로 진입
+              setCustomOnlyMode(false);
+              try { localStorage.setItem('custom_only_mode', 'false'); } catch(e) {}
               // 비파괴: 진도 초기화 없이 해당 학년만 "열고" 그 위치로 이동
               unlockGradeStart(lv.worldId);
               levelStartWorldRef.current = lv.worldId;
@@ -2001,37 +2026,20 @@ export default function WordGame() {
   // ── 커스텀 단어장 화면 ─────────────────────────────
   if (screen === "customVocab") {
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", padding: "40px 22px 80px" }}>
+      <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
-        <div style={{ maxWidth: 480, margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
-
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ color: "#fff", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
-              <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
-            </button>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "8px 12px", borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontWeight: 800, fontSize: 13 }}>💌 피드백</button>
-              <button onClick={() => setScreen("levelselect")} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", padding: "8px 16px", borderRadius: 16, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>처음으로</button>
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
+        {/* 헤더 */}
+        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+          <FunUncleBar showLevel={true} />
+          <div style={{ padding: "12px 22px 20px" }}>
+            <div style={{ color: "#fff", fontSize: 26, fontWeight: 900 }}>
+              나만의 <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>단어장</span>
             </div>
           </div>
+        </div>
 
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ color: "#fff", fontWeight: 700, fontSize: 16, marginBottom: 4 }}>나만의 단어장만 쓰기</div>
-              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>내 단어장과 검색 메뉴에서 등록한 단어만 보여집니다</div>
-            </div>
-            <button 
-              onClick={() => {
-                const newVal = !customOnlyMode;
-                setCustomOnlyMode(newVal);
-                localStorage.setItem('custom_only_mode', newVal ? 'true' : 'false');
-              }}
-              style={{ width: 50, height: 28, background: customOnlyMode ? "#A78BFA" : "rgba(255,255,255,0.2)", borderRadius: 14, position: "relative", cursor: "pointer", border: "none", transition: "all 0.2s" }}
-            >
-              <div style={{ width: 22, height: 22, background: "#fff", borderRadius: "50%", position: "absolute", top: 3, left: customOnlyMode ? 25 : 3, transition: "all 0.2s" }} />
-            </button>
-          </div>
+        <div style={{ padding: "16px 22px 0", display: "flex", flexDirection: "column", gap: 16 }}>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {customWorlds.map((cw, i) => {
@@ -2152,6 +2160,7 @@ export default function WordGame() {
               최대 5개까지만 생성 가능합니다.
             </div>
           )}
+        </div>
         </div>
         <TabBar />
       </div>

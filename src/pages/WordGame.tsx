@@ -994,7 +994,7 @@ export default function WordGame() {
     if (!scrollTargetRef.current) return;
     const targetId = scrollTargetRef.current;
     scrollTargetRef.current = null;
-    const HEADER = 126;
+    const HEADER = 175;
     const el = document.getElementById(`world-card-${targetId}`);
     if (el) {
       let top = 0;
@@ -2188,8 +2188,8 @@ export default function WordGame() {
         </div>
       </div>
 
-      {/* 스크롤 본문 — 헤더 높이(약 110px) + 탭바(80px) 만큼 여백 */}
-      <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: 118, paddingBottom: 96 }}>
+      {/* 스크롤 본문 — 고정 헤더(타이틀+토글+레벨바 약 165px) + 탭바 만큼 여백 */}
+      <div style={{ maxWidth: 480, margin: "0 auto", paddingTop: 172, paddingBottom: 96 }}>
 
       {streak > 2 && (
         <div style={{ margin: "0 22px 14px", background: "rgba(255,100,0,0.08)", border: "1px solid rgba(255,100,0,0.18)", borderRadius: 12, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}>

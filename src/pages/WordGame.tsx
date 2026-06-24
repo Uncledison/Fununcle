@@ -1060,8 +1060,8 @@ export default function WordGame() {
     setShowAuthModal(false);
   };
 
-  // ── 로그인/계정 모달 ──────────────
-  const AuthModal = () => {
+  // ── 로그인/계정 모달 (컴포넌트 아닌 함수 렌더 — 입력 포커스 유지) ──────────────
+  const renderAuthModal = () => {
     if (!showAuthModal) return null;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }}>
@@ -1579,7 +1579,6 @@ export default function WordGame() {
           style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customOnlyMode ? "#A78BFA" : "transparent", color: customOnlyMode ? "#241452" : "rgba(255,255,255,0.45)" }}>내 단어장</button>
       </div>
     </div>
-    <AuthModal />
     </>
   );
 
@@ -1789,6 +1788,7 @@ export default function WordGame() {
     return (
       <div style={{ minHeight:"100dvh", background:"#07070f", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", justifyContent:"center" }}>
         <LevelConfirmModal />
+        {renderAuthModal()}
         <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", paddingBottom:80 }}>
         {/* 헤더 */}
         <div style={{ background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
@@ -1919,6 +1919,7 @@ export default function WordGame() {
     return (
       <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <LevelConfirmModal />
+        {renderAuthModal()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
@@ -2181,6 +2182,7 @@ export default function WordGame() {
     return (
       <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
+        {renderAuthModal()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)", paddingBottom: 8 }}>
@@ -2321,6 +2323,7 @@ export default function WordGame() {
   if (screen === "map") return (
     <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <LevelConfirmModal />
+      {renderAuthModal()}
 
       {/* 고정 헤더 */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "#0e0e20", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

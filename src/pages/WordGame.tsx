@@ -1206,8 +1206,8 @@ export default function WordGame() {
         setFinalCorrect(sc);
         setFinalTotal(st);
 
-        // 커스텀 세트 완주 → 이어하기 북마크 삭제 (다음엔 처음부터)
-        if (activeWorld?.isCustom) clearCustomResume(activeWorld.id);
+        // 커스텀 세트 "본 학습"을 완주했을 때만 북마크 삭제 (복습 완료는 제외)
+        if (activeWorld?.isCustom && !isReview) clearCustomResume(activeWorld.id);
 
         const count = parseInt(localStorage.getItem('play_count') || '0') + 1;
         localStorage.setItem('play_count', count.toString());
@@ -1251,7 +1251,7 @@ export default function WordGame() {
         processingRef.current = false;
       }
     }, 350);
-  }, [combo, sessionCorrect, sessionTotal, cardIdx, queue, activeWorld]);
+  }, [combo, sessionCorrect, sessionTotal, cardIdx, queue, activeWorld, isReview]);
 
   // ── 터치 핸들러 ──────────────────────────
   const onTouchStart = (e) => {

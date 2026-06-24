@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# 작업 부산물 (발음 수집 스크립트/테스트, 코드 백업, 임시 패치)
+scratch/
+*.backup_*.tsx
+WordGame.bak.tsx
+fix_home.py
+fix_tab.py
+patch3.py
+search_log.py
+search_log2.py
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

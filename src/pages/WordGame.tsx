@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
+import { speak } from "../lib/pronunciation";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const WORLDS = [
@@ -759,6 +760,51 @@ const initProgress = () => WORLDS.map(w => ({
   stageCleared: new Array(getStageCount(w)).fill(false),
 }));
 
+// ── 진행 상태 영구 저장 (localStorage) ───────────────────
+// 모바일 브라우저는 홈 이동/탭 전환 시 페이지를 재로드하므로
+// React 메모리 state만으로는 진행 기록이 사라진다 → localStorage에 영속화.
+const PROGRESS_KEY = "wordgame_progress_v1";
+
+// 저장된 진행 기록을 현재 WORLDS 구조에 맞춰 병합해 복원.
+// (단어장/스테이지 수가 바뀌어도 안전)
+const loadProgress = () => {
+  const base = initProgress();
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return base;
+    const saved = JSON.parse(raw);
+    const savedProgress = Array.isArray(saved?.progress) ? saved.progress : [];
+    return base.map((w) => {
+      const s = savedProgress.find((p) => p && p.worldId === w.id);
+      if (!s) return w;
+      const stageCleared = w.stageCleared.map((v, i) =>
+        Array.isArray(s.stageCleared) ? !!s.stageCleared[i] : v
+      );
+      return {
+        ...w,
+        mastered: Array.isArray(s.mastered) ? s.mastered : [],
+        failed:   Array.isArray(s.failed)   ? s.failed   : [],
+        cleared:  stageCleared.length > 0 && stageCleared.every(Boolean),
+        stageCleared,
+      };
+    });
+  } catch (e) {
+    return base;
+  }
+};
+
+const loadStat = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return fallback;
+    const saved = JSON.parse(raw);
+    const v = saved?.[key];
+    return typeof v === "number" && !isNaN(v) ? v : fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
+
 // ── 메인 앱 ────────────────────────────────────────────────
 
 // ── 커스텀 단어장 파싱 ──────────────────────────────────
@@ -787,10 +833,26 @@ export default function WordGame() {
     url: "https://fun.uncledison.com/english",
     image: "https://fun.uncledison.com/assets/wordgame_banner.png",
   });
-  const [progress,        setProgress]        = useState(initProgress);
-  const [xp,              setXp]              = useState(0);
-  const [streak,          setStreak]          = useState(0);
-  const [screen,          setScreen]          = useState(() => { try { return localStorage.getItem("custom_only_mode") === "true" ? "customVocab" : "levelselect"; } catch(e) { return "levelselect"; } });
+  const [progress,        setProgress]        = useState(loadProgress);
+  const [xp,              setXp]              = useState(() => loadStat("xp", 0));
+  const [streak,          setStreak]          = useState(() => loadStat("streak", 0));
+  const [screen,          setScreen]          = useState(() => {
+    try {
+      if (localStorage.getItem("custom_only_mode") === "true") return "customVocab";
+      // 저장된 진행 기록이 있으면 레벨선택 화면(진행을 초기화함)을 건너뛰고 맵으로 복귀.
+      // 모바일 재로드 시 1판부터 다시 시작되던 오류 방지.
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        const hasProgress = Array.isArray(saved?.progress) && saved.progress.some(p =>
+          (p?.mastered?.length || p?.failed?.length || p?.cleared ||
+           (Array.isArray(p?.stageCleared) && p.stageCleared.some(Boolean)))
+        );
+        if (hasProgress) return "map";
+      }
+      return "levelselect";
+    } catch(e) { return "levelselect"; }
+  });
   const [activeWorld,     setActiveWorld]     = useState(null);
   const [activeStage,     setActiveStage]     = useState(0);    // 현재 스테이지 (0부터)
   const [queue,           setQueue]           = useState([]);
@@ -826,13 +888,22 @@ export default function WordGame() {
   const [customOnlyMode, setCustomOnlyMode] = useState(() => {
     try { return localStorage.getItem('custom_only_mode') === 'true'; } catch(e) { return false; }
   });
-  const scrollTargetRef = useRef(null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
-  const levelStartWorldRef = useRef(1);   // 현재 선택된 레벨의 시작 월드 ID
+  const levelStartWorldRef = useRef(loadStat("levelStartWorld", 1));   // 현재 선택된 레벨의 시작 월드 ID (복원)
+  const scrollTargetRef = useRef(levelStartWorldRef.current > 1 ? levelStartWorldRef.current : null);   // 맵 진입 시 스크롤 대상 (ref로 클로저 문제 방지)
   const [scrollTrigger, setScrollTrigger] = useState(0); // 스크롤 강제 실행 트리거
 
   const touchStartX = useRef(0);
   const touchCurX   = useRef(0);
   const processingRef = useRef(false);
+
+  // ── 진행 상태 영구 저장 ────────────────────────────────
+  // progress/xp/streak이 바뀔 때마다 localStorage에 저장 →
+  // 모바일에서 페이지 재로드돼도 클리어한 스테이지가 유지된다.
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify({ progress, xp, streak, levelStartWorld: levelStartWorldRef.current }));
+    } catch (e) { /* 저장 실패 무시 */ }
+  }, [progress, xp, streak]);
 
   // ── 참여자 수 계산 (시간대별 기반 + localStorage 누적) ───────────────
   useEffect(() => {
@@ -2140,9 +2211,17 @@ export default function WordGame() {
               {!flipped && (
                 <>
                   <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 24 }}>ENGLISH</div>
-                  <div style={{ color: "#fff", fontSize: card.en.length > 11 ? 32 : card.en.length > 8 ? 38 : 46, fontWeight: 900, textAlign: "center", letterSpacing: 0.5, lineHeight: 1.1, marginBottom: 36 }}>
+                  <div style={{ color: "#fff", fontSize: card.en.length > 11 ? 32 : card.en.length > 8 ? 38 : 46, fontWeight: 900, textAlign: "center", letterSpacing: 0.5, lineHeight: 1.1, marginBottom: 16 }}>
                     {card.en}
                   </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); speak(card.en); }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    aria-label="발음 듣기"
+                    style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 auto 28px", padding: "10px 18px", background: `${w.color}1f`, border: `1.5px solid ${w.color}55`, borderRadius: 999, color: "#fff", fontSize: 18, fontWeight: 800, cursor: "pointer" }}>
+                    🔊 <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>발음</span>
+                  </button>
                   <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>탭해서 뜻 확인 👆</div>
                 </>
               )}

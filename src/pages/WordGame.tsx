@@ -2483,7 +2483,7 @@ export default function WordGame() {
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
           {activeWorld?.isCustom && !isReview && (
-            <button onClick={saveCustomAndExit}
+            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
               style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: "rgba(167,139,250,0.14)", border: "1.5px solid #A78BFA55", borderRadius: 16, color: "#C4B5FD", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
               📌 오늘은 여기까지
             </button>

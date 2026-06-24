@@ -886,6 +886,25 @@ export default function WordGame() {
   });
   const [customTitle, setCustomTitle] = useState("");
   const [customInput, setCustomInput] = useState("");
+  const [editingId, setEditingId] = useState(null);          // 편집 중인 커스텀 세트 id (null=새로 만들기)
+  const [resumePrompt, setResumePrompt] = useState(null);    // 이어/처음 선택 팝업 대상 세트
+  const [customResume, setCustomResume] = useState(() => {    // 세트별 이어하기 북마크
+    try { return JSON.parse(localStorage.getItem('custom_resume') || '{}'); } catch(e) { return {}; }
+  });
+  const saveCustomResume = (id, rec) => {
+    setCustomResume(prev => {
+      const next = { ...prev, [id]: rec };
+      try { localStorage.setItem('custom_resume', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  };
+  const clearCustomResume = (id) => {
+    setCustomResume(prev => {
+      const next = { ...prev }; delete next[id];
+      try { localStorage.setItem('custom_resume', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  };
   const [customOnlyMode, setCustomOnlyMode] = useState(() => {
     try { return localStorage.getItem('custom_only_mode') === 'true'; } catch(e) { return false; }
   });
@@ -1027,38 +1046,87 @@ export default function WordGame() {
   };
 
 
-  const startCustomWorld = (world) => {
+  // 커스텀 세트의 진행 북마크가 유효한지 (중간에 멈춘 상태)
+  const hasResume = (world) => {
+    const rec = customResume[world.id];
+    return !!(rec && Array.isArray(rec.order) && rec.pos > 0 && rec.pos < rec.order.length);
+  };
+
+  // 세트 클릭 → 진행 중이면 이어/처음 팝업, 아니면 바로 시작
+  const openCustomWorld = (world) => {
+    if (hasResume(world)) setResumePrompt(world);
+    else startCustomWorld(world, false);
+  };
+
+  // resume=true 이어서 하기 / false 처음부터
+  const startCustomWorld = (world, resume) => {
     let currentProgress = [...progress];
     let p = currentProgress.find(p => p.worldId === world.id);
     if (!p) {
-      p = {
-        worldId: world.id,
-        mastered: [],
-        failed: [],
-        cleared: false,
-        stageCleared: [false],
-      };
+      p = { worldId: world.id, mastered: [], failed: [], cleared: false, stageCleared: [false] };
       currentProgress.push(p);
       setProgress(currentProgress);
     }
-    
-    const targetStage = 0;
-    const failed = world.words.filter(w => p?.failed.includes(w.en));
-    const others = shuffle(world.words.filter(w => !p?.failed.includes(w.en)));
+
+    const rec = customResume[world.id];
+    let orderEns, pos, correct, total;
+    if (resume && rec && Array.isArray(rec.order)) {
+      orderEns = rec.order;
+      pos = rec.pos || 0;
+      correct = rec.correct || 0;
+      total = rec.total || 0;
+    } else {
+      // 처음부터: 새로 섞음 + 기존 북마크 제거
+      orderEns = shuffle(world.words.map(w => w.en));
+      pos = 0; correct = 0; total = 0;
+      clearCustomResume(world.id);
+    }
+
+    // 저장된 영어 순서로 단어 객체 복원 (편집으로 사라진 단어는 건너뜀)
+    const byEn = Object.fromEntries(world.words.map(w => [w.en, w]));
+    const q = orderEns.map(en => byEn[en]).filter(Boolean);
+    const startIdx = Math.min(pos, Math.max(0, q.length - 1));
 
     setActiveWorld({ ...world, unlocked: true, isCustom: true });
-    setActiveStage(targetStage);
-    setQueue([...failed, ...others]);
-    setCardIdx(0);
+    setActiveStage(0);
+    setQueue(q);
+    setCardIdx(startIdx);
     setFlipped(false);
     setSwipeDir(null);
     setDragX(0);
-    setSessionCorrect(0);
-    setSessionTotal(0);
+    setSessionCorrect(correct);
+    setSessionTotal(total);
     setCombo(0);
     setIsReview(false);
     processingRef.current = false;
+    setResumePrompt(null);
     setScreen("game");
+  };
+
+  // 오늘 여기까지 — 현재 위치 저장 후 내 단어장으로
+  const saveCustomAndExit = () => {
+    if (activeWorld?.isCustom) {
+      saveCustomResume(activeWorld.id, {
+        order: queue.map(c => c.en),
+        pos: cardIdx,
+        correct: sessionCorrect,
+        total: sessionTotal,
+      });
+    }
+    setShowQuitConfirm(false);
+    setScreen("customVocab");
+  };
+
+  // 커스텀 세트 편집 시작 (폼에 기존 내용 채움)
+  const startEditCustom = (world) => {
+    setEditingId(world.id);
+    setCustomTitle(world.title);
+    setCustomInput(world.words.map(w => (w.ko ? `${w.en} ${w.ko}` : w.en)).join("\n"));
+  };
+  const cancelEditCustom = () => {
+    setEditingId(null);
+    setCustomTitle("");
+    setCustomInput("");
   };
 
   // ── 복습 모드 시작 ────────────────────────
@@ -1127,6 +1195,9 @@ export default function WordGame() {
       if (nextIdx >= queue.length) {
         setFinalCorrect(sc);
         setFinalTotal(st);
+
+        // 커스텀 세트 완주 → 이어하기 북마크 삭제 (다음엔 처음부터)
+        if (activeWorld?.isCustom) clearCustomResume(activeWorld.id);
 
         const count = parseInt(localStorage.getItem('play_count') || '0') + 1;
         localStorage.setItem('play_count', count.toString());
@@ -1306,41 +1377,97 @@ export default function WordGame() {
   );
 
   // ── 게임 중 나가기 확인 팝업 ──────────────────
-  const QuitConfirmModal = () => !showQuitConfirm ? null : (
+  const QuitConfirmModal = () => {
+    if (!showQuitConfirm) return null;
+    const isCustom = activeWorld?.isCustom;
+    const plainExit = () => {
+      setShowQuitConfirm(false);
+      if (isCustom) { setScreen("customVocab"); return; }
+      if (customOnlyMode && quitTarget === "map") {
+        setScreen("customVocab");
+      } else {
+        setScreen("map");
+        setTab(quitTarget);
+      }
+      if (!customOnlyMode && levelStartWorldRef.current > 1 && quitTarget === "map") {
+        scrollTargetRef.current = levelStartWorldRef.current;
+        setScrollTrigger(t => t + 1);
+      }
+    };
+    return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
       <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
-        <div style={{ fontSize: 44, marginBottom: 16 }}>🚪</div>
-        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>학습을 종료할까요?</h3>
+        <div style={{ fontSize: 44, marginBottom: 16 }}>{isCustom ? "📌" : "🚪"}</div>
+        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{isCustom ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
         <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
-          현재 스테이지 진행 기록은<br />저장되지 않습니다.
+          {isCustom
+            ? <>지금 위치를 저장하면<br />다음에 <b style={{ color: "#A78BFA" }}>이어서 하기</b>로 계속할 수 있어요.</>
+            : <>현재 스테이지 진행 기록은<br />저장되지 않습니다.</>}
         </p>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            onClick={() => setShowQuitConfirm(false)}
-            style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-            계속하기
-          </button>
-          <button
-            onClick={() => {
-              setShowQuitConfirm(false);
-              if (customOnlyMode && quitTarget === "map") {
-                setScreen("customVocab");
-              } else {
-                setScreen("map");
-                setTab(quitTarget);
-              }
-              if (!customOnlyMode && levelStartWorldRef.current > 1 && quitTarget === "map") {
-                scrollTargetRef.current = levelStartWorldRef.current;
-                setScrollTrigger(t => t + 1);
-              }
-            }}
-            style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
-            나가기
-          </button>
-        </div>
+        {isCustom ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={saveCustomAndExit}
+              style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+              💾 저장하고 나가기
+            </button>
+            <button onClick={plainExit}
+              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              저장 없이 나가기
+            </button>
+            <button onClick={() => setShowQuitConfirm(false)}
+              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              계속하기
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setShowQuitConfirm(false)}
+              style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              계속하기
+            </button>
+            <button onClick={plainExit}
+              style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+              나가기
+            </button>
+          </div>
+        )}
       </div>
     </div>
-  );
+    );
+  };
+
+  // ── 이어서 하기 / 처음부터 하기 팝업 ────────────
+  const ResumePromptModal = () => {
+    if (!resumePrompt) return null;
+    const rec = customResume[resumePrompt.id] || {};
+    const total = Array.isArray(rec.order) ? rec.order.length : resumePrompt.words.length;
+    const done = rec.pos || 0;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 44, marginBottom: 16 }}>📖</div>
+          <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 8px" }}>{resumePrompt.title}</h3>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+            지난번 <b style={{ color: "#A78BFA" }}>{done}번째</b>까지 했어요.<br />이어서 할까요? (총 {total}개)
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={() => startCustomWorld(resumePrompt, true)}
+              style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+              ▶ 이어서 하기 ({done + 1}번부터)
+            </button>
+            <button onClick={() => startCustomWorld(resumePrompt, false)}
+              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              🔄 처음부터 하기
+            </button>
+            <button onClick={() => setResumePrompt(null)}
+              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // ── 카카오 공유 핸들러 ────────────────────────
   const handleKakaoShare = () => {
@@ -1826,8 +1953,9 @@ export default function WordGame() {
   if (screen === "customVocab") {
     return (
       <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", flexDirection: "column", padding: "40px 22px 80px" }}>
+        <ResumePromptModal />
         <div style={{ maxWidth: 480, margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
-          
+
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h2 style={{ color: "#fff", fontSize: 24, margin: 0, fontWeight: 800 }}>나만의 단어장 ✍️</h2>
             <div style={{ display: "flex", gap: 8 }}>
@@ -1854,28 +1982,44 @@ export default function WordGame() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {customWorlds.map((cw, i) => (
-              <div key={cw.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <button onClick={() => startCustomWorld(cw)} style={{ flex: 1, padding: "20px", background: "linear-gradient(135deg,#A78BFA14,#6d28d920)", border: "1.5px solid #A78BFA40", borderRadius: 20, textAlign: "left", cursor: "pointer" }}>
+            {customWorlds.map((cw, i) => {
+              const rec = customResume[cw.id];
+              const total = Array.isArray(rec?.order) ? rec.order.length : cw.words.length;
+              const inProgress = rec && Array.isArray(rec.order) && rec.pos > 0 && rec.pos < rec.order.length;
+              return (
+              <div key={cw.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button onClick={() => openCustomWorld(cw)} style={{ flex: 1, padding: "18px 20px", background: "linear-gradient(135deg,#A78BFA14,#6d28d920)", border: "1.5px solid #A78BFA40", borderRadius: 20, textAlign: "left", cursor: "pointer" }}>
                   <div style={{ color: "#fff", fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{cw.title}</div>
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>단어 {cw.words.length}개</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>단어 {cw.words.length}개</span>
+                    {inProgress && <span style={{ background: "#A78BFA22", color: "#C4B5FD", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10 }}>이어하기 {rec.pos}/{total}</span>}
+                  </div>
+                  {inProgress && (
+                    <div style={{ marginTop: 8, height: 5, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: "linear-gradient(90deg,#6d28d9,#A78BFA)", borderRadius: 3 }} />
+                    </div>
+                  )}
                 </button>
+                <button onClick={() => startEditCustom(cw)} aria-label="편집" style={{ padding: "16px 13px", background: "rgba(167,139,250,0.12)", border: "none", borderRadius: 16, color: "#A78BFA", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>✏️</button>
                 <button onClick={() => {
                   if(!confirm('정말 삭제하시겠습니까?')) return;
                   const newCw = customWorlds.filter(w => w.id !== cw.id);
                   setCustomWorlds(newCw);
                   localStorage.setItem('custom_worlds', JSON.stringify(newCw));
-                }} style={{ padding: "16px", background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 16, color: "#EF4444", cursor: "pointer", flexShrink: 0 }}>삭제</button>
+                  clearCustomResume(cw.id);
+                  if (editingId === cw.id) cancelEditCustom();
+                }} aria-label="삭제" style={{ padding: "16px 13px", background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 16, color: "#EF4444", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>🗑️</button>
               </div>
-            ))}
+              );
+            })}
             {customWorlds.length === 0 && (
               <div style={{ color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "40px 0" }}>생성된 단어장이 없습니다.<br/>아래에서 만들어보세요!</div>
             )}
           </div>
 
-          {customWorlds.length < 5 ? (
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: 24, marginTop: 12 }}>
-              <h3 style={{ color: "#fff", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>새 단어장 만들기</h3>
+          {(editingId !== null || customWorlds.length < 5) ? (
+            <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${editingId !== null ? "#A78BFA66" : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: 24, marginTop: 12 }}>
+              <h3 style={{ color: "#fff", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
               
               <input type="text" placeholder="단어장 이름 (미입력 시 날짜로 저장)" value={customTitle} onChange={e => setCustomTitle(e.target.value)} 
                 style={{ width: "100%", padding: "14px 16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", marginBottom: 12 }} />
@@ -1911,10 +2055,22 @@ export default function WordGame() {
               <button onClick={() => {
                 const words = parseCustomWords(customInput);
                 if (words.length === 0) return alert('단어를 입력해주세요.');
-                
+
                 const now = new Date();
                 const defaultTitle = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} 단어장`;
-                
+
+                if (editingId !== null) {
+                  // 편집 저장: 제목·단어 교체, 진행 북마크 초기화(위치 꼬임 방지)
+                  const newWorlds = customWorlds.map(w =>
+                    w.id === editingId ? { ...w, title: customTitle || w.title, words } : w
+                  );
+                  setCustomWorlds(newWorlds);
+                  localStorage.setItem('custom_worlds', JSON.stringify(newWorlds));
+                  clearCustomResume(editingId);
+                  cancelEditCustom();
+                  return;
+                }
+
                 const newWorld = {
                   id: 1000 + Date.now() % 100000,
                   title: customTitle || defaultTitle,
@@ -1924,13 +2080,20 @@ export default function WordGame() {
                   words: words,
                   isCustom: true
                 };
-                
+
                 const newWorlds = [...customWorlds, newWorld];
                 setCustomWorlds(newWorlds);
                 localStorage.setItem('custom_worlds', JSON.stringify(newWorlds));
                 setCustomInput("");
                 setCustomTitle("");
-              }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>추가하기 ({customWorlds.length}/5)</button>
+              }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
+                {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/5)`}
+              </button>
+              {editingId !== null && (
+                <button onClick={cancelEditCustom} style={{ width: "100%", padding: "13px", marginTop: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                  취소
+                </button>
+              )}
             </div>
           ) : (
             <div style={{ color: "#EF4444", textAlign: "center", padding: "20px", background: "rgba(239,68,68,0.1)", borderRadius: 16 }}>
@@ -2142,7 +2305,9 @@ export default function WordGame() {
                 <div style={{ color: w.color, fontWeight: 800, fontSize: 13 }}>{w.emoji} {w.title}</div>
                 {isReview
                   ? <span style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 20, padding: "1px 8px", color: "#EF4444", fontSize: 10, fontWeight: 800 }}>복습</span>
-                  : <span style={{ background: `${w.color}18`, border: `1px solid ${w.color}33`, borderRadius: 20, padding: "1px 8px", color: w.color, fontSize: 10, fontWeight: 800 }}>스테이지 {activeStage + 1}</span>
+                  : activeWorld?.isCustom
+                    ? <span style={{ background: `${w.color}18`, border: `1px solid ${w.color}33`, borderRadius: 20, padding: "1px 8px", color: w.color, fontSize: 10, fontWeight: 800 }}>📝 내 단어장</span>
+                    : <span style={{ background: `${w.color}18`, border: `1px solid ${w.color}33`, borderRadius: 20, padding: "1px 8px", color: w.color, fontSize: 10, fontWeight: 800 }}>스테이지 {activeStage + 1}</span>
                 }
               </div>
               <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{cardIdx + 1} / {queue.length}</div>
@@ -2156,6 +2321,12 @@ export default function WordGame() {
           <div style={{ height: 4, background: "rgba(255,255,255,0.07)", borderRadius: 4, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${progressPct}%`, background: `linear-gradient(90deg,${w.dark},${w.color})`, borderRadius: 4, transition: "width 0.3s" }} />
           </div>
+          {activeWorld?.isCustom && (
+            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
+              style={{ width: "100%", marginTop: 12, padding: "11px", background: "rgba(167,139,250,0.12)", border: "1px solid #A78BFA40", borderRadius: 14, color: "#C4B5FD", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
+              📌 오늘은 여기까지 (저장하고 나가기)
+            </button>
+          )}
         </div>
 
         {/* 콤보 팝업 */}
@@ -2317,7 +2488,7 @@ export default function WordGame() {
       <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-        <div style={{ color: w.color, fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>WORLD {w.id} CLEAR!</div>
+        <div style={{ color: w.color, fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{activeWorld?.isCustom ? "단어장 완주!" : `WORLD ${w.id} CLEAR!`}</div>
         <h2 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 8px" }}>{w.title}<br />클리어!</h2>
         <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, marginBottom: 8 }}>
           {finalTotal}개 중 {finalCorrect}개 정답
@@ -2333,7 +2504,18 @@ export default function WordGame() {
           </div>
         )}
 
-        {(() => {
+        {activeWorld?.isCustom ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={() => startCustomWorld(activeWorld, false)}
+              style={{ padding: "18px", background: `linear-gradient(135deg,${w.dark},${w.color})`, border: "none", borderRadius: 20, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer" }}>
+              🔄 처음부터 다시
+            </button>
+            <button onClick={() => setScreen("customVocab")}
+              style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              내 단어장으로
+            </button>
+          </div>
+        ) : (() => {
           const totalStages  = getStageCount(w);
           const nextStage    = activeStage + 1;
           const hasNextStage = nextStage < totalStages;
@@ -2493,6 +2675,13 @@ export default function WordGame() {
                 </button>
               ) : null;
             })()}
+            {/* 커스텀 세트 다시 도전 */}
+            {activeWorld?.isCustom && (
+              <button onClick={() => startCustomWorld(activeWorld, false)}
+                style={{ padding: "18px", background: `linear-gradient(135deg,${w.dark},${w.color})`, border: "none", borderRadius: 18, color: "#fff", fontSize: 17, fontWeight: 900, cursor: "pointer" }}>
+                🔄 다시 도전
+              </button>
+            )}
             {/* 틀린 단어 복습 */}
             {p.failed.length > 0 && (
               <button onClick={() => startReview(w)}

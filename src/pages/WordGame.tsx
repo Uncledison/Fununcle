@@ -1381,8 +1381,8 @@ export default function WordGame() {
   const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
       <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 900, fontSize: 20, letterSpacing: -0.5 }}>영단어</span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 11 }}>플래시카드</span>
+        <span style={{ color: "#fff", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
+        <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>

@@ -1058,10 +1058,10 @@ export default function WordGame() {
   // 소셜 로그인 (카카오/구글)
   const signInWithProvider = async (provider) => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: window.location.origin + "/english" },
-      });
+      const options: any = { redirectTo: window.location.origin + "/english" };
+      // 카카오: 이메일 동의항목(비즈앱/검수 필요)을 피하려고 닉네임만 요청
+      if (provider === "kakao") options.scopes = "profile_nickname";
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options });
       if (error) { setAuthError(error.message); setAuthStatus("error"); }
     } catch (e) {
       setAuthError(String((e as any)?.message || e)); setAuthStatus("error");

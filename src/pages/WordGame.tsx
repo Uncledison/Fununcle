@@ -1074,8 +1074,12 @@ export default function WordGame() {
   const signInWithProvider = async (provider) => {
     try {
       const options: any = { redirectTo: window.location.origin + "/english" };
-      // 카카오: 이메일 동의항목(비즈앱/검수 필요)을 피하려고 닉네임만 요청
-      if (provider === "kakao") options.scopes = "profile_nickname";
+      // 카카오: scope를 직접 덮어써서 Supabase가 강제하는 account_email을 제거
+      // (이메일 동의항목/비즈앱 없이 닉네임·프로필만으로 로그인)
+      if (provider === "kakao") {
+        options.scopes = "profile_nickname profile_image";
+        options.queryParams = { scope: "profile_nickname profile_image" };
+      }
       const { error } = await supabase.auth.signInWithOAuth({ provider, options });
       if (error) { setAuthError(error.message); setAuthStatus("error"); }
     } catch (e) {

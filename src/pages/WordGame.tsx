@@ -1130,31 +1130,12 @@ export default function WordGame() {
               <button onClick={() => signInWithProvider("kakao")} style={{ width: "100%", padding: "14px", background: "#FEE500", border: "none", borderRadius: 14, color: "#191600", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 💬 카카오로 로그인
               </button>
-              <button onClick={() => signInWithProvider("google")} style={{ width: "100%", padding: "14px", background: "#fff", border: "none", borderRadius: 14, color: "#1a1a1a", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button onClick={() => signInWithProvider("google")} style={{ width: "100%", padding: "14px", background: "#fff", border: "none", borderRadius: 14, color: "#1a1a1a", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <span style={{ color: "#4285F4" }}>G</span> 구글로 로그인
               </button>
 
-              {/* 구분선 */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 14px" }}>
-                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>또는 이메일</span>
-                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-              </div>
+              {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, margin: "0 0 12px", lineHeight: 1.5 }}>{authError || "로그인 실패. 다시 시도해주세요."}</div>}
 
-              {authStatus === "sent" ? (
-                <div style={{ color: "#4ADE80", fontSize: 14, fontWeight: 700, padding: "16px", background: "rgba(74,222,128,0.1)", borderRadius: 14, marginBottom: 16 }}>
-                  📩 메일을 확인하세요!<br /><span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 400 }}>받은 링크를 누르면 로그인됩니다.</span>
-                </div>
-              ) : (
-                <>
-                  <input type="email" placeholder="이메일 주소" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 14, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 15, marginBottom: 12, boxSizing: "border-box" }} />
-                  {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 10, lineHeight: 1.5 }}>{authError || "전송 실패. 다시 시도해주세요."}</div>}
-                  <button onClick={sendMagicLink} disabled={authStatus === "sending"} style={{ width: "100%", padding: "14px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer", marginBottom: 8 }}>
-                    {authStatus === "sending" ? "전송 중..." : "이메일 링크 받기"}
-                  </button>
-                </>
-              )}
               <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
           )}

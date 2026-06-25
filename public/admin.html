@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>영단어 · 가입 승인</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#07070f; color:#fff; font-family:'Segoe UI',system-ui,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:24px 16px 80px; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  .sub { color:rgba(255,255,255,.4); font-size:13px; margin-bottom:20px; }
+  button { font-family:inherit; cursor:pointer; border:none; border-radius:10px; font-weight:700; }
+  .btn-primary { background:linear-gradient(135deg,#FF8C00,#FF6B00); color:#fff; padding:12px 18px; font-size:15px; }
+  .btn-ghost { background:rgba(255,255,255,.07); color:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.12); padding:8px 12px; font-size:13px; }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px; margin-bottom:10px; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .email { font-weight:700; font-size:15px; }
+  .meta { color:rgba(255,255,255,.4); font-size:12px; margin-top:2px; }
+  .badge { font-size:11px; font-weight:800; padding:2px 9px; border-radius:20px; }
+  .b-pending { background:rgba(255,184,0,.15); color:#FFB800; }
+  .b-ok { background:rgba(74,222,128,.15); color:#4ADE80; }
+  .b-vip { background:rgba(255,184,0,.18); color:#FFB800; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .act-approve { background:#4ADE80; color:#063; padding:9px 14px; font-size:13px; }
+  .act-revoke { background:rgba(239,68,68,.15); color:#EF4444; padding:9px 14px; font-size:13px; }
+  .act-vip { background:rgba(255,184,0,.15); color:#FFB800; padding:9px 14px; font-size:13px; }
+  .center { text-align:center; padding:60px 20px; color:rgba(255,255,255,.5); }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="center">불러오는 중…</div></div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://avspjndaezytkvutunnf.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2c3BqbmRhZXp5dGt2dXR1bm5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTkxMDksImV4cCI6MjA5Nzg3NTEwOX0.2XsCxeV39Pjn6Kfwv0nafvY7hdKXuo9ksnzK1q9AOKc";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true, detectSessionInUrl: true } });
+
+const app = document.getElementById("app");
+const esc = (s) => String(s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]));
+const fmt = (t) => { try { return new Date(t).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }); } catch { return ""; } };
+
+async function render() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    app.innerHTML = `<div class="center">
+      <h1>가입 승인 관리자</h1>
+      <p class="sub">관리자 계정으로 로그인하세요.</p>
+      <button class="btn-primary" id="login">구글로 로그인</button>
+    </div>`;
+    document.getElementById("login").onclick = () =>
+      supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + "/admin.html" } });
+    return;
+  }
+
+  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", session.user.id).maybeSingle();
+  if (!me || !me.is_admin) {
+    app.innerHTML = `<div class="center">
+      <h1>접근 권한 없음</h1>
+      <p class="sub">${esc(session.user.email)} 은 관리자가 아닙니다.</p>
+      <button class="btn-ghost" id="out">로그아웃</button>
+    </div>`;
+    document.getElementById("out").onclick = async () => { await supabase.auth.signOut(); render(); };
+    return;
+  }
+
+  const { data: rows, error } = await supabase
+    .from("profiles")
+    .select("id,email,name,approved,membership_level,created_at")
+    .order("approved", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (error) { app.innerHTML = `<div class="center">불러오기 실패: ${esc(error.message)}</div>`; return; }
+
+  const pending = rows.filter((r) => !r.approved).length;
+  app.innerHTML = `
+    <div class="topbar">
+      <div><h1>가입 승인</h1><div class="sub">대기 ${pending}명 · 전체 ${rows.length}명</div></div>
+      <button class="btn-ghost" id="refresh">새로고침</button>
+    </div>
+    ${rows.map((r) => `
+      <div class="card" data-id="${r.id}">
+        <div class="row">
+          <div>
+            <div class="email">${esc(r.email || r.name || "(이메일 없음)")}
+              ${r.approved ? '<span class="badge b-ok">승인</span>' : '<span class="badge b-pending">대기</span>'}
+              ${r.membership_level === "vip" ? '<span class="badge b-vip">👑 VIP</span>' : ""}
+            </div>
+            <div class="meta">${esc(r.name || "")} · ${fmt(r.created_at)}</div>
+          </div>
+          <div class="actions">
+            ${r.approved
+              ? `<button class="act-revoke" data-act="revoke">승인취소</button>`
+              : `<button class="act-approve" data-act="approve">승인</button>`}
+            <button class="act-vip" data-act="vip">${r.membership_level === "vip" ? "일반으로" : "VIP로"}</button>
+          </div>
+        </div>
+      </div>`).join("")}
+  `;
+
+  document.getElementById("refresh").onclick = render;
+  app.querySelectorAll("[data-act]").forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.closest(".card").dataset.id;
+      const act = btn.dataset.act;
+      btn.disabled = true; btn.textContent = "…";
+      let patch = {};
+      if (act === "approve") patch = { approved: true };
+      else if (act === "revoke") patch = { approved: false };
+      else if (act === "vip") {
+        const cur = rows.find((r) => r.id === id);
+        patch = { membership_level: cur.membership_level === "vip" ? "regular" : "vip" };
+      }
+      const { error } = await supabase.from("profiles").update(patch).eq("id", id);
+      if (error) alert("실패: " + error.message);
+      render();
+    };
+  });
+}
+
+render();
+supabase.auth.onAuthStateChange(() => render());
+</script>
+</body>
+</html>

@@ -1118,9 +1118,9 @@ export default function WordGame() {
               <div style={{ display: "inline-block", fontSize: 12, margin: "0 0 6px", padding: "3px 12px", borderRadius: 20, fontWeight: 800,
                 background: isAdmin ? "rgba(255,107,0,0.15)" : membership === "vip" ? "rgba(255,184,0,0.15)" : "rgba(255,255,255,0.06)",
                 color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
-                {isAdmin ? "👔 CEO (관리자)" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
+                {isAdmin ? "👔 CEO" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
-              <p style={{ color: "#4ADE80", fontSize: 12, margin: "6px 0 16px" }}>☁️ 기기간 동기화 중</p>
+              <p style={{ color: "#FFB800", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {allMastered.length}개 · Lv.{level}</p>
               <div style={{ margin: "0 0 16px", textAlign: "left" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>별명</div>
                 <input value={nickname} onChange={e => changeNickname(e.target.value)} maxLength={12}

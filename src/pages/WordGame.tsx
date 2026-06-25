@@ -933,7 +933,18 @@ export default function WordGame() {
   const [membership,      setMembership]      = useState("regular"); // regular | vip
   const [isAdmin,         setIsAdmin]         = useState(false);  // 관리자(CEO)
   const [avatar,          setAvatar]          = useState(() => { try { return localStorage.getItem("wordgame_avatar") || ""; } catch(e) { return ""; } });
-  const AVATARS = ["🦊","🐱","🐶","🐼","🐯","🦁","🐰","🐸","🐧","🐵","🐨","🦄","🐢","🐙","🦖","🐝","🐳","🦉","🐹","🦋","😎","🤩","🥳","🤖","👽","🦸","🧑‍🚀","🐲"];
+  const AVATARS = [
+    // 동물 1 (28)
+    "🦊","🐱","🐶","🐼","🐯","🦁","🐰","🐸","🐧","🐵","🐨","🦄","🐢","🐙","🐝","🐳","🦉","🐹","🦋","🐘","🦒","🦓","🦏","🦛","🐊","🐬","🦈","🐅",
+    // 동물 2 (28)
+    "🦌","🐄","🐖","🐑","🐐","🦔","🦇","🦅","🦜","🦚","🦢","🐍","🦎","🐌","🐞","🐜","🐺","🦝","🦦","🦥","🦫","🦡","🐿️","🦃","🦩","🕊️","🦖","🦕",
+    // 직업·되고 싶은 것 (28)
+    "👨‍⚕️","👩‍⚕️","🧑‍🚒","👮","🧑‍🍳","🧑‍🏫","🧑‍🔬","🧑‍🌾","🧑‍✈️","🧑‍🚀","🧑‍🎨","🧑‍💻","🧑‍⚖️","🧑‍🏭","🧑‍🔧","🧑‍🎤","🕵️","💂","🤵","👰","🦸","⚽","🏀","⚾","🎬","🎻","🩰","🚀",
+  ];
+  const AVATAR_PER_PAGE = 28;
+  const avatarPageCount = Math.ceil(AVATARS.length / AVATAR_PER_PAGE);
+  const [avatarPage, setAvatarPage] = useState(0);
+  const avatarTouchRef = useRef(0);
   const pickAvatar = (em) => { setAvatar(em); try { localStorage.setItem("wordgame_avatar", em); } catch(e) {} };
   const [nickname, setNickname] = useState(() => { try { return localStorage.getItem("wordgame_nickname") || ""; } catch(e) { return ""; } });
   const changeNickname = (v) => { setNickname(v); try { localStorage.setItem("wordgame_nickname", v); } catch(e) {} };
@@ -1127,12 +1138,28 @@ export default function WordGame() {
                   placeholder={session.user?.user_metadata?.name || "별명을 입력하세요"}
                   style={{ width: "100%", padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
               </div>
-              <div style={{ margin: "0 0 20px" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-                  {AVATARS.map(em => (
-                    <button key={em} onClick={() => pickAvatar(em)} style={{ width: 38, height: 38, fontSize: 20, borderRadius: 10, cursor: "pointer", border: avatar === em ? "2px solid #FF8C00" : "1px solid rgba(255,255,255,0.1)", background: avatar === em ? "rgba(255,140,0,0.18)" : "rgba(255,255,255,0.04)" }}>{em}</button>
+              <div style={{ margin: "0 0 18px" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨ <span style={{ color: "rgba(255,255,255,0.25)" }}>(좌우로 넘기기)</span></div>
+                <div
+                  onTouchStart={(e) => { avatarTouchRef.current = e.touches[0].clientX; }}
+                  onTouchEnd={(e) => {
+                    const dx = e.changedTouches[0].clientX - avatarTouchRef.current;
+                    if (dx < -40) setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1));
+                    else if (dx > 40) setAvatarPage(p => Math.max(p - 1, 0));
+                  }}
+                  style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5 }}>
+                  {AVATARS.slice(avatarPage * AVATAR_PER_PAGE, avatarPage * AVATAR_PER_PAGE + AVATAR_PER_PAGE).map((em, i) => (
+                    <button key={avatarPage + "-" + i} onClick={() => pickAvatar(em)} style={{ aspectRatio: "1", padding: 0, fontSize: 18, borderRadius: 9, cursor: "pointer", border: avatar === em ? "2px solid #FF8C00" : "1px solid rgba(255,255,255,0.1)", background: avatar === em ? "rgba(255,140,0,0.2)" : "rgba(255,255,255,0.04)" }}>{em}</button>
                   ))}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 10 }}>
+                  <button onClick={() => setAvatarPage(p => Math.max(p - 1, 0))} disabled={avatarPage === 0} style={{ background: "none", border: "none", color: avatarPage === 0 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>‹</button>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {Array.from({ length: avatarPageCount }).map((_, i) => (
+                      <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i === avatarPage ? "#FF8C00" : "rgba(255,255,255,0.2)" }} />
+                    ))}
+                  </div>
+                  <button onClick={() => setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1))} disabled={avatarPage === avatarPageCount - 1} style={{ background: "none", border: "none", color: avatarPage === avatarPageCount - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>›</button>
                 </div>
               </div>
               {isAdmin && (

@@ -931,6 +931,7 @@ export default function WordGame() {
   const [session,         setSession]         = useState(null);  // Supabase 세션(로그인 여부)
   const [approved,        setApproved]        = useState(null);  // null=확인중, true/false=승인여부
   const [membership,      setMembership]      = useState("regular"); // regular | vip
+  const [isAdmin,         setIsAdmin]         = useState(false);  // 관리자(CEO)
   const [showAuthModal,   setShowAuthModal]   = useState(false);
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
@@ -1010,10 +1011,11 @@ export default function WordGame() {
     let isApproved = false;
     try {
       const { data } = await supabase
-        .from("profiles").select("approved, membership_level").eq("id", userId).maybeSingle();
+        .from("profiles").select("approved, membership_level, is_admin").eq("id", userId).maybeSingle();
       isApproved = !!data?.approved;
       setApproved(isApproved);
       setMembership(data?.membership_level || "regular");
+      setIsAdmin(!!data?.is_admin);
     } catch (e) {
       setApproved(false);
     }
@@ -1040,7 +1042,7 @@ export default function WordGame() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       if (sess) handleSignedIn(sess.user.id);
-      else { syncedRef.current = false; setApproved(null); }
+      else { syncedRef.current = false; setApproved(null); setIsAdmin(false); }
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -1085,6 +1087,7 @@ export default function WordGame() {
     syncedRef.current = false;
     setSession(null);
     setApproved(null);
+    setIsAdmin(false);
     setShowAuthModal(false);
   };
 
@@ -1096,11 +1099,20 @@ export default function WordGame() {
         <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 360, width: "100%", textAlign: "center" }}>
           {session ? (
             <>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
-              <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 6px" }}>로그인됨</h3>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 6px" }}>{session.user.email}</p>
-              <p style={{ color: "#4ADE80", fontSize: 12, margin: "0 0 4px" }}>☁️ 기기간 동기화 중</p>
-              <p style={{ fontSize: 11, margin: "0 0 24px", color: membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.35)", fontWeight: 800 }}>{membership === "vip" ? "👑 VIP 회원" : "일반 회원"}</p>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>👤</div>
+              <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 4px" }}>
+                {session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || (session.user?.email || "").split("@")[0]}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, margin: "0 0 10px" }}>{session.user.email}</p>
+              <div style={{ display: "inline-block", fontSize: 12, margin: "0 0 6px", padding: "3px 12px", borderRadius: 20, fontWeight: 800,
+                background: isAdmin ? "rgba(255,107,0,0.15)" : membership === "vip" ? "rgba(255,184,0,0.15)" : "rgba(255,255,255,0.06)",
+                color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
+                {isAdmin ? "👔 CEO (관리자)" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
+              </div>
+              <p style={{ color: "#4ADE80", fontSize: 12, margin: "6px 0 22px" }}>☁️ 기기간 동기화 중</p>
+              {isAdmin && (
+                <button onClick={() => { window.location.href = "/admin.html"; }} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>📋 승인 대시보드 바로가기</button>
+              )}
               <button onClick={signOut} style={{ width: "100%", padding: "14px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 16, color: "#EF4444", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>로그아웃</button>
               <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>

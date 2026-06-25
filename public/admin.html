@@ -27,6 +27,9 @@
   .act-approve { background:#4ADE80; color:#063; padding:9px 14px; font-size:13px; }
   .act-revoke { background:rgba(239,68,68,.15); color:#EF4444; padding:9px 14px; font-size:13px; }
   .act-vip { background:rgba(255,184,0,.15); color:#FFB800; padding:9px 14px; font-size:13px; }
+  .act-delete { background:rgba(120,0,0,.3); color:#ff9b9b; border:1px solid rgba(239,68,68,.3); padding:9px 14px; font-size:13px; }
+  .topbtns { display:flex; gap:8px; }
+  a.btn-ghost { text-decoration:none; display:inline-flex; align-items:center; }
   .center { text-align:center; padding:60px 20px; color:rgba(255,255,255,.5); line-height:1.7; }
   .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
 </style>
@@ -87,7 +90,8 @@
 
       app.innerHTML =
         '<div class="topbar"><div><h1>가입 승인</h1><div class="sub">대기 ' + pending + '명 · 전체 ' + rows.length + '명</div></div>'
-        + '<button class="btn-ghost" id="refresh">새로고침</button></div>'
+        + '<div class="topbtns"><a class="btn-ghost" href="https://fun.uncledison.com/english">🏠 영단어 앱</a>'
+        + '<button class="btn-ghost" id="refresh">새로고침</button></div></div>'
         + rows.map(function(r){
             return '<div class="card" data-id="' + r.id + '"><div class="row"><div>'
               + '<div class="email">' + esc(r.email || r.name || "(이메일 없음)") + ' '
@@ -98,6 +102,7 @@
               + (r.approved ? '<button class="act-revoke" data-act="revoke">승인취소</button>'
                             : '<button class="act-approve" data-act="approve">승인</button>')
               + '<button class="act-vip" data-act="vip">' + (r.membership_level === "vip" ? "일반으로" : "VIP로") + '</button>'
+              + '<button class="act-delete" data-act="delete">🗑 삭제</button>'
               + '</div></div></div>';
           }).join("");
 
@@ -106,6 +111,19 @@
         btn.onclick = async function(){
           var card = btn.closest(".card"); var id = card.getAttribute("data-id"); var act = btn.dataset.act;
           btn.disabled = true; btn.textContent = "…";
+          if (act === "delete") {
+            if (!confirm("이 사용자를 완전히 삭제할까요?\n(계정·진도 모두 삭제, 되돌릴 수 없음)")) { render(); return; }
+            var sres = await sb.auth.getSession();
+            var tok = sres.data.session ? sres.data.session.access_token : "";
+            var dr = await fetch("/api/admin-delete-user", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok },
+              body: JSON.stringify({ userId: id })
+            });
+            var dj = await dr.json().catch(function(){ return {}; });
+            if (!dr.ok) alert("삭제 실패: " + (dj.error || dr.status));
+            render(); return;
+          }
           var patch = {};
           if (act === "approve") patch = { approved:true };
           else if (act === "revoke") patch = { approved:false };

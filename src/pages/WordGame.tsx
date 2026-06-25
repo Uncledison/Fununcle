@@ -932,6 +932,9 @@ export default function WordGame() {
   const [approved,        setApproved]        = useState(null);  // null=확인중, true/false=승인여부
   const [membership,      setMembership]      = useState("regular"); // regular | vip
   const [isAdmin,         setIsAdmin]         = useState(false);  // 관리자(CEO)
+  const [avatar,          setAvatar]          = useState(() => { try { return localStorage.getItem("wordgame_avatar") || ""; } catch(e) { return ""; } });
+  const AVATARS = ["🦊","🐱","🐶","🐼","🐯","🦁","🐰","🐸","🐧","🐵","🐨","🦄","🐢","🐙","🦖","🐝","🐳","🦉","🐹","🦋","😎","🤩","🥳","🤖","👽","🦸","🧑‍🚀","🐲"];
+  const pickAvatar = (em) => { setAvatar(em); try { localStorage.setItem("wordgame_avatar", em); } catch(e) {} };
   const [showAuthModal,   setShowAuthModal]   = useState(false);
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
@@ -1005,6 +1008,7 @@ export default function WordGame() {
     try { setCustomResume(JSON.parse(localStorage.getItem("custom_resume") || "{}")); } catch (e) {}
     try { setUnlockedStarts(JSON.parse(localStorage.getItem("wordgame_unlocked_starts") || "[]")); } catch (e) {}
     setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
+    try { setAvatar(localStorage.getItem("wordgame_avatar") || ""); } catch (e) {}
   };
   // 로그인 감지 시: 승인 여부 확인 → 승인된 경우에만 동기화
   const handleSignedIn = async (userId) => {
@@ -1052,7 +1056,7 @@ export default function WordGame() {
     if (!session || approved !== true) return;   // 승인된 경우에만 클라우드 저장
     const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
     return () => clearTimeout(t);
-  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts]);
+  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar]);
 
   // ── 로그인 액션 ──────────────
   const sendMagicLink = async () => {
@@ -1103,7 +1107,7 @@ export default function WordGame() {
         <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 360, width: "100%", textAlign: "center" }}>
           {session ? (
             <>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>👤</div>
+              <div style={{ fontSize: 50, marginBottom: 8, lineHeight: 1 }}>{avatar || "👤"}</div>
               <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 4px" }}>
                 {session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || (session.user?.email || "").split("@")[0]}
               </h3>
@@ -1113,7 +1117,15 @@ export default function WordGame() {
                 color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
                 {isAdmin ? "👔 CEO (관리자)" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
-              <p style={{ color: "#4ADE80", fontSize: 12, margin: "6px 0 22px" }}>☁️ 기기간 동기화 중</p>
+              <p style={{ color: "#4ADE80", fontSize: 12, margin: "6px 0 16px" }}>☁️ 기기간 동기화 중</p>
+              <div style={{ margin: "0 0 20px" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+                  {AVATARS.map(em => (
+                    <button key={em} onClick={() => pickAvatar(em)} style={{ width: 38, height: 38, fontSize: 20, borderRadius: 10, cursor: "pointer", border: avatar === em ? "2px solid #FF8C00" : "1px solid rgba(255,255,255,0.1)", background: avatar === em ? "rgba(255,140,0,0.18)" : "rgba(255,255,255,0.04)" }}>{em}</button>
+                  ))}
+                </div>
+              </div>
               {isAdmin && (
                 <button onClick={() => { window.location.href = "/admin.html"; }} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>📋 승인 대시보드 바로가기</button>
               )}
@@ -1124,7 +1136,7 @@ export default function WordGame() {
             <>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
               <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>로그인</h3>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>로그인하면 폰·PC·가족이 진도를 함께 저장해요.</p>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>로그인하면 내 단어장·진도가 클라우드에 저장돼요.<br />폰을 바꾸거나 잃어버려도 그대로 복구! 📱➡️💻</p>
 
               {/* 소셜 로그인 */}
               <button onClick={() => signInWithProvider("kakao")} style={{ width: "100%", padding: "14px", background: "#FEE500", border: "none", borderRadius: 14, color: "#191600", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -1596,7 +1608,7 @@ export default function WordGame() {
           <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`, padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 800, color: session ? "#4ADE80" : "rgba(255,255,255,0.6)" }}>{session ? "👤" : "로그인"}</button>
+          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`, padding: session ? "4px 8px" : "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "rgba(255,255,255,0.6)" }}>{session ? (avatar || "👤") : "로그인"}</button>
           <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
           {showLevel ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>

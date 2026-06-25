@@ -7,6 +7,7 @@ const KEYS = [
   "custom_resume",
   "custom_only_mode",
   "wordgame_unlocked_starts",
+  "wordgame_avatar",
 ];
 
 // localStorage의 현재 값들을 {키: 원본문자열} 형태로 수집

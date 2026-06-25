@@ -929,12 +929,14 @@ export default function WordGame() {
   const [participantCount, setParticipantCount] = useState(null); // 오늘 참여자 수
   // ── 로그인/동기화 상태 ──────────────
   const [session,         setSession]         = useState(null);  // Supabase 세션(로그인 여부)
+  const [approved,        setApproved]        = useState(null);  // null=확인중, true/false=승인여부
+  const [membership,      setMembership]      = useState("regular"); // regular | vip
   const [showAuthModal,   setShowAuthModal]   = useState(false);
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
   const [authError,       setAuthError]       = useState("");    // 실제 에러 메시지
   const syncedRef = useRef(false);
-  const maxSets = session ? 10 : 3; // 비로그인 3개 / 로그인 10개
+  const maxSets = (session && approved === true) ? 10 : 3; // 승인된 로그인 10개 / 그 외 3개
   const [customWorlds, setCustomWorlds] = useState(() => {
     try {
       const stored = localStorage.getItem('custom_worlds');
@@ -1003,8 +1005,19 @@ export default function WordGame() {
     try { setUnlockedStarts(JSON.parse(localStorage.getItem("wordgame_unlocked_starts") || "[]")); } catch (e) {}
     setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
   };
-  // 로그인 감지 시 1회: 클라우드에 데이터 있으면 받아오고, 없으면 현재 로컬을 올림
+  // 로그인 감지 시: 승인 여부 확인 → 승인된 경우에만 동기화
   const handleSignedIn = async (userId) => {
+    let isApproved = false;
+    try {
+      const { data } = await supabase
+        .from("profiles").select("approved, membership_level").eq("id", userId).maybeSingle();
+      isApproved = !!data?.approved;
+      setApproved(isApproved);
+      setMembership(data?.membership_level || "regular");
+    } catch (e) {
+      setApproved(false);
+    }
+    if (!isApproved) return;            // 미승인 → 동기화 안 함 (대기 화면 표시)
     if (syncedRef.current) return;
     syncedRef.current = true;
     const cloud = await pullCloud(userId);
@@ -1027,17 +1040,17 @@ export default function WordGame() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       if (sess) handleSignedIn(sess.user.id);
-      else syncedRef.current = false;
+      else { syncedRef.current = false; setApproved(null); }
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
   // ── 로그인 상태에서 변경되면 클라우드에 자동 저장 (디바운스) ──────────────
   useEffect(() => {
-    if (!session) return;
+    if (!session || approved !== true) return;   // 승인된 경우에만 클라우드 저장
     const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
     return () => clearTimeout(t);
-  }, [session, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts]);
+  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts]);
 
   // ── 로그인 액션 ──────────────
   const sendMagicLink = async () => {
@@ -1071,6 +1084,7 @@ export default function WordGame() {
     try { await supabase.auth.signOut(); } catch (e) {}
     syncedRef.current = false;
     setSession(null);
+    setApproved(null);
     setShowAuthModal(false);
   };
 
@@ -1085,7 +1099,8 @@ export default function WordGame() {
               <div style={{ fontSize: 40, marginBottom: 12 }}>👤</div>
               <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 6px" }}>로그인됨</h3>
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 6px" }}>{session.user.email}</p>
-              <p style={{ color: "#4ADE80", fontSize: 12, margin: "0 0 24px" }}>☁️ 기기간 동기화 중</p>
+              <p style={{ color: "#4ADE80", fontSize: 12, margin: "0 0 4px" }}>☁️ 기기간 동기화 중</p>
+              <p style={{ fontSize: 11, margin: "0 0 24px", color: membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.35)", fontWeight: 800 }}>{membership === "vip" ? "👑 VIP 회원" : "일반 회원"}</p>
               <button onClick={signOut} style={{ width: "100%", padding: "14px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 16, color: "#EF4444", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>로그아웃</button>
               <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
@@ -1809,6 +1824,28 @@ export default function WordGame() {
   );
 
   // ── 검색 화면 ──────────────────────────
+  // ── 승인 대기 게이트 (로그인했지만 아직 미승인) ──────────────
+  if (session && approved === false) {
+    return (
+      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+        <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 56, marginBottom: 18 }}>🕐</div>
+          <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 12px" }}>가입 신청 완료!</h2>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.7, margin: "0 0 8px" }}>
+            관리자 승인을 기다리는 중이에요.<br />승인되면 폰·PC 동기화와 모든 기능이 열립니다.
+          </p>
+          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, margin: "0 0 28px" }}>{session.user?.email || ""}</p>
+          <button onClick={() => window.location.reload()} style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 10 }}>
+            🔄 승인됐어요? 새로고침
+          </button>
+          <button onClick={signOut} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            로그아웃하고 둘러보기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (tab === "search" && screen === "map") {
     const q = searchQuery.trim().toLowerCase();
     const results = q.length < 1 ? [] : searchAllWords.filter(w =>

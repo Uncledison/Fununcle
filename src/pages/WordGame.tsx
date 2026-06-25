@@ -935,6 +935,8 @@ export default function WordGame() {
   const [avatar,          setAvatar]          = useState(() => { try { return localStorage.getItem("wordgame_avatar") || ""; } catch(e) { return ""; } });
   const AVATARS = ["🦊","🐱","🐶","🐼","🐯","🦁","🐰","🐸","🐧","🐵","🐨","🦄","🐢","🐙","🦖","🐝","🐳","🦉","🐹","🦋","😎","🤩","🥳","🤖","👽","🦸","🧑‍🚀","🐲"];
   const pickAvatar = (em) => { setAvatar(em); try { localStorage.setItem("wordgame_avatar", em); } catch(e) {} };
+  const [nickname, setNickname] = useState(() => { try { return localStorage.getItem("wordgame_nickname") || ""; } catch(e) { return ""; } });
+  const changeNickname = (v) => { setNickname(v); try { localStorage.setItem("wordgame_nickname", v); } catch(e) {} };
   const [showAuthModal,   setShowAuthModal]   = useState(false);
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
@@ -1009,6 +1011,7 @@ export default function WordGame() {
     try { setUnlockedStarts(JSON.parse(localStorage.getItem("wordgame_unlocked_starts") || "[]")); } catch (e) {}
     setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
     try { setAvatar(localStorage.getItem("wordgame_avatar") || ""); } catch (e) {}
+    try { setNickname(localStorage.getItem("wordgame_nickname") || ""); } catch (e) {}
   };
   // 로그인 감지 시: 승인 여부 확인 → 승인된 경우에만 동기화
   const handleSignedIn = async (userId) => {
@@ -1056,7 +1059,7 @@ export default function WordGame() {
     if (!session || approved !== true) return;   // 승인된 경우에만 클라우드 저장
     const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
     return () => clearTimeout(t);
-  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar]);
+  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar, nickname]);
 
   // ── 로그인 액션 ──────────────
   const sendMagicLink = async () => {
@@ -1109,7 +1112,7 @@ export default function WordGame() {
             <>
               <div style={{ fontSize: 50, marginBottom: 8, lineHeight: 1 }}>{avatar || "👤"}</div>
               <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 4px" }}>
-                {session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || (session.user?.email || "").split("@")[0]}
+                {nickname.trim() || session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || (session.user?.email || "").split("@")[0]}
               </h3>
               <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, margin: "0 0 10px" }}>{session.user.email}</p>
               <div style={{ display: "inline-block", fontSize: 12, margin: "0 0 6px", padding: "3px 12px", borderRadius: 20, fontWeight: 800,
@@ -1118,6 +1121,12 @@ export default function WordGame() {
                 {isAdmin ? "👔 CEO (관리자)" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
               <p style={{ color: "#4ADE80", fontSize: 12, margin: "6px 0 16px" }}>☁️ 기기간 동기화 중</p>
+              <div style={{ margin: "0 0 16px", textAlign: "left" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>별명</div>
+                <input value={nickname} onChange={e => changeNickname(e.target.value)} maxLength={12}
+                  placeholder={session.user?.user_metadata?.name || "별명을 입력하세요"}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
+              </div>
               <div style={{ margin: "0 0 20px" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>

@@ -51,6 +51,15 @@ export async function listConnections() {
   } catch (e) { return []; }
 }
 
+// 일촌 끊기 (양쪽 다 끊김 — 연결 1줄 삭제)
+export async function removeConnection(otherId: string, myId: string) {
+  try {
+    await supabase.from("connections").delete()
+      .or(`and(requester.eq.${myId},addressee.eq.${otherId}),and(requester.eq.${otherId},addressee.eq.${myId})`);
+    return true;
+  } catch (e) { return false; }
+}
+
 // 단어셋 전송
 export async function sendSet(toUserId: string, fromName: string, title: string, words: any) {
   try {

@@ -4,7 +4,7 @@ import { usePageSeo } from "../hooks/usePageSeo";
 import { speak } from "../lib/pronunciation";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
-import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer } from "../lib/sharing";
+import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const RAW_WORLDS = [
@@ -941,6 +941,9 @@ export default function WordGame() {
   const [sendModalSet,    setSendModalSet]    = useState(null);   // 전송할 단어셋
   const [sendHandle,      setSendHandle]      = useState("");     // VIP·CEO용 직접 입력
   const [shareMsg,        setShareMsg]        = useState("");     // 토스트성 안내
+  const [connAlias,       setConnAlias]       = useState(() => {  // 일촌 별명 {other_id: "엄마"}
+    try { return JSON.parse(localStorage.getItem("wordgame_conn_alias") || "{}"); } catch (e) { return {}; }
+  });
   const [avatar,          setAvatar]          = useState(() => { try { return localStorage.getItem("wordgame_avatar") || ""; } catch(e) { return ""; } });
   const AVATARS = [
     // 동물 1 (28)
@@ -1086,8 +1089,31 @@ export default function WordGame() {
       if (h) setMyHandle(h);
       setConnections(await listConnections());
       setInbox(await listInbox());
+      try { setConnAlias(JSON.parse(localStorage.getItem("wordgame_conn_alias") || "{}")); } catch (e) {}
     })();
   }, [session]);
+
+  const setConnAliasFor = (otherId, name) => {
+    setConnAlias(prev => {
+      const next = { ...prev };
+      if (name && name.trim()) next[otherId] = name.trim(); else delete next[otherId];
+      try { localStorage.setItem("wordgame_conn_alias", JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  };
+  const renameConn = (otherId, currentName) => {
+    const v = prompt("이 일촌의 별명 (예: 엄마, 아빠, 동생)", connAlias[otherId] || currentName || "");
+    if (v === null) return;
+    setConnAliasFor(otherId, v);
+  };
+  const removeConn = async (otherId, label) => {
+    if (!confirm(`'${label}'님과 일촌을 끊을까요?\n(이미 받은 단어장은 그대로 남아요)`)) return;
+    await removeConnection(otherId, session.user.id);
+    setConnAliasFor(otherId, "");
+    refreshSharing();
+    setShareMsg("일촌을 끊었어요");
+    setTimeout(() => setShareMsg(""), 2500);
+  };
 
   // 초대링크(?invite=핸들) 감지 — 로그인 왕복에도 유지되도록 localStorage 보관
   useEffect(() => {
@@ -1191,7 +1217,7 @@ export default function WordGame() {
               <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", padding: "16px" }}>아직 일촌이 없어요.<br />계정에서 초대링크를 보내 일촌을 맺어보세요.</div>
             ) : connections.map(c => (
               <button key={c.other_id} onClick={() => doSendSet(c.other_id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 16px", background: "rgba(167,139,250,0.1)", border: "1px solid #A78BFA40", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                <span>{c.name}</span><span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>@{c.handle} 📤</span>
+                <span>{connAlias[c.other_id] || c.name}</span><span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>@{c.handle} 📤</span>
               </button>
             ))}
           </div>
@@ -1306,8 +1332,27 @@ export default function WordGame() {
               </div>
               {myHandle && (
                 <div style={{ margin: "0 0 16px", textAlign: "left", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>내 아이디 · 일촌</div>
-                  <div style={{ color: "#A78BFA", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>@{myHandle} {connections.length > 0 && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 600 }}>· 일촌 {connections.length}명</span>}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>내 아이디 · 일촌 {connections.length > 0 && `${connections.length}명`}</div>
+                  <div style={{ color: "#A78BFA", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>@{myHandle}</div>
+                  {connections.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                      {connections.map(c => {
+                        const label = connAlias[c.other_id] || c.name;
+                        return (
+                          <div key={c.other_id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "9px 12px" }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</div>
+                              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>@{c.handle}</div>
+                            </div>
+                            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                              <button onClick={() => renameConn(c.other_id, c.name)} style={{ padding: "6px 9px", background: "rgba(167,139,250,0.12)", border: "none", borderRadius: 9, color: "#A78BFA", fontSize: 12, cursor: "pointer" }}>✏️ 별명</button>
+                              <button onClick={() => removeConn(c.other_id, label)} style={{ padding: "6px 9px", background: "rgba(239,68,68,0.1)", border: "none", borderRadius: 9, color: "#EF4444", fontSize: 12, cursor: "pointer" }}>끊기</button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   <button onClick={copyInviteLink} style={{ width: "100%", padding: "12px", background: "rgba(167,139,250,0.15)", border: "1px solid #A78BFA55", borderRadius: 14, color: "#C4B5FD", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>🔗 일촌 초대링크 복사</button>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>복사해서 카톡으로 가족에게 보내세요</div>
                 </div>

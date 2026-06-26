@@ -815,7 +815,7 @@ const loadProgress = () => {
     if (!raw) return base;
     const saved = JSON.parse(raw);
     const savedProgress = Array.isArray(saved?.progress) ? saved.progress : [];
-    return base.map((w) => {
+    const merged = base.map((w) => {
       const s = savedProgress.find((p) => p && p.worldId === w.id);
       if (!s) return w;
       const stageCleared = w.stageCleared.map((v, i) =>
@@ -833,6 +833,19 @@ const loadProgress = () => {
         stageDone,
       };
     });
+    // 내단어장(커스텀) 진행기록도 보존 — base에 없는 worldId 엔트리 복원
+    const baseIds = new Set(base.map((w) => w.id));
+    const extra = savedProgress
+      .filter((p) => p && !baseIds.has(p.worldId))
+      .map((p) => ({
+        worldId: p.worldId,
+        mastered: Array.isArray(p.mastered) ? p.mastered : [],
+        failed:   Array.isArray(p.failed)   ? p.failed   : [],
+        cleared:  !!p.cleared,
+        stageCleared: Array.isArray(p.stageCleared) ? p.stageCleared : [false],
+        stageDone:    Array.isArray(p.stageDone)    ? p.stageDone    : [false],
+      }));
+    return [...merged, ...extra];
   } catch (e) {
     return base;
   }
@@ -1304,7 +1317,7 @@ export default function WordGame() {
                 color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
                 {isAdmin ? "👔 CEO" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
-              <p style={{ color: "#FFB800", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {allMastered.length}개 · Lv.{level}</p>
+              <p style={{ color: "#FFB800", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {totalMasteredCount}개 · Lv.{level}</p>
               <div style={{ margin: "0 0 16px", textAlign: "left" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>별명</div>
                 <input value={nickname} onChange={e => changeNickname(e.target.value)} maxLength={12}
@@ -1813,6 +1826,8 @@ export default function WordGame() {
     return w.words.filter(word => p?.mastered.includes(word.en))
       .map(word => ({ ...word, worldTitle: w.title, worldColor: w.color, worldEmoji: w.emoji }));
   });
+  // 계정 모달용 — 교과서3000 + 내단어장 전체 누적(모드 무관, 새로고침에도 유지)
+  const totalMasteredCount = progress.reduce((sum, p) => sum + (p?.mastered?.length || 0), 0);
   const allFailed = targetWorlds.flatMap(w => {
     const p = progress.find(p => p.worldId === w.id);
     return w.words.filter(word => p?.failed.includes(word.en))

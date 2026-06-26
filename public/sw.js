@@ -1,6 +1,7 @@
 // Service Worker — PWA 라우트별 설치 + 캐시
+// 매니페스트는 index.html에서 경로별로 직접 지정(clientId 가로채기 제거 — 모바일 안정)
 const CACHE_NAME = 'fun-uncle-v1';
-const MANIFEST_CACHE = 'manifests-v2';
+const MANIFEST_CACHE = 'manifests-v3';
 
 // 라우트별 전용 manifest (해당 페이지에서 설치하면 그 앱으로 설치됨)
 const ROUTE_MANIFESTS = {
@@ -24,22 +25,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // /manifest.json 요청 → 현재 페이지 경로에 맞는 전용 매니페스트 반환
-  if (url.pathname === '/manifest.json') {
-    event.respondWith((async () => {
-      const client = event.clientId ? await self.clients.get(event.clientId) : null;
-      let manifestKey = '/manifest.json';
-      if (client) {
-        const clientPath = new URL(client.url).pathname;
-        for (const [route, manifest] of Object.entries(ROUTE_MANIFESTS)) {
-          if (clientPath.startsWith(route)) { manifestKey = manifest; break; }
-        }
-      }
-      const cache = await caches.open(MANIFEST_CACHE);
-      return (await cache.match(manifestKey)) || (await cache.match('/manifest.json')) || fetch(event.request);
-    })());
-    return;
-  }
+  // 매니페스트는 가로채지 않음 — 브라우저가 경로별 링크(/manifest.json 또는
+  // /manifest-english.json)를 직접 받아 해당 PWA로 설치 (모바일에서 안정적)
 
   // 외부(CDN·Supabase)·비GET·/admin 은 건드리지 않음
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;

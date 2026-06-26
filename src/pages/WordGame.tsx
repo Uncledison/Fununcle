@@ -1089,11 +1089,15 @@ export default function WordGame() {
     })();
   }, [session]);
 
-  // 초대링크(?invite=핸들) 감지
+  // 초대링크(?invite=핸들) 감지 — 로그인 왕복에도 유지되도록 localStorage 보관
   useEffect(() => {
     try {
       const inv = new URLSearchParams(window.location.search).get("invite");
-      if (inv) setInvitePrompt({ handle: inv });
+      if (inv) { localStorage.setItem("pending_invite", inv); setInvitePrompt({ handle: inv }); }
+      else {
+        const saved = localStorage.getItem("pending_invite");
+        if (saved) setInvitePrompt({ handle: saved });
+      }
     } catch (e) {}
   }, []);
 
@@ -1102,10 +1106,14 @@ export default function WordGame() {
     setInbox(await listInbox());
   };
   const copyInviteLink = () => {
-    const link = `https://fun.uncledison.com/english?invite=${myHandle}`;
+    const link = `https://fun.uncledison.com/api/invite?u=${myHandle}`;
     try { navigator.clipboard.writeText(link); } catch (e) {}
     setShareMsg("초대링크 복사됨! 카톡으로 붙여넣어 보내세요 📋");
     setTimeout(() => setShareMsg(""), 3500);
+  };
+  const dismissInvite = () => {
+    setInvitePrompt(null);
+    try { localStorage.removeItem("pending_invite"); } catch (e) {}
   };
   const doAcceptInvite = async () => {
     if (!session) { setShowAuthModal(true); return; }
@@ -1113,6 +1121,7 @@ export default function WordGame() {
     if (r.ok) {
       setShareMsg(`${r.name}님과 일촌이 됐어요! 🤝`);
       setInvitePrompt(null);
+      try { localStorage.removeItem("pending_invite"); } catch (e) {}
       refreshSharing();
       try { const u = new URL(window.location.href); u.searchParams.delete("invite"); window.history.replaceState({}, "", u.toString()); } catch (e) {}
     } else { setShareMsg(r.error || "일촌 맺기 실패"); }
@@ -1154,7 +1163,7 @@ export default function WordGame() {
           <h3 style={{ color: "#fff", fontSize: 19, fontWeight: 900, margin: "0 0 10px" }}>일촌 신청이 왔어요!</h3>
           <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.6, margin: "0 0 22px" }}><b style={{ color: "#A78BFA" }}>@{invitePrompt.handle}</b> 님과<br />일촌을 맺을까요?</p>
           <button onClick={doAcceptInvite} style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>수락하기</button>
-          <button onClick={() => setInvitePrompt(null)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>나중에</button>
+          <button onClick={dismissInvite} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>나중에</button>
         </div>
       </div>
     );

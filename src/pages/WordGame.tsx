@@ -4,6 +4,7 @@ import { usePageSeo } from "../hooks/usePageSeo";
 import { speak } from "../lib/pronunciation";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
+import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer } from "../lib/sharing";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
 const RAW_WORLDS = [
@@ -932,6 +933,14 @@ export default function WordGame() {
   const [approved,        setApproved]        = useState(null);  // null=확인중, true/false=승인여부
   const [membership,      setMembership]      = useState("regular"); // regular | vip
   const [isAdmin,         setIsAdmin]         = useState(false);  // 관리자(CEO)
+  // ── 공유(일촌/전송) ──────────────
+  const [myHandle,        setMyHandle]        = useState("");
+  const [connections,     setConnections]     = useState([]);     // [{other_id,name,handle}]
+  const [inbox,           setInbox]           = useState([]);     // 받은 단어장(대기)
+  const [invitePrompt,    setInvitePrompt]    = useState(null);   // {handle} 초대 수락 팝업
+  const [sendModalSet,    setSendModalSet]    = useState(null);   // 전송할 단어셋
+  const [sendHandle,      setSendHandle]      = useState("");     // VIP·CEO용 직접 입력
+  const [shareMsg,        setShareMsg]        = useState("");     // 토스트성 안내
   const [avatar,          setAvatar]          = useState(() => { try { return localStorage.getItem("wordgame_avatar") || ""; } catch(e) { return ""; } });
   const AVATARS = [
     // 동물 1 (28)
@@ -1069,6 +1078,126 @@ export default function WordGame() {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
+  // ── 공유: 로그인+승인 시 핸들·일촌·받은단어장 로드 ──────────────
+  useEffect(() => {
+    if (!session || approved !== true) return;
+    (async () => {
+      const h = await ensureHandle(session.user.id);
+      if (h) setMyHandle(h);
+      setConnections(await listConnections());
+      setInbox(await listInbox());
+    })();
+  }, [session, approved]);
+
+  // 초대링크(?invite=핸들) 감지
+  useEffect(() => {
+    try {
+      const inv = new URLSearchParams(window.location.search).get("invite");
+      if (inv) setInvitePrompt({ handle: inv });
+    } catch (e) {}
+  }, []);
+
+  const refreshSharing = async () => {
+    setConnections(await listConnections());
+    setInbox(await listInbox());
+  };
+  const copyInviteLink = () => {
+    const link = `https://fun.uncledison.com/english?invite=${myHandle}`;
+    try { navigator.clipboard.writeText(link); } catch (e) {}
+    setShareMsg("초대링크 복사됨! 카톡으로 붙여넣어 보내세요 📋");
+    setTimeout(() => setShareMsg(""), 3500);
+  };
+  const doAcceptInvite = async () => {
+    if (!session) { setShowAuthModal(true); return; }
+    const r = await acceptInvite(invitePrompt.handle, session.user.id);
+    if (r.ok) {
+      setShareMsg(`${r.name}님과 일촌이 됐어요! 🤝`);
+      setInvitePrompt(null);
+      refreshSharing();
+      try { const u = new URL(window.location.href); u.searchParams.delete("invite"); window.history.replaceState({}, "", u.toString()); } catch (e) {}
+    } else { setShareMsg(r.error || "일촌 맺기 실패"); }
+    setTimeout(() => setShareMsg(""), 3500);
+  };
+  const importTransfer = (t) => {
+    const words = Array.isArray(t.words) ? t.words : [];
+    const newWorld = { id: 1000 + Date.now() % 100000, title: t.title || "받은 단어장", emoji: "📩", color: "#A78BFA", dark: "#6d28d9", desc: "받은 단어장", words, isCustom: true };
+    const next = [...customWorlds, newWorld];
+    setCustomWorlds(next);
+    try { localStorage.setItem("custom_worlds", JSON.stringify(next)); } catch (e) {}
+    deleteTransfer(t.id);
+    setInbox(prev => prev.filter(x => x.id !== t.id));
+    setShareMsg("내 단어장에 추가됐어요! ✅");
+    setTimeout(() => setShareMsg(""), 3000);
+  };
+  const doSendSet = async (toUserId) => {
+    if (!sendModalSet) return;
+    const fromName = nickname.trim() || session?.user?.user_metadata?.name || "익명";
+    const ok = await sendSet(toUserId, fromName, sendModalSet.title, sendModalSet.words);
+    setSendModalSet(null); setSendHandle("");
+    setShareMsg(ok ? "전송 완료! 상대의 '받은 단어장'에 도착해요 📤" : "전송 실패");
+    setTimeout(() => setShareMsg(""), 3500);
+  };
+  const doSendByHandle = async () => {
+    const u = await lookupUser(sendHandle);
+    if (!u) { setShareMsg("그 아이디를 못 찾았어요"); setTimeout(() => setShareMsg(""), 3000); return; }
+    await doSendSet(u.id);
+  };
+  const canSendFree = (membership === "vip" || isAdmin); // VIP·CEO는 아무에게나
+
+  // 공유 모달들 (컴포넌트 아닌 함수 렌더 — 입력 포커스 유지)
+  const renderInviteModal = () => {
+    if (!invitePrompt) return null;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 24px" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 44, marginBottom: 14 }}>🤝</div>
+          <h3 style={{ color: "#fff", fontSize: 19, fontWeight: 900, margin: "0 0 10px" }}>일촌 신청이 왔어요!</h3>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.6, margin: "0 0 22px" }}><b style={{ color: "#A78BFA" }}>@{invitePrompt.handle}</b> 님과<br />일촌을 맺을까요?</p>
+          <button onClick={doAcceptInvite} style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>수락하기</button>
+          <button onClick={() => setInvitePrompt(null)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>나중에</button>
+        </div>
+      </div>
+    );
+  };
+  const renderSendModal = () => {
+    if (!sendModalSet) return null;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 24px" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "28px 22px", maxWidth: 360, width: "100%" }}>
+          <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 4px", textAlign: "center" }}>📤 단어장 보내기</h3>
+          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", margin: "0 0 18px" }}>"{sendModalSet.title}" ({sendModalSet.words.length}개)</p>
+          {canSendFree && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>아이디로 보내기 (VIP·CEO)</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={sendHandle} onChange={e => setSendHandle(e.target.value)} placeholder="@아이디"
+                  style={{ flex: 1, padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
+                <button onClick={doSendByHandle} style={{ padding: "0 16px", background: "#FF8C00", border: "none", borderRadius: 12, color: "#fff", fontWeight: 800, cursor: "pointer" }}>보내기</button>
+              </div>
+            </div>
+          )}
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>일촌에게 보내기</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto" }}>
+            {connections.length === 0 ? (
+              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", padding: "16px" }}>아직 일촌이 없어요.<br />계정에서 초대링크를 보내 일촌을 맺어보세요.</div>
+            ) : connections.map(c => (
+              <button key={c.other_id} onClick={() => doSendSet(c.other_id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 16px", background: "rgba(167,139,250,0.1)", border: "1px solid #A78BFA40", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                <span>{c.name}</span><span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>@{c.handle} 📤</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => { setSendModalSet(null); setSendHandle(""); }} style={{ width: "100%", padding: "12px", marginTop: 14, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+        </div>
+      </div>
+    );
+  };
+  const renderShareToast = () => {
+    if (!shareMsg) return null;
+    return (
+      <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 1300, background: "#1a1a2e", border: "1px solid #A78BFA55", borderRadius: 16, padding: "12px 20px", color: "#fff", fontSize: 13, fontWeight: 700, maxWidth: 320, textAlign: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}>{shareMsg}</div>
+    );
+  };
+
   // ── 로그인 상태에서 변경되면 클라우드에 자동 저장 (디바운스) ──────────────
   useEffect(() => {
     if (!session || approved !== true) return;   // 승인된 경우에만 클라우드 저장
@@ -1166,6 +1295,14 @@ export default function WordGame() {
                   <button onClick={() => setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1))} disabled={avatarPage === avatarPageCount - 1} style={{ background: "none", border: "none", color: avatarPage === avatarPageCount - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>›</button>
                 </div>
               </div>
+              {myHandle && (
+                <div style={{ margin: "0 0 16px", textAlign: "left", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>내 아이디 · 일촌</div>
+                  <div style={{ color: "#A78BFA", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>@{myHandle} {connections.length > 0 && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 600 }}>· 일촌 {connections.length}명</span>}</div>
+                  <button onClick={copyInviteLink} style={{ width: "100%", padding: "12px", background: "rgba(167,139,250,0.15)", border: "1px solid #A78BFA55", borderRadius: 14, color: "#C4B5FD", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>🔗 일촌 초대링크 복사</button>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>복사해서 카톡으로 가족에게 보내세요</div>
+                </div>
+              )}
               {isAdmin && (
                 <button onClick={() => { window.location.href = "/admin.html"; }} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>📋 승인 대시보드 바로가기</button>
               )}
@@ -2299,6 +2436,9 @@ export default function WordGame() {
       <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
         {renderAuthModal()}
+        {renderInviteModal()}
+        {renderSendModal()}
+        {renderShareToast()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)", paddingBottom: 8 }}>
@@ -2306,6 +2446,27 @@ export default function WordGame() {
         </div>
 
         <div style={{ padding: "16px 22px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* 받은 단어장 */}
+          {inbox.length > 0 && (
+            <div style={{ background: "rgba(167,139,250,0.1)", border: "1px solid #A78BFA40", borderRadius: 18, padding: "14px 16px" }}>
+              <div style={{ color: "#C4B5FD", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>📩 받은 단어장 {inbox.length}개</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {inbox.map(t => (
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 12px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title || "단어장"}</div>
+                      <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{t.from_name || "익명"} · 단어 {(t.words || []).length}개</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                      <button onClick={() => importTransfer(t)} style={{ padding: "8px 12px", background: "#A78BFA", border: "none", borderRadius: 10, color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>추가</button>
+                      <button onClick={() => { deleteTransfer(t.id); setInbox(prev => prev.filter(x => x.id !== t.id)); }} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.5)", fontSize: 12, cursor: "pointer" }}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {customWorlds.map((cw, i) => {
@@ -2326,6 +2487,9 @@ export default function WordGame() {
                     </div>
                   )}
                 </button>
+                {session && approved === true && (
+                  <button onClick={() => setSendModalSet(cw)} aria-label="보내기" style={{ padding: "16px 13px", background: "rgba(74,222,128,0.12)", border: "none", borderRadius: 16, color: "#4ADE80", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>📤</button>
+                )}
                 <button onClick={() => startEditCustom(cw)} aria-label="편집" style={{ padding: "16px 13px", background: "rgba(167,139,250,0.12)", border: "none", borderRadius: 16, color: "#A78BFA", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>✏️</button>
                 <button onClick={() => {
                   if(!confirm('정말 삭제하시겠습니까?')) return;
@@ -2442,6 +2606,8 @@ export default function WordGame() {
     <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <LevelConfirmModal />
       {renderAuthModal()}
+      {renderInviteModal()}
+      {renderShareToast()}
 
       {/* 고정 헤더 */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "#0e0e20", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

@@ -953,7 +953,11 @@ export default function WordGame() {
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
   const [authError,       setAuthError]       = useState("");    // 실제 에러 메시지
   const syncedRef = useRef(false);
-  const maxSets = (session && approved === true) ? 10 : 3; // 승인된 로그인 10개 / 그 외 3개
+  // 비로그인 3 / 로그인(일반) 5 / VIP·CEO 무한(내부 상한 100)
+  const maxSets = (session && approved === true)
+    ? ((membership === "vip" || isAdmin) ? 100 : 5)
+    : 3;
+  const maxSetsLabel = maxSets >= 100 ? "무한" : String(maxSets);
   const [customWorlds, setCustomWorlds] = useState(() => {
     try {
       const stored = localStorage.getItem('custom_worlds');
@@ -2409,7 +2413,7 @@ export default function WordGame() {
                 setCustomInput("");
                 setCustomTitle("");
               }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
-                {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/${maxSets})`}
+                {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/${maxSetsLabel})`}
               </button>
               {editingId !== null && (
                 <button onClick={cancelEditCustom} style={{ width: "100%", padding: "13px", marginTop: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
@@ -2419,9 +2423,11 @@ export default function WordGame() {
             </div>
           ) : (
             <div style={{ color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "20px", background: "rgba(255,255,255,0.04)", borderRadius: 16, fontSize: 14 }}>
-              {session
-                ? "최대 10개까지 만들 수 있어요."
-                : <>비로그인은 3개까지예요.<br /><button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ marginTop: 10, padding: "10px 18px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>로그인하고 10개까지 쓰기</button></>}
+              {!session
+                ? <>비로그인은 3개까지예요.<br /><button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ marginTop: 10, padding: "10px 18px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>로그인하고 5개까지 쓰기</button></>
+                : (membership === "vip" || isAdmin)
+                  ? "단어장을 마음껏 만들 수 있어요. (무한)"
+                  : <>로그인 회원은 5개까지예요.<br /><span style={{ color: "#FFB800", fontWeight: 800 }}>👑 VIP가 되면 무한대로!</span></>}
             </div>
           )}
         </div>

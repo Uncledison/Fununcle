@@ -956,6 +956,7 @@ export default function WordGame() {
   const AVATAR_PER_PAGE = 28;
   const avatarPageCount = Math.ceil(AVATARS.length / AVATAR_PER_PAGE);
   const [avatarPage, setAvatarPage] = useState(0);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const avatarTouchRef = useRef(0);
   const pickAvatar = (em) => { setAvatar(em); try { localStorage.setItem("wordgame_avatar", em); } catch(e) {} };
   const [nickname, setNickname] = useState(() => { try { return localStorage.getItem("wordgame_nickname") || ""; } catch(e) { return ""; } });
@@ -1286,7 +1287,9 @@ export default function WordGame() {
     if (!showAuthModal) return null;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 360, width: "100%", textAlign: "center" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+          <div style={{ padding: "32px 26px", textAlign: "center", overflowY: "auto" }}>
           {session ? (
             <>
               <div style={{ fontSize: 50, marginBottom: 8, lineHeight: 1 }}>{avatar || "👤"}</div>
@@ -1307,6 +1310,9 @@ export default function WordGame() {
                   style={{ width: "100%", padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
               </div>
               <div style={{ margin: "0 0 18px" }}>
+                {!showAvatarPicker ? (
+                  <button onClick={() => setShowAvatarPicker(true)} style={{ width: "100%", padding: "11px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "rgba(255,255,255,0.7)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🎨 아바타 바꾸기 {avatar || "👤"}</button>
+                ) : (<>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨ <span style={{ color: "rgba(255,255,255,0.25)" }}>(좌우로 넘기기)</span></div>
                 <div
                   onTouchStart={(e) => { avatarTouchRef.current = e.touches[0].clientX; }}
@@ -1329,6 +1335,7 @@ export default function WordGame() {
                   </div>
                   <button onClick={() => setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1))} disabled={avatarPage === avatarPageCount - 1} style={{ background: "none", border: "none", color: avatarPage === avatarPageCount - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>›</button>
                 </div>
+                </>)}
               </div>
               {myHandle && (
                 <div style={{ margin: "0 0 16px", textAlign: "left", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
@@ -1382,6 +1389,7 @@ export default function WordGame() {
               <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
           )}
+          </div>
         </div>
       </div>
     );

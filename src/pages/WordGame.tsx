@@ -1078,16 +1078,16 @@ export default function WordGame() {
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
 
-  // ── 공유: 로그인+승인 시 핸들·일촌·받은단어장 로드 ──────────────
+  // ── 공유: 로그인 시 핸들·일촌·받은단어장 로드 ──────────────
   useEffect(() => {
-    if (!session || approved !== true) return;
+    if (!session) { setMyHandle(""); setConnections([]); setInbox([]); return; }
     (async () => {
       const h = await ensureHandle(session.user.id);
       if (h) setMyHandle(h);
       setConnections(await listConnections());
       setInbox(await listInbox());
     })();
-  }, [session, approved]);
+  }, [session]);
 
   // 초대링크(?invite=핸들) 감지
   useEffect(() => {

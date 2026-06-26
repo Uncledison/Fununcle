@@ -4,14 +4,19 @@ import { supabase } from "./supabase";
 const HANDLE_WORDS = ["fox", "cat", "dog", "panda", "tiger", "lion", "bear", "star", "moon", "sky", "jet", "ace", "neo", "owl", "fish", "bee", "koala", "duck"];
 const randHandle = () => HANDLE_WORDS[Math.floor(Math.random() * HANDLE_WORDS.length)] + Math.floor(1000 + Math.random() * 9000);
 
-// 핸들 없으면 생성, 있으면 그대로 반환
+// 핸들 없으면 생성, 있으면 그대로 반환 (서버 RPC로 확실히 저장)
 export async function ensureHandle(userId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.rpc("ensure_my_handle");
+    if (!error && data) return data as string;
+  } catch (e) {}
+  // fallback: 클라이언트 직접 (RLS 허용 시)
   try {
     const { data } = await supabase.from("profiles").select("handle").eq("id", userId).maybeSingle();
     if (data?.handle) return data.handle;
     for (let i = 0; i < 6; i++) {
       const h = randHandle();
-      const { error } = await supabase.from("profiles").update({ handle: h }).eq("id", userId);
+      const { error } = await supabase.from("profiles").update({ handle: h }).eq("id", userId).select("handle").maybeSingle();
       if (!error) return h;
     }
   } catch (e) {}

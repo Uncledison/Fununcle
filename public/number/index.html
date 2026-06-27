@@ -338,11 +338,11 @@
 <!-- 🔊 사운드 요소들 -->
 <audio id="score-sound" src="/number/assets/bubble-pop.mp3"></audio>
 <audio id="fail-sound" src="/number/assets/funny-jack.mp3"></audio>
-<audio id="sound3" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory1.mp3"></audio>
-<audio id="sound6" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory2.mp3"></audio>
-<audio id="sound9" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory3.mp3"></audio>
+<audio id="sound3" src="https://cdn.jsdelivr.net/gh/Uncledison/game-music@main/Victory1.mp3"></audio>
+<audio id="sound6" src="https://cdn.jsdelivr.net/gh/Uncledison/game-music@main/Victory2.mp3"></audio>
+<audio id="sound9" src="https://cdn.jsdelivr.net/gh/Uncledison/game-music@main/Victory3.mp3"></audio>
 <audio id="bg-music" autoplay loop muted>
-  <source src="https://raw.githubusercontent.com/Uncledison/game-music/main/Playful-Joyride.mp3" type="audio/mpeg">
+  <source src="https://cdn.jsdelivr.net/gh/Uncledison/game-music@main/Playful-Joyride.mp3" type="audio/mpeg">
 </audio>
 
 <style>
@@ -524,6 +524,12 @@
     if (selected.length === 2) checkMatch();
   }
 
+  function playSound(audioEl) {
+    if (bgMusic.muted) return;
+    audioEl.currentTime = 0;
+    audioEl.play().catch(() => {});
+  }
+
   function checkMatch() {
     const [[r1, c1], [r2, c2]] = selected;
     const sum = grid[r1][c1] + grid[r2][c2];
@@ -533,16 +539,14 @@
       score += SCORE_INC;
       comboCount++;
       showScoreFly(r1, c1);
-      sound.currentTime = 0;
-      sound.play();
+      playSound(sound);
       if (navigator.vibrate) navigator.vibrate(15);
       if (comboCount % 3 === 0 && comboCount <= 200) {
         showCombo(comboCount);
       }
     } else {
       comboCount = 0;
-      failSound.currentTime = 0;
-      failSound.play();
+      playSound(failSound);
     }
     selected.forEach(([r, c]) => gridTable.rows[r].cells[c].classList.remove('selected'));
     selected = [];
@@ -575,12 +579,11 @@
 
   function playComboSound(combo) {
     const remainder = combo % 9;
-    let sound;
-    if (remainder === 3) sound = sound3;
-    else if (remainder === 6) sound = sound6;
-    else sound = sound9;
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
+    let targetSound;
+    if (remainder === 3) targetSound = sound3;
+    else if (remainder === 6) targetSound = sound6;
+    else targetSound = sound9;
+    playSound(targetSound);
   }
 
   function isGridEmpty() {

@@ -3,6 +3,7 @@
     "short_name": "영단어",
     "id": "/english",
     "start_url": "/english",
+    "scope": "/english",
     "display": "standalone",
     "background_color": "#1e1b4b",
     "theme_color": "#1e1b4b",

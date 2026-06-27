@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
+import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak } from "../lib/pronunciation";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
@@ -891,6 +892,7 @@ export default function WordGame() {
     url: "https://fun.uncledison.com/english",
     image: "https://fun.uncledison.com/assets/wordgame_banner.png",
   });
+  usePwaManifest('english');
   const [progress,        setProgress]        = useState(loadProgress);
   const [xp,              setXp]              = useState(() => loadStat("xp", 0));
   const [streak,          setStreak]          = useState(() => loadStat("streak", 0));

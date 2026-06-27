@@ -1,9 +1,11 @@
 import React from 'react';
 import { Header } from '../components/Header';
 import { BentoGrid } from '../components/BentoGrid';
+import { usePwaManifest } from '../hooks/usePwaManifest';
 
 
 export const Home: React.FC = () => {
+    usePwaManifest('root');
     return (
         <main className="min-h-screen bg-white relative overflow-x-hidden">
             {/* Mascot positioned relative to this container */}

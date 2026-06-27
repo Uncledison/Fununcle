@@ -1,7 +1,7 @@
 // Service Worker — PWA 라우트별 설치 + 캐시
 // 매니페스트는 index.html에서 경로별로 직접 지정(clientId 가로채기 제거 — 모바일 안정)
 const CACHE_NAME = 'fun-uncle-v1';
-const MANIFEST_CACHE = 'manifests-v4';
+const MANIFEST_CACHE = 'manifests-v5';
 
 // 라우트별 전용 manifest (해당 페이지에서 설치하면 그 앱으로 설치됨)
 const ROUTE_MANIFESTS = {

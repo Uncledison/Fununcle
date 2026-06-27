@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
+import { usePwaManifest } from "../hooks/usePwaManifest";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
@@ -234,8 +235,9 @@ export default function HanjaGame() {
     description: "한국어문회 한자능력검정시험 8급·준7급·7급 한자를 플래시카드로 재미있게 암기. 나만의 한자장도 직접 추가. 가입 없이 무료 학습.",
     keywords: "한자 암기, 한자 플래시카드, 한국어문회, 한자능력검정시험, 8급 한자, 준7급 한자, 7급 한자, 한자장, 한자 앱",
     url: "https://fun.uncledison.com/hanja",
-    image: "https://fun.uncledison.com/assets/wordgame_banner.png",
+    image: "https://fun.uncledison.com/assets/hanja_kakao.png",
   });
+  usePwaManifest('hanja');
   const [progress,        setProgress]        = useState(loadProgress);
   const [xp,              setXp]              = useState(() => loadStat("xp", 0));
   const [streak,          setStreak]          = useState(() => loadStat("streak", 0));

@@ -3,6 +3,7 @@
     "short_name": "한자",
     "id": "/hanja",
     "start_url": "/hanja",
+    "scope": "/hanja",
     "display": "standalone",
     "background_color": "#07070f",
     "theme_color": "#07070f",

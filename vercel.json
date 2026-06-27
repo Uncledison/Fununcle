@@ -1,6 +1,14 @@
 {
     "rewrites": [
         {
+            "source": "/english",
+            "destination": "/english.html"
+        },
+        {
+            "source": "/hanja",
+            "destination": "/hanja.html"
+        },
+        {
             "source": "/(.*)",
             "destination": "/"
         }

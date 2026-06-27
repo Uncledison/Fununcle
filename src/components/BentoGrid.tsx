@@ -245,6 +245,27 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
+                {/* 4-2. Hanja Flashcard (한자 플래시카드) */}
+                <BentoCard
+                    href="/hanja"
+                    delay={0.17}
+                    className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video"
+                    whileHover={{
+                        y: -5,
+                        scale: 1.02,
+                        transition: { type: "spring", stiffness: 300, damping: 20 }
+                    }}
+                >
+                    <div className="w-full h-full relative">
+                        <img
+                            src="/assets/hanja_banner.png"
+                            alt="한자 플래시카드"
+                            className="w-full h-full object-cover"
+                        />
+                        <NewBadge date="2026-06-27" />
+                    </div>
+                </BentoCard>
+
                 {/* 5. Today Memory (엄마 기억력 - External Link) */}
                 <BentoCard
                     href="https://memory.uncledison.com"

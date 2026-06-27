@@ -1,0 +1,24 @@
+{
+    "name": "한자 플래시카드",
+    "short_name": "한자",
+    "id": "/hanja",
+    "start_url": "/hanja",
+    "display": "standalone",
+    "background_color": "#07070f",
+    "theme_color": "#07070f",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon-hanja-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-hanja-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

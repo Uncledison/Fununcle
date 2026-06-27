@@ -270,6 +270,29 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
+                {/* 4-3. Number Puzzle (숫자 맞추기 퍼즐 — 정적 하위앱 /number) */}
+                <a
+                    href="/number/"
+                    className="md:col-span-1 md:row-span-1 relative group block overflow-hidden rounded-3xl aspect-video z-10"
+                    aria-label="숫자 맞추기 퍼즐"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.5, delay: 0.18 }}
+                        whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                        className="w-full h-full relative"
+                    >
+                        <img
+                            src="/assets/number_banner.png"
+                            alt="숫자 맞추기 퍼즐"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <NewBadge date="2026-06-27" />
+                    </motion.div>
+                </a>
+
                 {/* 5. Today Memory (엄마 기억력 - External Link) */}
                 <BentoCard
                     href="https://memory.uncledison.com"

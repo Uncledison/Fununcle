@@ -9,6 +9,10 @@
             "destination": "/hanja.html"
         },
         {
+            "source": "/number",
+            "destination": "/number/index.html"
+        },
+        {
             "source": "/(.*)",
             "destination": "/"
         }

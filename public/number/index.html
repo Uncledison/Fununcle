@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HRMHHW6YZH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-HRMHHW6YZH');
+</script>
+
+  <meta charset="UTF-8" />
+  <title>🧩 숫자 맞추기 퍼즐 🕹 | Fun Uncle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="숫자를 조합해 목표 점수를 맞추는 중독성 퍼즐 게임! 60초 안에 최고 점수에 도전하세요." />
+  <meta name="keywords" content="숫자 게임, 숫자 맞추기, 퍼즐, 웹 게임, 펀엉클, fun uncle" />
+  <meta name="author" content="Uncledison" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest-number.json" />
+  <link rel="icon" type="image/png" href="/icon-number-192.png" />
+  <link rel="apple-touch-icon" href="/icon-number-192.png" />
+  <meta name="theme-color" content="#6BCB53" />
+
+  <!-- Open Graph / Kakao -->
+  <meta property="og:title" content="숫자 맞추기 퍼즐 게임 🎯">
+  <meta property="og:description" content="숫자를 조합해 목표 점수를 완성하는 간단하지만 중독성 있는 퍼즐 게임. 도전해보세요!">
+  <meta property="og:image" content="https://fun.uncledison.com/assets/number_kakao.png">
+  <meta property="og:url" content="https://fun.uncledison.com/number">
+  <meta property="og:type" content="website">
+
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(
+    to bottom,
+    #C8F272 0%,    /* 연두색 */
+    #FFE172 30%,   /* 노란색 */
+    #A1D78C 60%,   /* 파스텔 그린 */
+    #6BCB53 100%   /* 진한 초록 */
+  );
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 10px;
+  position: relative;
+}
+
+    .game-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 10px 0 40px;
+      color: #1d1d1f;
+    }
+    .best-score {
+      font-size: 1rem;
+      color: #0071e3;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .game-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: transparent; /* ✅ 배경 투명하게 */
+    border-radius: 0;              /* ✅ 둥근 모서리 제거 */
+    box-shadow: none;              /* ✅ 그림자 제거 */
+    padding: 10px;
+    }
+
+    .score-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .score-box {
+      background-color: #fff6bb;
+      border-radius: 10px;
+      padding: 7px 10px;
+      flex: 1;
+      text-align: center;
+      margin: 0 6px;
+      cursor: default;
+    }
+    .score-box#target-box {
+      cursor: pointer;
+    }
+    .score-label {
+      font-size: 1.2rem;
+      color: #86868b;
+      margin-bottom: 4px;
+        }
+    .score-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1d1d1f;
+    }
+    #grid-table {
+      width: 100%;
+      max-width: 400px;
+      border-collapse: separate; /* ✅ 변경: 기본은 collapse라 간격 없음 */
+      border-spacing: 2px;        /* ✅ 셀 간격: 원하는 픽셀값으로 조절 */
+      margin-bottom: 5px;
+      table-layout: fixed; /* ✅ 핵심! 셀 크기 강제 균등화 */
+    }
+    #grid-table td {
+      width: 100%; /* 또는 자동 */
+      height: 70px; /* ✅ 원하는 정사각형 이상의 높이로 강제 */
+      border: 2px solid #e5e5ea;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 2rem;
+      font-weight: bold;
+      background-color: #f8f5dc;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    #grid-table td.selected {
+      background-color: #d1e7ff;
+      transform: scale(0.95);
+    }
+    #grid-table td.empty {
+      background-color: #f2f2f7;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .img-btn {
+      flex: 1;
+      height: 100px;
+      object-fit: contain;
+      cursor: pointer;
+      padding: 5px;
+      transition: transform 0.2s, filter 0.2s;
+    }
+    .img-btn:hover {
+      filter: brightness(1.2);
+    }
+    .img-btn:active {
+      transform: scale(0.95);
+    }
+    .modal-btn {
+  height: 80px;       /* ✅ 원하는 높이로 강제 */
+  line-height: 80px;  /* ✅ 텍스트 수직 정렬 */
+  padding: 0 15px;    /* 좌우 여백만 유지 */
+  border: 2px solid #6dcb55;
+  background: #fff;
+  color: #6dcb55;
+  font-size: 1.5rem; /* 숫자 크기 조정도 가능 */
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+.modal-btn.selected {
+  background: #6dcb55;
+  color: #fff;
+}
+
+/* 각각의 박스(점수/목표/제한시간)에 색상 지정 */
+.score-box:nth-child(1) .score-label,
+.score-box:nth-child(1) .score-value {
+  color: #2e7d32; /* 진녹색 */
+}
+
+.score-box:nth-child(2) .score-label,
+.score-box:nth-child(2) .score-value {
+  color: #43a047; /* 파스텔 녹색 */
+}
+
+.score-box:nth-child(3) .score-label,
+.score-box:nth-child(3) .score-value {
+  color: #ef6c00; /* 오렌지색 */
+}
+
+/* 카카오 공유 플로팅 버튼 */
+#kakao-share-btn {
+  position: fixed; bottom: 20px; right: 16px;
+  width: 48px; height: 48px; background: #FAE100;
+  border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9000;
+}
+
+  </style>
+</head>
+<body>
+
+
+<!-- ✅ 인트로 화면 -->
+<div id="intro" style="
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+">
+  <h1 style="font-size: 2rem; margin-bottom: 10px;">🧩 숫자 맞추기 퍼즐</h1>
+  <p style="font-size: 1.1rem; margin-bottom: 30px;">목표 숫자를 만들어 점수를 획득하세요!</p>
+  <button id="start-btn" style="
+    padding: 14px 32px;
+    font-size: 1.2rem;
+    background-color: #0071e3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  ">게임 시작하기</button>
+</div>
+
+<img src="/number/assets/title.png" alt="숫자 맞추기 타이틀" style="width: 100%; max-width: 360px; margin: 0 auto; display: block;" />
+
+<div id="best-score" style="display: none;">최고 점수: 0</div>
+
+
+<div class="game-container">
+  <div class="score-container">
+    <div class="score-box">
+      <div class="score-label">점수</div>
+      <div class="score-value" id="score">0</div>
+    </div>
+    <div class="score-box" id="target-box">
+      <div class="score-label">목표 숫자</div>
+      <div class="score-value" id="target-sum">10</div>
+    </div>
+    <div class="score-box">
+      <div class="score-label">제한시간</div>
+      <div class="score-value" id="timer">60</div>
+    </div>
+  </div>
+
+  <table id="grid-table"></table>
+
+  <div class="controls">
+    <img id="mute-img-btn" class="img-btn" src="/number/assets/sound-on.png" alt="음소거 버튼" />
+    <img id="target-sum-btn" class="img-btn" src="/number/assets/target.png" alt="목표변경" />
+    <img id="restart-btn" class="img-btn" src="/number/assets/restart.png" alt="다시하기" />
+  </div>
+</div>
+
+<!-- 🎯 목표 점수 선택 모달 -->
+<div id="target-modal" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center;">
+  <div class="modal-content" style="background-color: #fff; padding: 20px; border-radius: 12px; text-align: center; width: 90%; max-width: 500px;">
+    <div class="modal-header" style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px; color: #2e7d32;">목표 점수</div>
+    <div class="modal-body" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; justify-content:center; margin-bottom:10px;">
+      <button class="modal-btn" data-value="10">10</button>
+      <button class="modal-btn" data-value="11">11</button>
+      <button class="modal-btn" data-value="12">12</button>
+      <button class="modal-btn" data-value="13">13</button>
+      <button class="modal-btn" data-value="14">14</button>
+      <button class="modal-btn" data-value="15">15</button>
+      <button class="modal-btn" data-value="16">16</button>
+      <button class="modal-btn" data-value="17">17</button>
+      <button class="modal-btn" data-value="18">18</button>
+      <button class="modal-btn" data-value="19">19</button>
+      <button class="modal-btn" data-value="20">20</button>
+    </div>
+    <div class="modal-footer">
+      <button id="confirm-target-btn" style="margin-top:10px; width: 100px; height: 80px; padding:10px 20px; background:#25a2e7; font-size: 1.2rem;  border:none; color:#fff; border-radius:8px; cursor:pointer;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ 게임오버 팝업 -->
+<div id="gameover-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; padding:30px; border-radius:16px; text-align:center; max-width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.2); margin:auto;">
+    <h2 style="font-size:1.6rem;" id="gameover-message">게임오버! 🎉</h2>
+    <p style="margin:16px 0;">당신의 점수는 <span id="final-score">0</span>점이에요!</p>
+    <button id="restart-button" style="padding:10px 20px; font-size:1rem; background-color:#25a2e7; color:white; border:none; border-radius:8px; cursor:pointer;">다시하기</button>
+  </div>
+</div>
+
+<!-- 💛 카카오 공유 버튼 -->
+<button id="kakao-share-btn" aria-label="카카오톡 공유">
+  <svg viewBox="0 0 512 512" style="width:24px;height:24px;margin-left:1px;margin-top:1px" fill="#3C1E1E">
+    <path d="M408 64H104a56.16 56.16 0 00-56 56v192a56.16 56.16 0 0056 56h40v80l93.72-78.14a8 8 0 015.13-1.86H408a56.16 56.16 0 0056-56V120a56.16 56.16 0 00-56-56z"/>
+    <circle cx="160" cy="216" r="32" fill="#FAE100"/>
+    <circle cx="256" cy="216" r="32" fill="#FAE100"/>
+    <circle cx="352" cy="216" r="32" fill="#FAE100"/>
+  </svg>
+</button>
+
+<!-- 🔊 사운드 요소들 -->
+<audio id="score-sound" src="/number/assets/bubble-pop.mp3"></audio>
+<audio id="fail-sound" src="/number/assets/funny-jack.mp3"></audio>
+<audio id="sound3" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory1.mp3"></audio>
+<audio id="sound6" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory2.mp3"></audio>
+<audio id="sound9" src="https://raw.githubusercontent.com/Uncledison/game-music/main/Victory3.mp3"></audio>
+<audio id="bg-music" autoplay loop muted>
+  <source src="https://raw.githubusercontent.com/Uncledison/game-music/main/Playful-Joyride.mp3" type="audio/mpeg">
+</audio>
+
+<style>
+  .score-fly {
+    position: absolute;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0071e3;
+    animation: flyUp 1s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes flyUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+  .firework {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: red;
+    animation: explode 0.6s ease-out forwards;
+    z-index: 100;
+    pointer-events: none;
+  }
+  @keyframes explode {
+    0% { transform: scale(1) translate(-50%, -50%) rotate(0deg); opacity: 1; }
+    100% { transform: scale(10) translate(-50%, -50%) rotate(720deg); opacity: 0; }
+  }
+  .combo-text {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ff3366;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff3366;
+    z-index: 10000;
+    opacity: 0;
+    animation: combo-fade 2s ease-out;
+  }
+  @keyframes combo-fade {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+  }
+</style>
+<script>
+
+  const WIDTH = 5, HEIGHT = 6, INITIAL_TIME = 60, SCORE_INC = 5;
+  let grid = [], score = 0, bestScore = 0, target = 10, selected = [], time = INITIAL_TIME, timer;
+  let gameOn = false, comboCount = 0;
+
+  const pastelColors = [
+  "#d93636", // 진한 핑크
+  "#e69200", // 진한 주황
+  "#d9513f", // 진한 코랄
+  "#1fa69a", // 진한 민트
+  "#3c6f2a", // 진한 초록
+  "#d85c00", // 진한 진주황
+  "#e1796c", // 진한 연분홍
+  "#52746d", // 진한 회청
+  "#14988d"  // 진한 청록
+];
+
+  const gridTable = document.getElementById('grid-table');
+  const scoreEl = document.getElementById('score');
+  const bestScoreEl = document.getElementById('best-score');
+  const timerEl = document.getElementById('timer');
+  const targetEl = document.getElementById('target-sum');
+  const sound = document.getElementById('score-sound');
+  const failSound = document.getElementById('fail-sound');
+  const sound3 = document.getElementById('sound3');
+  const sound6 = document.getElementById('sound6');
+  const sound9 = document.getElementById('sound9');
+  const bgMusic = document.getElementById('bg-music');
+  const muteImgBtn = document.getElementById('mute-img-btn');
+  const targetModal = document.getElementById('target-modal');
+  const confirmTargetBtn = document.getElementById('confirm-target-btn');
+  const modalBtns = document.querySelectorAll('.modal-btn');
+  const targetBox = document.getElementById('target-box');
+  const gameoverModal = document.getElementById('gameover-modal');
+  const finalScoreEl = document.getElementById('final-score');
+  const restartPopupBtn = document.getElementById('restart-button');
+
+  sound3.volume = 0.4;
+  sound6.volume = 0.4;
+  sound9.volume = 0.9;
+  bgMusic.volume = 0.4;
+
+  function initGame() {
+    loadBestScore();
+    grid = Array.from({ length: HEIGHT }, () => Array(WIDTH).fill(0));
+    gridTable.innerHTML = '';
+    for (let r = 0; r < HEIGHT; r++) {
+      const row = document.createElement('tr');
+      for (let c = 0; c < WIDTH; c++) {
+        const td = document.createElement('td');
+        td.dataset.row = r;
+        td.dataset.col = c;
+        td.addEventListener('click', onCellClick);
+        row.appendChild(td);
+      }
+      gridTable.appendChild(row);
+    }
+    score = 0;
+    comboCount = 0;
+    updateDisplay();
+    fillGrid();
+    resetTimer();
+    gameOn = true;
+  }
+
+  function fillGrid() {
+    const pairs = [];
+    for (let i = 1; i <= target / 2; i++) {
+      const j = target - i;
+      if (i <= j) pairs.push([i, j]);
+    }
+    let empty = [];
+    for (let r = 0; r < HEIGHT; r++)
+      for (let c = 0; c < WIDTH; c++)
+        if (grid[r][c] === 0) empty.push([r, c]);
+    let values = [];
+    while (values.length < empty.length) {
+      const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+      values.push(a);
+      if (values.length < empty.length) values.push(b);
+    }
+    values.sort(() => Math.random() - 0.5);
+    empty.forEach(([r, c], i) => grid[r][c] = values[i]);
+    updateGrid();
+  }
+
+  function updateGrid() {
+    for (let r = 0; r < HEIGHT; r++) {
+      for (let c = 0; c < WIDTH; c++) {
+        const cell = gridTable.rows[r].cells[c];
+        const val = grid[r][c];
+        cell.textContent = val || '';
+        cell.className = val === 0 ? 'empty' : '';
+
+      // 🎨 랜덤 색상 적용
+      if (val > 0) {
+        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        cell.style.color = randomColor;
+      } else {
+        cell.style.color = "";
+      }
+    }
+  }
+}
+
+  function onCellClick(e) {
+    if (!gameOn) return;
+    const r = +e.target.dataset.row;
+    const c = +e.target.dataset.col;
+    if (grid[r][c] === 0) return;
+    const idx = selected.findIndex(([sr, sc]) => sr === r && sc === c);
+    if (idx !== -1) {
+      selected.splice(idx, 1);
+      e.target.classList.remove('selected');
+    } else {
+      selected.push([r, c]);
+      e.target.classList.add('selected');
+    }
+    if (selected.length === 2) checkMatch();
+  }
+
+  function checkMatch() {
+    const [[r1, c1], [r2, c2]] = selected;
+    const sum = grid[r1][c1] + grid[r2][c2];
+    if (sum === target) {
+      grid[r1][c1] = 0;
+      grid[r2][c2] = 0;
+      score += SCORE_INC;
+      comboCount++;
+      showScoreFly(r1, c1);
+      sound.currentTime = 0;
+      sound.play();
+      if (comboCount % 3 === 0 && comboCount <= 200) {
+        showCombo(comboCount);
+      }
+    } else {
+      comboCount = 0;
+      failSound.currentTime = 0;
+      failSound.play();
+    }
+    selected.forEach(([r, c]) => gridTable.rows[r].cells[c].classList.remove('selected'));
+    selected = [];
+    updateDisplay();
+    updateGrid();
+    if (isGridEmpty()) setTimeout(fillGrid, 300);
+  }
+
+  function showCombo(combo) {
+    const text = document.createElement('div');
+    text.className = 'combo-text';
+    text.textContent = `${combo} Combo!`;
+    document.body.appendChild(text);
+    setTimeout(() => text.remove(), 2000);
+    showFireworks();
+    playComboSound(combo);
+  }
+
+  function showFireworks() {
+    for (let i = 0; i < 30; i++) {
+      const firework = document.createElement('div');
+      firework.className = 'firework';
+      firework.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      firework.style.top = `${Math.random() * 100}%`;
+      firework.style.left = `${Math.random() * 100}%`;
+      document.body.appendChild(firework);
+      setTimeout(() => firework.remove(), 600);
+    }
+  }
+
+  function playComboSound(combo) {
+    const remainder = combo % 9;
+    let sound;
+    if (remainder === 3) sound = sound3;
+    else if (remainder === 6) sound = sound6;
+    else sound = sound9;
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+  }
+
+  function isGridEmpty() {
+    return grid.every(row => row.every(cell => cell === 0));
+  }
+
+  function updateDisplay() {
+    scoreEl.textContent = score;
+    targetEl.textContent = target;
+    if (score > bestScore) {
+      bestScore = score;
+      localStorage.setItem('bestScore', bestScore);
+    }
+    bestScoreEl.textContent = `최고 점수: ${bestScore}`;
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    time = INITIAL_TIME;
+    timerEl.textContent = time;
+    timer = setInterval(() => {
+      time--;
+      timerEl.textContent = time;
+      if (time <= 0) endGame();
+    }, 1000);
+  }
+
+  function endGame() {
+    clearInterval(timer);
+    gameOn = false;
+    finalScoreEl.textContent = score;
+    gameoverModal.style.display = 'flex';
+  }
+
+  function showScoreFly(r, c) {
+    const cell = gridTable.rows[r].cells[c];
+    const rect = cell.getBoundingClientRect();
+    const fly = document.createElement('div');
+    fly.className = 'score-fly';
+    fly.textContent = '+5';
+    fly.style.left = `${rect.left + rect.width / 2}px`;
+    fly.style.top = `${rect.top + window.scrollY}px`;
+    document.body.appendChild(fly);
+    setTimeout(() => fly.remove(), 1000);
+  }
+
+  function loadBestScore() {
+    bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+  }
+
+  // 이벤트 바인딩
+  document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('intro').style.display = 'none';
+    bgMusic.muted = false;
+    bgMusic.play().catch(() => {}).finally(() => {
+    initGame(); // ✅ play 성공 여부와 상관없이 항상 실행됨
+  });
+});
+
+  muteImgBtn.addEventListener('click', () => {
+  bgMusic.muted = !bgMusic.muted;
+  muteImgBtn.src = bgMusic.muted
+    ? "/number/assets/sound-off.png"  // 음소거
+    : "/number/assets/sound-on.png"; // 음소거 해제
+});
+
+
+  document.getElementById('restart-btn').onclick = initGame;
+  restartPopupBtn.onclick = () => {
+    gameoverModal.style.display = 'none';
+    initGame();
+  };
+  document.getElementById('target-sum-btn').onclick = () => targetModal.style.display = 'flex';
+  targetBox.onclick = () => gameOn && (targetModal.style.display = 'flex');
+  confirmTargetBtn.onclick = () => {
+    const selectedValue = document.querySelector('.modal-btn.selected');
+    if (selectedValue) {
+      target = parseInt(selectedValue.dataset.value);
+      targetEl.textContent = target;
+      targetModal.style.display = "none";
+      initGame();
+    }
+  };
+  modalBtns.forEach(btn => {
+    btn.onclick = () => {
+      modalBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+  });
+
+  // 카카오톡 공유
+  document.getElementById('kakao-share-btn').addEventListener('click', () => {
+    const k = window.Kakao;
+    if (!k) return;
+    if (!k.isInitialized()) k.init('8e68190d1ba932955a557fbf0ae0b659');
+    k.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '숫자 맞추기 퍼즐 🎯',
+        description: "숫자를 조합해 목표 점수를 완성하는 중독성 퍼즐! 60초 도전 ✨",
+        imageUrl: 'https://fun.uncledison.com/assets/number_kakao.png',
+        link: { mobileWebUrl: 'https://fun.uncledison.com/number', webUrl: 'https://fun.uncledison.com/number' },
+      },
+      buttons: [{ title: '게임하러 가기', link: { mobileWebUrl: 'https://fun.uncledison.com/number', webUrl: 'https://fun.uncledison.com/number' } }],
+    });
+  });
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
+        (e.ctrlKey && e.key === 'U')) {
+      e.preventDefault();
+    }
+  });
+</script>
+
+<footer style="margin-top: 0px; padding: 5px; text-align: center; font-size: 0.9rem; color: white;">
+    © 2025
+    <a href="https://www.youtube.com/@uncledison" target="_blank" style="color: white; text-decoration: none;">
+    AIWORKER
+    </a>
+  </footer>
+
+</body>
+</html>

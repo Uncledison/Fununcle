@@ -270,9 +270,8 @@
 
   <div class="controls">
     <button id="mute-btn" class="ctrl-btn" aria-label="소리">🔊</button>
-    <button id="pause-btn" class="ctrl-btn" aria-label="멈춤">⏸️</button>
     <button id="target-sum-btn" class="ctrl-btn" aria-label="목표">🎯</button>
-    <button id="restart-btn" class="ctrl-btn" aria-label="다시">🔄</button>
+    <button id="pause-btn" class="ctrl-btn" aria-label="멈춤">⏸️</button>
   </div>
 </div>
 
@@ -315,10 +314,14 @@
 
 <!-- ⏸ 일시정지 팝업 -->
 <div id="pause-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9500; justify-content:center; align-items:center;">
-  <div style="background:white; padding:30px 36px; border-radius:16px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.2); margin:auto;">
+  <div style="background:white; padding:30px 36px; border-radius:16px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.2); margin:auto; min-width:280px;">
     <h2 style="font-size:1.6rem; margin-bottom:6px;">⏸ 일시정지</h2>
     <p style="margin:10px 0 22px; color:#666;">잠깐 쉬어가요</p>
-    <button id="resume-btn" style="padding:12px 30px; font-size:1.1rem; background:#6dcb55; color:#fff; border:none; border-radius:8px; cursor:pointer;">계속하기 ▶</button>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <button id="resume-btn" style="padding:12px 30px; font-size:1.1rem; background:#6dcb55; color:#fff; border:none; border-radius:10px; cursor:pointer;">계속하기 ▶</button>
+      <button id="pause-restart-btn" style="padding:12px 30px; font-size:1.1rem; background:#25a2e7; color:#fff; border:none; border-radius:10px; cursor:pointer;">🔄 다시하기</button>
+      <button id="pause-home-btn" style="padding:12px 30px; font-size:1.1rem; background:#fff; color:#888; border:2px solid #ddd; border-radius:10px; cursor:pointer;">🏠 메인으로</button>
+    </div>
   </div>
 </div>
 
@@ -371,7 +374,7 @@
   }
   .combo-text {
     position: fixed;
-    top: 40%;
+    top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 2rem;
@@ -380,7 +383,8 @@
     text-shadow: 0 0 10px #fff, 0 0 20px #ff3366;
     z-index: 10000;
     opacity: 0;
-    animation: combo-fade 2s ease-out;
+    pointer-events: none;
+    animation: combo-fade 1s ease-out;
   }
   @keyframes combo-fade {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
@@ -448,7 +452,7 @@
         const td = document.createElement('td');
         td.dataset.row = r;
         td.dataset.col = c;
-        td.addEventListener('click', onCellClick);
+        td.addEventListener('pointerdown', onCellClick);
         row.appendChild(td);
       }
       gridTable.appendChild(row);
@@ -505,6 +509,7 @@
 
   function onCellClick(e) {
     if (!gameOn || paused) return;
+    if (navigator.vibrate) navigator.vibrate(5);
     const r = +e.target.dataset.row;
     const c = +e.target.dataset.col;
     if (grid[r][c] === 0) return;
@@ -530,6 +535,7 @@
       showScoreFly(r1, c1);
       sound.currentTime = 0;
       sound.play();
+      if (navigator.vibrate) navigator.vibrate(15);
       if (comboCount % 3 === 0 && comboCount <= 200) {
         showCombo(comboCount);
       }
@@ -550,13 +556,13 @@
     text.className = 'combo-text';
     text.textContent = `${combo} Combo!`;
     document.body.appendChild(text);
-    setTimeout(() => text.remove(), 2000);
+    setTimeout(() => text.remove(), 1000);
     showFireworks();
     playComboSound(combo);
   }
 
   function showFireworks() {
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 15; i++) {
       const firework = document.createElement('div');
       firework.className = 'firework';
       firework.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
@@ -718,13 +724,20 @@
   }
   pauseBtn.addEventListener('click', pauseGame);
   resumeBtn.addEventListener('click', resumeGame);
+  document.getElementById('pause-restart-btn').addEventListener('click', () => {
+    pauseModal.style.display = 'none';
+    initGame();
+  });
+  document.getElementById('pause-home-btn').addEventListener('click', () => {
+    window.location.href = '/';
+  });
 
   muteBtn.addEventListener('click', () => {
     bgMusic.muted = !bgMusic.muted;
     muteBtn.textContent = bgMusic.muted ? '🔇' : '🔊';
   });
 
-  document.getElementById('restart-btn').onclick = initGame;
+  // 기존 하단 다시 버튼 이벤트 제거됨
   restartPopupBtn.onclick = () => {
     gameoverModal.style.display = 'none';
     initGame();

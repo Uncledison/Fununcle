@@ -141,20 +141,23 @@
       justify-content: space-between;
       gap: 12px;
     }
-    .img-btn {
+    .ctrl-btn {
       flex: 1;
-      height: 100px;
-      object-fit: contain;
+      height: 68px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: rgba(255,255,255,0.85);
+      border: 2px solid #6dcb55;
+      border-radius: 14px;
       cursor: pointer;
-      padding: 5px;
-      transition: transform 0.2s, filter 0.2s;
+      transition: transform 0.15s, background 0.15s;
     }
-    .img-btn:hover {
-      filter: brightness(1.2);
-    }
-    .img-btn:active {
-      transform: scale(0.95);
-    }
+    .ctrl-btn .ico { font-size: 1.7rem; line-height: 1; }
+    .ctrl-btn .lbl { font-size: 0.72rem; font-weight: bold; color: #2e7d32; }
+    .ctrl-btn:active { transform: scale(0.93); background: #eafbe3; }
     .modal-btn {
   height: 80px;       /* ✅ 원하는 높이로 강제 */
   line-height: 80px;  /* ✅ 텍스트 수직 정렬 */
@@ -191,7 +194,7 @@
 
 /* 카카오 공유 플로팅 버튼 */
 #kakao-share-btn {
-  position: fixed; bottom: 20px; right: 16px;
+  position: fixed; top: 12px; right: 12px;
   width: 48px; height: 48px; background: #FAE100;
   border-radius: 50%; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -218,10 +221,10 @@
 ">
   <div style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); border-radius:18px; padding:28px 24px; max-width:340px; width:88%; text-align:center;">
     <h1 style="font-size: 1.8rem; margin-bottom: 18px;">🧩 숫자 맞추기 퍼즐</h1>
-    <div style="font-size: 1.05rem; line-height: 1.8; text-align: left; margin-bottom: 22px;">
-      <p>① 숫자 <b>2개</b>를 선택해 합이 <b>목표 점수</b>가 되게 만들어요.</p>
-      <p>② 목표 점수는 <b>10 ~ 20</b> 중에서 바꿀 수 있어요.</p>
-      <p>③ <b>60초</b> 안에 최대한 많이 맞춰 점수를 올려요! 🎯</p>
+    <div style="font-size: 1.1rem; line-height: 2; text-align: left; margin-bottom: 22px;">
+      <p>➕ 숫자 2개를 더해서 목표점수 만들기</p>
+      <p>🎯 목표점수 10~20 변경가능</p>
+      <p>⏱️ 60초 도전</p>
     </div>
     <label style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem; margin-bottom:20px; cursor:pointer; color:rgba(255,255,255,0.85);">
       <input type="checkbox" id="hide-intro-check" style="width:16px; height:16px;" />
@@ -261,16 +264,13 @@
     </div>
   </div>
 
-  <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-    <button id="pause-btn" style="padding:6px 16px; font-size:1rem; font-weight:bold; background:rgba(255,255,255,0.85); color:#2e7d32; border:2px solid #6dcb55; border-radius:20px; cursor:pointer;">⏸ 멈춤</button>
-  </div>
-
   <table id="grid-table"></table>
 
   <div class="controls">
-    <img id="mute-img-btn" class="img-btn" src="/number/assets/sound-on.png" alt="음소거 버튼" />
-    <img id="target-sum-btn" class="img-btn" src="/number/assets/target.png" alt="목표변경" />
-    <img id="restart-btn" class="img-btn" src="/number/assets/restart.png" alt="다시하기" />
+    <button id="mute-btn" class="ctrl-btn" aria-label="소리"><span class="ico">🔊</span><span class="lbl">소리</span></button>
+    <button id="pause-btn" class="ctrl-btn" aria-label="멈춤"><span class="ico">⏸️</span><span class="lbl">멈춤</span></button>
+    <button id="target-sum-btn" class="ctrl-btn" aria-label="목표"><span class="ico">🎯</span><span class="lbl">목표</span></button>
+    <button id="restart-btn" class="ctrl-btn" aria-label="다시"><span class="ico">🔄</span><span class="lbl">다시</span></button>
   </div>
 </div>
 
@@ -300,9 +300,14 @@
 <!-- ✅ 게임오버 팝업 -->
 <div id="gameover-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
   <div style="background:white; padding:30px; border-radius:16px; text-align:center; max-width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.2); margin:auto;">
-    <h2 style="font-size:1.6rem;" id="gameover-message">게임오버! 🎉</h2>
-    <p style="margin:16px 0;">당신의 점수는 <span id="final-score">0</span>점이에요!</p>
-    <button id="restart-button" style="padding:10px 20px; font-size:1rem; background-color:#25a2e7; color:white; border:none; border-radius:8px; cursor:pointer;">다시하기</button>
+    <h2 style="font-size:1.5rem; margin-bottom:6px;" id="gameover-message">게임오버! 🎉</h2>
+    <div style="font-size:3rem; font-weight:900; color:#2e7d32; line-height:1.1; margin:6px 0 2px;"><span id="final-score">0</span><span style="font-size:1.4rem;">점</span></div>
+    <p id="best-line" style="margin:2px 0 18px; color:#888; font-size:0.95rem;">최고 기록 0점</p>
+    <button id="share-score-btn" style="display:block; width:100%; padding:14px; font-size:1.1rem; font-weight:bold; background:#FAE100; color:#3C1E1E; border:none; border-radius:10px; cursor:pointer; margin-bottom:10px;">💬 카톡으로 점수 자랑하기</button>
+    <div style="display:flex; gap:10px;">
+      <button id="restart-button" style="flex:1; padding:12px; font-size:1rem; background-color:#25a2e7; color:white; border:none; border-radius:10px; cursor:pointer;">🔄 다시하기</button>
+      <button id="quit-button" style="flex:1; padding:12px; font-size:1rem; background-color:#fff; color:#888; border:2px solid #ddd; border-radius:10px; cursor:pointer;">🚪 그만하기</button>
+    </div>
   </div>
 </div>
 
@@ -410,7 +415,8 @@
   const sound6 = document.getElementById('sound6');
   const sound9 = document.getElementById('sound9');
   const bgMusic = document.getElementById('bg-music');
-  const muteImgBtn = document.getElementById('mute-img-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  const muteIco = muteBtn.querySelector('.ico');
   const targetModal = document.getElementById('target-modal');
   const confirmTargetBtn = document.getElementById('confirm-target-btn');
   const modalBtns = document.querySelectorAll('.modal-btn');
@@ -421,6 +427,10 @@
   const pauseBtn = document.getElementById('pause-btn');
   const pauseModal = document.getElementById('pause-modal');
   const resumeBtn = document.getElementById('resume-btn');
+  const shareScoreBtn = document.getElementById('share-score-btn');
+  const quitBtn = document.getElementById('quit-button');
+  const bestLineEl = document.getElementById('best-line');
+  let challengeScore = null;   // 도전장으로 받은 점수(없으면 null)
 
   sound3.volume = 0.4;
   sound6.volume = 0.4;
@@ -594,7 +604,17 @@
   function endGame() {
     clearInterval(timer);
     gameOn = false;
+    paused = false;
     finalScoreEl.textContent = score;
+    bestLineEl.textContent = (score >= bestScore && score > 0) ? '🏆 최고 기록 갱신!' : `최고 기록 ${bestScore}점`;
+    const msgEl = document.getElementById('gameover-message');
+    if (challengeScore !== null && score > challengeScore) {
+      msgEl.textContent = `도전 성공! 🎉 친구 ${challengeScore}점 넘김`;
+    } else if (challengeScore !== null) {
+      msgEl.textContent = `아쉽! 친구 점수는 ${challengeScore}점 😤`;
+    } else {
+      msgEl.textContent = '게임오버! 🎉';
+    }
     gameoverModal.style.display = 'flex';
   }
 
@@ -627,12 +647,53 @@
     });
   });
 
-  // 안내 끄기 설정이면 인트로 건너뛰고 바로 시작 (제스처가 없어 음악은 음소거로 시작)
-  if (localStorage.getItem('number_hideIntro') === 'true') {
+  // 제스처 없는 진입(도전장·안내끄기) — 음악은 음소거로 시작
+  function autoStartMuted() {
     document.getElementById('intro').style.display = 'none';
     bgMusic.muted = true;
-    muteImgBtn.src = "/number/assets/sound-off.png";
+    muteIco.textContent = '🔇';
     initGame();
+  }
+
+  // 🔥 도전 토스트
+  function showChallengeToast(cs) {
+    const t = document.createElement('div');
+    t.textContent = `🔥 친구가 ${cs}점에 도전장! 목표 ${target}로 도전!`;
+    t.style.cssText = 'position:fixed; top:14px; left:50%; transform:translateX(-50%); background:#ff3366; color:#fff; font-weight:bold; padding:10px 18px; border-radius:24px; z-index:9800; font-size:0.92rem; box-shadow:0 4px 16px rgba(0,0,0,0.3); max-width:92%; text-align:center;';
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.transition = 'opacity 0.6s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 600); }, 4500);
+  }
+
+  // 💬 내 점수를 카톡 도전장으로 공유
+  function shareScore() {
+    const k = window.Kakao;
+    if (!k) return;
+    if (!k.isInitialized()) k.init('8e68190d1ba932955a557fbf0ae0b659');
+    const my = score;
+    const link = `https://fun.uncledison.com/number?challenge=${my}&target=${target}`;
+    k.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `숫자 맞추기 🎯 나 ${my}점! 넌 몇 점?`,
+        description: `60초 안에 숫자 2개로 목표(${target})를 만드는 퍼즐! ${my}점 넘어봐 👀`,
+        imageUrl: 'https://fun.uncledison.com/assets/number_kakao.png',
+        link: { mobileWebUrl: link, webUrl: link },
+      },
+      buttons: [{ title: `${my}점에 도전하기`, link: { mobileWebUrl: link, webUrl: link } }],
+    });
+  }
+
+  // 진입 처리: 도전장 링크 우선, 없으면 안내끄기 설정 적용
+  const _cp = new URLSearchParams(location.search);
+  const _cs = parseInt(_cp.get('challenge'));
+  if (!isNaN(_cs)) {
+    challengeScore = _cs;
+    const _ct = parseInt(_cp.get('target'));
+    if (!isNaN(_ct) && _ct >= 10 && _ct <= 20) { target = _ct; targetEl.textContent = target; }
+    showChallengeToast(_cs);
+    autoStartMuted();
+  } else if (localStorage.getItem('number_hideIntro') === 'true') {
+    autoStartMuted();
   }
 
   // ⏸ 일시정지 / 계속하기
@@ -655,18 +716,25 @@
   pauseBtn.addEventListener('click', pauseGame);
   resumeBtn.addEventListener('click', resumeGame);
 
-  muteImgBtn.addEventListener('click', () => {
-  bgMusic.muted = !bgMusic.muted;
-  muteImgBtn.src = bgMusic.muted
-    ? "/number/assets/sound-off.png"  // 음소거
-    : "/number/assets/sound-on.png"; // 음소거 해제
-});
-
+  muteBtn.addEventListener('click', () => {
+    bgMusic.muted = !bgMusic.muted;
+    muteIco.textContent = bgMusic.muted ? '🔇' : '🔊';
+  });
 
   document.getElementById('restart-btn').onclick = initGame;
   restartPopupBtn.onclick = () => {
     gameoverModal.style.display = 'none';
     initGame();
+  };
+  // 💬 게임오버에서 점수 자랑하기
+  shareScoreBtn.onclick = shareScore;
+  // 🚪 그만하기 — 음악 정지 + 첫 화면(타이틀)로
+  quitBtn.onclick = () => {
+    gameoverModal.style.display = 'none';
+    try { bgMusic.pause(); } catch (e) {}
+    bgMusic.muted = true;
+    muteIco.textContent = '🔇';
+    document.getElementById('intro').style.display = 'flex';
   };
   // 목표 모달 열기 — 현재 목표 점수를 미리 선택해서 보여줌
   function openTargetModal() {
@@ -723,7 +791,6 @@
 </script>
 
 <footer style="margin-top: 0px; padding: 5px; text-align: center; font-size: 0.9rem; color: white;">
-    © 2025
     <a href="https://fun.uncledison.com" target="_blank" rel="noopener" style="color: white; text-decoration: none;">
     fun.uncledison.com
     </a>

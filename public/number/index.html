@@ -608,15 +608,24 @@
     gameoverModal.style.display = 'none';
     initGame();
   };
-  document.getElementById('target-sum-btn').onclick = () => targetModal.style.display = 'flex';
-  targetBox.onclick = () => gameOn && (targetModal.style.display = 'flex');
+  // 목표 모달 열기 — 현재 목표 점수를 미리 선택해서 보여줌
+  function openTargetModal() {
+    modalBtns.forEach(b => b.classList.toggle('selected', parseInt(b.dataset.value) === target));
+    targetModal.style.display = 'flex';
+  }
+  document.getElementById('target-sum-btn').onclick = openTargetModal;
+  targetBox.onclick = () => { if (gameOn) openTargetModal(); };
   confirmTargetBtn.onclick = () => {
     const selectedValue = document.querySelector('.modal-btn.selected');
+    targetModal.style.display = "none";              // 확인하면 항상 창 닫기
     if (selectedValue) {
-      target = parseInt(selectedValue.dataset.value);
-      targetEl.textContent = target;
-      targetModal.style.display = "none";
-      initGame();
+      const newTarget = parseInt(selectedValue.dataset.value);
+      if (newTarget !== target) {                    // 목표가 바뀐 경우에만 새 게임 시작
+        target = newTarget;
+        targetEl.textContent = target;
+        initGame();
+      }
+      // 목표가 그대로면 진행 중인 게임을 그대로 유지
     }
   };
   modalBtns.forEach(btn => {
@@ -655,8 +664,8 @@
 
 <footer style="margin-top: 0px; padding: 5px; text-align: center; font-size: 0.9rem; color: white;">
     © 2025
-    <a href="https://www.youtube.com/@uncledison" target="_blank" style="color: white; text-decoration: none;">
-    AIWORKER
+    <a href="https://fun.uncledison.com" target="_blank" rel="noopener" style="color: white; text-decoration: none;">
+    fun.uncledison.com
     </a>
   </footer>
 

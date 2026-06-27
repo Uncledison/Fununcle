@@ -138,26 +138,29 @@
     }
     .controls {
       display: flex;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 6px;
     }
     .ctrl-btn {
-      flex: 1;
-      height: 68px;
+      width: 60px;
+      height: 60px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      background: rgba(255,255,255,0.85);
-      border: 2px solid #6dcb55;
-      border-radius: 14px;
+      font-size: 1.8rem;
+      line-height: 1;
+      background: linear-gradient(145deg, #ffffff, #dcead2);
+      border: none;
+      border-radius: 50%;
       cursor: pointer;
-      transition: transform 0.15s, background 0.15s;
+      box-shadow: 0 5px 0 #7fb564, 0 7px 12px rgba(0,0,0,0.22);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
     }
-    .ctrl-btn .ico { font-size: 1.7rem; line-height: 1; }
-    .ctrl-btn .lbl { font-size: 0.72rem; font-weight: bold; color: #2e7d32; }
-    .ctrl-btn:active { transform: scale(0.93); background: #eafbe3; }
+    .ctrl-btn:active {
+      transform: translateY(5px);
+      box-shadow: 0 0 0 #7fb564, 0 2px 5px rgba(0,0,0,0.2);
+    }
     .modal-btn {
   height: 80px;       /* ✅ 원하는 높이로 강제 */
   line-height: 80px;  /* ✅ 텍스트 수직 정렬 */
@@ -194,7 +197,7 @@
 
 /* 카카오 공유 플로팅 버튼 */
 #kakao-share-btn {
-  position: fixed; top: 12px; right: 12px;
+  position: fixed; bottom: 16px; right: 16px;
   width: 48px; height: 48px; background: #FAE100;
   border-radius: 50%; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -224,7 +227,6 @@
     <div style="font-size: 1.1rem; line-height: 2; text-align: left; margin-bottom: 22px;">
       <p>➕ 숫자 2개를 더해서 목표점수 만들기</p>
       <p>🎯 목표점수 10~20 변경가능</p>
-      <p>⏱️ 60초 도전</p>
     </div>
     <label style="display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.9rem; margin-bottom:20px; cursor:pointer; color:rgba(255,255,255,0.85);">
       <input type="checkbox" id="hide-intro-check" style="width:16px; height:16px;" />
@@ -267,10 +269,10 @@
   <table id="grid-table"></table>
 
   <div class="controls">
-    <button id="mute-btn" class="ctrl-btn" aria-label="소리"><span class="ico">🔊</span><span class="lbl">소리</span></button>
-    <button id="pause-btn" class="ctrl-btn" aria-label="멈춤"><span class="ico">⏸️</span><span class="lbl">멈춤</span></button>
-    <button id="target-sum-btn" class="ctrl-btn" aria-label="목표"><span class="ico">🎯</span><span class="lbl">목표</span></button>
-    <button id="restart-btn" class="ctrl-btn" aria-label="다시"><span class="ico">🔄</span><span class="lbl">다시</span></button>
+    <button id="mute-btn" class="ctrl-btn" aria-label="소리">🔊</button>
+    <button id="pause-btn" class="ctrl-btn" aria-label="멈춤">⏸️</button>
+    <button id="target-sum-btn" class="ctrl-btn" aria-label="목표">🎯</button>
+    <button id="restart-btn" class="ctrl-btn" aria-label="다시">🔄</button>
   </div>
 </div>
 
@@ -416,7 +418,6 @@
   const sound9 = document.getElementById('sound9');
   const bgMusic = document.getElementById('bg-music');
   const muteBtn = document.getElementById('mute-btn');
-  const muteIco = muteBtn.querySelector('.ico');
   const targetModal = document.getElementById('target-modal');
   const confirmTargetBtn = document.getElementById('confirm-target-btn');
   const modalBtns = document.querySelectorAll('.modal-btn');
@@ -651,7 +652,7 @@
   function autoStartMuted() {
     document.getElementById('intro').style.display = 'none';
     bgMusic.muted = true;
-    muteIco.textContent = '🔇';
+    muteBtn.textContent = '🔇';
     initGame();
   }
 
@@ -701,12 +702,14 @@
     if (!gameOn || paused) return;
     paused = true;
     clearInterval(timer);
+    try { bgMusic.pause(); } catch (e) {}   // 배경음악도 정지
     pauseModal.style.display = 'flex';
   }
   function resumeGame() {
     if (!paused) return;
     paused = false;
     pauseModal.style.display = 'none';
+    if (!bgMusic.muted) { bgMusic.play().catch(() => {}); }   // 음소거 아니면 음악 재개
     timer = setInterval(() => {
       time--;
       timerEl.textContent = time;
@@ -718,7 +721,7 @@
 
   muteBtn.addEventListener('click', () => {
     bgMusic.muted = !bgMusic.muted;
-    muteIco.textContent = bgMusic.muted ? '🔇' : '🔊';
+    muteBtn.textContent = bgMusic.muted ? '🔇' : '🔊';
   });
 
   document.getElementById('restart-btn').onclick = initGame;
@@ -733,7 +736,7 @@
     gameoverModal.style.display = 'none';
     try { bgMusic.pause(); } catch (e) {}
     bgMusic.muted = true;
-    muteIco.textContent = '🔇';
+    muteBtn.textContent = '🔇';
     document.getElementById('intro').style.display = 'flex';
   };
   // 목표 모달 열기 — 현재 목표 점수를 미리 선택해서 보여줌

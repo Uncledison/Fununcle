@@ -41,10 +41,14 @@ const BentoCard = ({
     };
 
     // 1. Internal Link (starts with /)
+    // reloadDocument: 전체 페이지 로드로 진입 → index.html 인라인 스크립트가
+    // 크롬이 매니페스트를 읽기 전에 경로별 PWA(영단어/한자/루트)로 맞춰준다.
+    // (SPA 이동이면 홈에서 읽은 루트 매니페스트가 남아 "이미 설치됨"이 뜸)
     if (href && href.startsWith('/')) {
         return (
             <Link
                 to={href}
+                reloadDocument
                 className={`block ${className || ''} relative z-10`}
             >
                 <motion.div

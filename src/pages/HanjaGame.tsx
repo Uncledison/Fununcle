@@ -759,15 +759,16 @@ export default function HanjaGame() {
 
   // ── 참여자 수 계산 (시간대별 기반 + localStorage 누적) ───────────────
   useEffect(() => {
+    // 한자는 영단어보다 20~40명 적게 보이도록 기준치를 약 30 낮춤
     const calculateBaseCount = (hour, minutes) => {
       let base = 0;
-      if (hour < 6) base = 12;
-      else if (hour < 9) base = 45;
-      else if (hour < 12) base = 95;
-      else if (hour < 14) base = 140;
-      else if (hour < 18) base = 210;
-      else if (hour < 22) base = 280;
-      else base = 160;
+      if (hour < 6) base = 9;
+      else if (hour < 9) base = 15;
+      else if (hour < 12) base = 65;
+      else if (hour < 14) base = 110;
+      else if (hour < 18) base = 180;
+      else if (hour < 22) base = 250;
+      else base = 130;
       return base + Math.floor(minutes * 0.4);
     };
     const now = new Date();
@@ -1173,8 +1174,9 @@ export default function HanjaGame() {
     return w.words.filter(word => p?.mastered.includes(word.en))
       .map(word => ({ ...word, worldTitle: w.title, worldColor: w.color, worldEmoji: w.emoji }));
   });
-  // 계정 모달용 — 교과서3000 + 내한자장 전체 누적(모드 무관, 새로고침에도 유지)
-  const totalMasteredCount = progress.reduce((sum, p) => sum + (p?.mastered?.length || 0), 0);
+  // 계정 모달용 — 급수 + 내한자장 전체에서 '서로 다른' 마스터 한자 수(중복 제거)
+  // (8급·준7급·7급이 누적 구조라 같은 한자가 여러 급에 중복 → distinct로 실제 외운 수만 집계)
+  const totalMasteredCount = new Set(progress.flatMap(p => p?.mastered || [])).size;
   const allFailed = targetWorlds.flatMap(w => {
     const p = progress.find(p => p.worldId === w.id);
     return w.words.filter(word => p?.failed.includes(word.en))
@@ -1730,7 +1732,7 @@ export default function HanjaGame() {
 
   // ── 레벨 선택 화면 ───────────────────────
   // 베타 카운트다운 (오늘 2026-06-08 기준 +3개월 = 2026-09-08)
-  const BETA_END = new Date("2026-09-08T00:00:00+09:00");
+  const BETA_END = new Date("2026-09-26T00:00:00+09:00");  // 2026-06-28 기준 무료 90일
   const betaDiff = Math.max(0, BETA_END.getTime() - Date.now());
   const betaDays = Math.floor(betaDiff / (1000 * 60 * 60 * 24));
 

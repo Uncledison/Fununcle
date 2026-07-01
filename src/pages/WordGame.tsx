@@ -1981,7 +1981,11 @@ export default function WordGame() {
             )}
             <button onClick={() => setShowQuitConfirm(false)}
               style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-              계속하기
+              ▶ 계속하기
+            </button>
+            <button onClick={plainExit}
+              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              🚪 그냥 나가기 <span style={{ fontSize: 12, opacity: 0.75 }}>(이어하기 저장 안 함)</span>
             </button>
           </div>
         ) : (

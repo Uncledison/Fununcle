@@ -27,6 +27,7 @@
   .act-approve { background:#4ADE80; color:#063; padding:9px 14px; font-size:13px; }
   .act-revoke { background:rgba(239,68,68,.15); color:#EF4444; padding:9px 14px; font-size:13px; }
   .act-vip { background:rgba(255,184,0,.15); color:#FFB800; padding:9px 14px; font-size:13px; }
+  .act-reset { background:rgba(96,165,250,.15); color:#60A5FA; padding:9px 14px; font-size:13px; }
   .act-delete { background:rgba(120,0,0,.3); color:#ff9b9b; border:1px solid rgba(239,68,68,.3); padding:9px 14px; font-size:13px; }
   .topbtns { display:flex; gap:8px; }
   a.btn-ghost { text-decoration:none; display:inline-flex; align-items:center; border-radius:10px; }
@@ -102,6 +103,7 @@
               + (r.approved ? '<button class="act-revoke" data-act="revoke">승인취소</button>'
                             : '<button class="act-approve" data-act="approve">승인</button>')
               + '<button class="act-vip" data-act="vip">' + (r.membership_level === "vip" ? "일반으로" : "VIP로") + '</button>'
+              + '<button class="act-reset" data-act="reset">🔄 학습리셋</button>'
               + '<button class="act-delete" data-act="delete">🗑 삭제</button>'
               + '</div></div></div>';
           }).join("");
@@ -122,6 +124,21 @@
             });
             var dj = await dr.json().catch(function(){ return {}; });
             if (!dr.ok) alert("삭제 실패: " + (dj.error || dr.status));
+            render(); return;
+          }
+          if (act === "reset") {
+            if (!confirm("이 사용자의 학습기록을 0으로 초기화할까요?\n(진도·레벨·외운단어 삭제. 계정은 유지, 되돌릴 수 없음)")) { render(); return; }
+            var keepSets = confirm("내 단어장(단어셋)은 남길까요?\n확인=남김 / 취소=단어셋도 삭제");
+            var sres2 = await sb.auth.getSession();
+            var tok2 = sres2.data.session ? sres2.data.session.access_token : "";
+            var rr = await fetch("/api/admin-reset-progress", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok2 },
+              body: JSON.stringify({ userId: id, keepSets: keepSets })
+            });
+            var rj = await rr.json().catch(function(){ return {}; });
+            if (!rr.ok) alert("초기화 실패: " + (rj.error || rr.status));
+            else alert("초기화 완료. 해당 사용자가 다시 로그인하면 0부터 시작합니다.");
             render(); return;
           }
           var patch = {};

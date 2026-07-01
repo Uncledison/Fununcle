@@ -4,7 +4,7 @@ import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak } from "../lib/pronunciation";
 import { supabase } from "../lib/supabase";
-import { pullCloud, pushCloud, applyLocalState } from "../lib/cloudSync";
+import { pullCloud, pushCloud, applyLocalState, clearLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
 
 // ── 단어 데이터 (교육부 고시 제2022-33호 [별책 14]) ────────────────
@@ -983,6 +983,7 @@ export default function WordGame() {
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
   const [authError,       setAuthError]       = useState("");    // 실제 에러 메시지
   const syncedRef = useRef(false);
+  const syncReadyRef = useRef(false); // 초기 클라우드 동기화(교체/백업) 완료 전엔 자동 푸시 금지
   // 비로그인 3 / 로그인(일반) 5 / VIP·CEO 무한(내부 상한 100)
   const maxSets = (session && approved === true)
     ? ((membership === "vip" || isAdmin) ? 100 : 5)
@@ -1075,12 +1076,21 @@ export default function WordGame() {
     if (syncedRef.current) return;
     syncedRef.current = true;
     const cloud = await pullCloud(userId);
+    if (cloud === undefined) {
+      // 조회 실패(네트워크 등) → 아무것도 안 함. 로컬 유지 + 자동푸시 금지로 클라우드 보호.
+      syncedRef.current = false;       // 다음 기회에 재시도 허용
+      return;
+    }
     if (cloud && Object.keys(cloud).length) {
+      // 이미 클라우드가 있음 → 무조건 클라우드로 교체 (로컬 잔여 데이터 제거 후 반영)
+      clearLocalState();
       applyLocalState(cloud);
       reloadStatesFromLocal();
     } else {
+      // 첫 로그인(클라우드 비어있음) → 현재 로컬 기기 데이터를 백업(업로드)
       await pushCloud(userId);
     }
+    syncReadyRef.current = true;        // 이제부터 자동 푸시 허용
   };
 
   // ── 세션 감지 (마운트 시 + 변경 시) ──────────────
@@ -1094,7 +1104,7 @@ export default function WordGame() {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       if (sess) handleSignedIn(sess.user.id);
-      else { syncedRef.current = false; setApproved(null); setIsAdmin(false); }
+      else { syncedRef.current = false; syncReadyRef.current = false; setApproved(null); setIsAdmin(false); }
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -1254,6 +1264,7 @@ export default function WordGame() {
   // ── 로그인 상태에서 변경되면 클라우드에 자동 저장 (디바운스) ──────────────
   useEffect(() => {
     if (!session || approved !== true) return;   // 승인된 경우에만 클라우드 저장
+    if (!syncReadyRef.current) return;            // 초기 pull(교체/백업) 완료 전엔 푸시 금지(클라우드 덮어쓰기 방지)
     const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
     return () => clearTimeout(t);
   }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar, nickname]);
@@ -1291,12 +1302,19 @@ export default function WordGame() {
     }
   };
   const signOut = async () => {
+    // 로그아웃 전, 마지막 상태를 클라우드에 확실히 백업(디바운스 누락 방지)
+    try { if (session && approved === true && syncReadyRef.current) await pushCloud(session.user.id); } catch (e) {}
     try { await supabase.auth.signOut(); } catch (e) {}
     syncedRef.current = false;
+    syncReadyRef.current = false;
     setSession(null);
     setApproved(null);
     setIsAdmin(false);
     setShowAuthModal(false);
+    // 로컬 동기화 데이터 정리 → 다음 사용자/비로그인에 데이터 안 섞임 (클라우드엔 이미 백업됨)
+    try { clearLocalState(); } catch (e) {}
+    setConnAlias({});
+    reloadStatesFromLocal();
   };
 
   // ── 로그인/계정 모달 (컴포넌트 아닌 함수 렌더 — 입력 포커스 유지) ──────────────

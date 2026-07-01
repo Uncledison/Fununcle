@@ -31,6 +31,13 @@ export function collectLocalState(): Record<string, string> {
   return data;
 }
 
+// 동기화 키를 로컬에서 모두 제거 (로그아웃/계정 교체 시)
+export function clearLocalState() {
+  for (const k of KEYS) {
+    try { localStorage.removeItem(k); } catch (e) {}
+  }
+}
+
 // 클라우드에서 받은 blob을 localStorage에 반영
 export function applyLocalState(data: Record<string, string> | null) {
   if (!data) return;
@@ -41,18 +48,21 @@ export function applyLocalState(data: Record<string, string> | null) {
   }
 }
 
-// 내 클라우드 상태 가져오기 (없으면 null)
-export async function pullCloud(userId: string): Promise<Record<string, string> | null> {
+// 내 클라우드 상태 가져오기
+//  - 객체: 클라우드에 데이터 있음
+//  - null: 조회 성공했으나 비어있음(진짜 첫 로그인)
+//  - undefined: 조회 실패(네트워크 등) → 로컬 유지·업로드 금지로 클라우드 보호
+export async function pullCloud(userId: string): Promise<Record<string, string> | null | undefined> {
   try {
     const { data, error } = await supabase
       .from("wordgame_state")
       .select("data")
       .eq("user_id", userId)
       .maybeSingle();
-    if (error) return null;
+    if (error) return undefined;
     return (data?.data as any) ?? null;
   } catch (e) {
-    return null;
+    return undefined;
   }
 }
 

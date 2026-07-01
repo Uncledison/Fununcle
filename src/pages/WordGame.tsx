@@ -1316,6 +1316,27 @@ export default function WordGame() {
     setConnAlias({});
     reloadStatesFromLocal();
   };
+  // 회원 탈퇴 — 본인 계정·모든 기록 삭제 (되돌릴 수 없음)
+  const deleteAccount = async () => {
+    if (!session) return;
+    if (!confirm("정말 회원 탈퇴할까요?\n모든 학습기록·단어장·계정이 삭제되고 되돌릴 수 없어요.")) return;
+    if (!confirm("한 번 더 확인합니다.\n탈퇴하면 절대 복구할 수 없습니다. 진행할까요?")) return;
+    try {
+      const r = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + session.access_token },
+      });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); alert("탈퇴 실패: " + (j.error || r.status)); return; }
+    } catch (e) { alert("탈퇴 실패. 잠시 후 다시 시도해주세요."); return; }
+    try { await supabase.auth.signOut(); } catch (e) {}
+    syncedRef.current = false;
+    syncReadyRef.current = false;
+    setSession(null); setApproved(null); setIsAdmin(false); setShowAuthModal(false);
+    try { clearLocalState(); } catch (e) {}
+    setConnAlias({});
+    reloadStatesFromLocal();
+    alert("탈퇴가 완료되었습니다.\n그동안 이용해주셔서 감사합니다.");
+  };
 
   // ── 로그인/계정 모달 (컴포넌트 아닌 함수 렌더 — 입력 포커스 유지) ──────────────
   const renderAuthModal = () => {
@@ -1404,6 +1425,9 @@ export default function WordGame() {
               )}
               <button onClick={signOut} style={{ width: "100%", padding: "14px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 16, color: "#EF4444", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>로그아웃</button>
               <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+              <div style={{ marginTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10 }}>
+                <button onClick={deleteAccount} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>회원 탈퇴</button>
+              </div>
             </>
           ) : (
             <>

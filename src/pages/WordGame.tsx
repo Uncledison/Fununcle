@@ -1421,6 +1421,10 @@ export default function WordGame() {
 
               {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, margin: "0 0 12px", lineHeight: 1.5 }}>{authError || "로그인 실패. 다시 시도해주세요."}</div>}
 
+              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, lineHeight: 1.6, margin: "4px 0 12px" }}>
+                로그인 시 <a href="/terms.html" target="_blank" style={{ color: "rgba(255,255,255,0.55)" }}>이용약관</a> 및 <a href="/privacy.html" target="_blank" style={{ color: "rgba(255,255,255,0.55)" }}>개인정보처리방침</a>에 동의합니다.
+              </p>
+
               <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
           )}
@@ -2527,6 +2531,11 @@ export default function WordGame() {
 
       <div style={{ marginTop: 16, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
         <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
+        <div style={{ marginTop: 8, color: "rgba(255,255,255,0.3)", fontSize: 11 }}>
+          <a href="/terms.html" target="_blank" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>이용약관</a>
+          <span style={{ margin: "0 6px", color: "rgba(255,255,255,0.2)" }}>·</span>
+          <a href="/privacy.html" target="_blank" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>개인정보처리방침</a>
+        </div>
       </div>
       </div>
     </div>

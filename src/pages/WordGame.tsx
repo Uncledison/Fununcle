@@ -979,6 +979,20 @@ export default function WordGame() {
   const [nickname, setNickname] = useState(() => { try { return localStorage.getItem("wordgame_nickname") || ""; } catch(e) { return ""; } });
   const changeNickname = (v) => { setNickname(v); try { localStorage.setItem("wordgame_nickname", v); } catch(e) {} };
   const [showAuthModal,   setShowAuthModal]   = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showOnboarding,  setShowOnboarding]  = useState(false);
+  const [onboardingSlide, setOnboardingSlide] = useState(0);
+  const ONBOARDING_SLIDES = [
+    { title: "영단어 활용법",     desc: "영단어 플래시카드, 이렇게 써보세요",      youtubeId: "P8B46pn77Ik" },
+    { title: "사진에서 단어 추출", desc: "사진 한 장으로 단어장 뚝딱 만들기",       youtubeId: "uzyPAOfq6G0" },
+    { title: "내 단어 공유하기",   desc: "가족·친구에게 단어장 공유하는 법",       youtubeId: "roUM9-LZe8c" },
+  ];
+  const finishOnboarding = () => {
+    setShowOnboarding(false);
+    setOnboardingSlide(0);
+    try { localStorage.setItem("onboarding_seen_v1", "true"); } catch (e) {}
+  };
+  const openOnboarding = () => { setOnboardingSlide(0); setShowOnboarding(true); };
   const [authEmail,       setAuthEmail]       = useState("");
   const [authStatus,      setAuthStatus]      = useState("");    // "" | sending | sent | error
   const [authError,       setAuthError]       = useState("");    // 실제 에러 메시지
@@ -1103,7 +1117,12 @@ export default function WordGame() {
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
-      if (sess) handleSignedIn(sess.user.id);
+      if (sess) {
+        handleSignedIn(sess.user.id);
+        if (_event === "SIGNED_IN") {
+          try { if (!localStorage.getItem("onboarding_seen_v1")) openOnboarding(); } catch (e) {}
+        }
+      }
       else { syncedRef.current = false; syncReadyRef.current = false; setApproved(null); setIsAdmin(false); }
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
@@ -1423,10 +1442,9 @@ export default function WordGame() {
               {isAdmin && (
                 <button onClick={() => { window.location.href = "/admin.html"; }} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>📋 승인 대시보드 바로가기</button>
               )}
-              <button onClick={signOut} style={{ width: "100%", padding: "14px", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 16, color: "#EF4444", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>로그아웃</button>
               <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
               <div style={{ marginTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10 }}>
-                <button onClick={deleteAccount} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>회원 탈퇴</button>
+                <button onClick={() => { setShowAuthModal(false); setShowSettingsModal(true); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>⚙️ 설정 (로그아웃·탈퇴)</button>
               </div>
             </>
           ) : (
@@ -1452,6 +1470,72 @@ export default function WordGame() {
               <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
           )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 설정 모달 ──────────────────────────────────────
+  const renderSettingsModal = () => {
+    if (!showSettingsModal) return null;
+    const itemStyle: React.CSSProperties = { width: "100%", padding: "14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 8, textAlign: "left" };
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }} onClick={() => setShowSettingsModal(false)}>
+        <div onClick={e => e.stopPropagation()} style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", overflowY: "auto" }}>
+          <button onClick={() => setShowSettingsModal(false)} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+          <div style={{ padding: "28px 22px" }}>
+            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 18px" }}>⚙️ 설정</h3>
+            <button onClick={() => { setShowSettingsModal(false); openOnboarding(); }} style={itemStyle}>📖 사용법 보기</button>
+            <a href="/terms.html" target="_blank" style={{ ...itemStyle, display: "block", boxSizing: "border-box", textDecoration: "none" }}>📄 이용약관</a>
+            <a href="/privacy.html" target="_blank" style={{ ...itemStyle, display: "block", boxSizing: "border-box", textDecoration: "none" }}>🔒 개인정보처리방침</a>
+            {session && (
+              <>
+                <button onClick={() => { setShowSettingsModal(false); signOut(); }} style={{ ...itemStyle, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}>로그아웃</button>
+                <button onClick={() => { setShowSettingsModal(false); deleteAccount(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline", display: "block", margin: "6px auto 0" }}>회원 탈퇴</button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 온보딩(사용법) 슬라이드 모달 ─────────────────────
+  const renderOnboardingModal = () => {
+    if (!showOnboarding) return null;
+    const slide = ONBOARDING_SLIDES[onboardingSlide];
+    const isLast = onboardingSlide === ONBOARDING_SLIDES.length - 1;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 20px" }}>
+        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, maxWidth: 420, width: "100%", overflow: "hidden", position: "relative" }}>
+          <button onClick={finishOnboarding} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+          <div style={{ padding: "18px 20px 0" }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+              {ONBOARDING_SLIDES.map((_, i) => (
+                <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardingSlide ? "#FF8C00" : "rgba(255,255,255,0.15)" }} />
+              ))}
+            </div>
+            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 4px" }}>{slide.title}</h3>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 14px" }}>{slide.desc}</p>
+          </div>
+          <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", background: "#000" }}>
+            <iframe
+              key={slide.youtubeId}
+              src={`https://www.youtube.com/embed/${slide.youtubeId}?rel=0`}
+              title={slide.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 8, padding: "16px 20px" }}>
+            <button onClick={finishOnboarding} style={{ flex: "0 0 auto", padding: "12px 14px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>건너뛰기</button>
+            <button
+              onClick={() => isLast ? finishOnboarding() : setOnboardingSlide(s => s + 1)}
+              style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
+              {isLast ? "시작하기" : "다음"}
+            </button>
           </div>
         </div>
       </div>
@@ -1914,6 +1998,7 @@ export default function WordGame() {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`, padding: session ? "4px 8px" : "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "rgba(255,255,255,0.6)" }}>{session ? (avatar || "👤") : "로그인"}</button>
           <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
+          <button onClick={() => setShowSettingsModal(true)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>⚙️</button>
           {showLevel ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
               <div style={{ textAlign: "right" }}>
@@ -2173,6 +2258,8 @@ export default function WordGame() {
       <div style={{ minHeight:"100dvh", background:"#07070f", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", justifyContent:"center" }}>
         <LevelConfirmModal />
         {renderAuthModal()}
+        {renderSettingsModal()}
+        {renderOnboardingModal()}
         <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", paddingBottom:80 }}>
         {/* 헤더 */}
         <div style={{ background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
@@ -2304,6 +2391,8 @@ export default function WordGame() {
       <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <LevelConfirmModal />
         {renderAuthModal()}
+        {renderSettingsModal()}
+        {renderOnboardingModal()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
@@ -2572,6 +2661,8 @@ export default function WordGame() {
       <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
         {renderAuthModal()}
+        {renderSettingsModal()}
+        {renderOnboardingModal()}
         {renderInviteModal()}
         {renderSendModal()}
         {renderShareToast()}
@@ -2742,6 +2833,8 @@ export default function WordGame() {
     <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <LevelConfirmModal />
       {renderAuthModal()}
+      {renderSettingsModal()}
+      {renderOnboardingModal()}
       {renderInviteModal()}
       {renderShareToast()}
 

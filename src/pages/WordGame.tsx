@@ -1147,11 +1147,11 @@ export default function WordGame() {
   useEffect(() => {
     const root = document.documentElement;
     const p = isLight ? {
-      "--bg": "#f2f4f8", "--bg2": "#ffffff", "--card": "#ffffff", "--surface": "#eceff4", "--surface2": "#e2e6ee",
-      "--border": "rgba(0,0,0,0.10)", "--text": "#16161d", "--text2": "#4b5563", "--muted": "#6b7280", "--faint": "#9aa3af",
+      "--bg": "#f2f4f8", "--bg2": "#ffffff", "--card": "#ffffff", "--surface": "#e7ebf2", "--surface2": "#dde2ec",
+      "--border": "rgba(0,0,0,0.12)", "--text": "#14141b", "--text2": "#39414d", "--muted": "#525b68", "--faint": "#8a929c", "--gold": "#B26A00",
     } : {
       "--bg": "#07070f", "--bg2": "#0e0e20", "--card": "#1a1a2e", "--surface": "rgba(255,255,255,0.05)", "--surface2": "rgba(255,255,255,0.08)",
-      "--border": "rgba(255,255,255,0.1)", "--text": "#ffffff", "--text2": "rgba(255,255,255,0.6)", "--muted": "rgba(255,255,255,0.4)", "--faint": "rgba(255,255,255,0.25)",
+      "--border": "rgba(255,255,255,0.1)", "--text": "#ffffff", "--text2": "rgba(255,255,255,0.6)", "--muted": "rgba(255,255,255,0.4)", "--faint": "rgba(255,255,255,0.25)", "--gold": "#FFB800",
     };
     Object.entries(p).forEach(([k, v]) => root.style.setProperty(k, v));
     try { localStorage.setItem("wordgame_theme", isLight ? "light" : "dark"); } catch (e) {}
@@ -1394,7 +1394,7 @@ export default function WordGame() {
                 color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
                 {isAdmin ? "👔 CEO" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
-              <p style={{ color: "#FFB800", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {totalMasteredCount}개 · Lv.{level}</p>
+              <p style={{ color: "var(--gold)", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {totalMasteredCount}개 · Lv.{level}</p>
               <div style={{ margin: "0 0 16px", textAlign: "left" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>별명</div>
                 <input value={nickname} onChange={e => changeNickname(e.target.value)} maxLength={12}
@@ -2026,14 +2026,14 @@ export default function WordGame() {
           {showLevel ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
               <div style={{ textAlign: "right" }}>
-                <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
+                <div style={{ color: "var(--gold)", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
                 <div style={{ color: "var(--muted)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
               </div>
             </div>
           ) : (
             <div style={{ background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "6px 14px", borderRadius: 20, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 14 }}>⚡</span>
-              <span style={{ color: "#FFB800", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
+              <span style={{ color: "var(--gold)", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
             </div>
           )}
         </div>
@@ -2528,7 +2528,7 @@ export default function WordGame() {
                             <div style={{ color: "#fff", fontSize: 20, fontWeight: 900 }}>{word.ko}</div>
                           </div>
                           <div style={{ background: "rgba(255,184,0,0.07)", border: "1px solid rgba(255,184,0,0.14)", borderRadius: 10, padding: "8px 14px" }}>
-                            <div style={{ color: "#FFB800", fontSize: 11, fontWeight: 700 }}>💡 {word.tip}</div>
+                            <div style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700 }}>💡 {word.tip}</div>
                           </div>
                         </div>
                       )}
@@ -2572,7 +2572,7 @@ export default function WordGame() {
           영단어<br />
           <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 26 }}>플래시카드</span>
         </h1>
-        <p style={{ color: "#FFB800", fontSize: 13, marginTop: 12, fontWeight: 700, letterSpacing: 0.5 }}>
+        <p style={{ color: "var(--gold)", fontSize: 13, marginTop: 12, fontWeight: 700, letterSpacing: 0.5 }}>
           📚 교육부 추천 3,000단어 수록
         </p>
         <p style={{ color: "var(--faint)", fontSize: 10, marginTop: 4, fontWeight: 400 }}>
@@ -2587,7 +2587,7 @@ export default function WordGame() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 30, padding: "8px 18px", marginBottom: 16 }}>
             <span style={{ fontSize: 16 }}>👥</span>
             <span style={{ color: "var(--text2)", fontSize: 13, fontWeight: 500 }}>
-              오늘 <strong style={{ color: "#FFB800", fontWeight: 800 }}>{participantCount}명</strong>이 학습 중이에요
+              오늘 <strong style={{ color: "var(--gold)", fontWeight: 800 }}>{participantCount}명</strong>이 학습 중이에요
             </span>
           </div>
         )}
@@ -2845,7 +2845,7 @@ export default function WordGame() {
                 ? <>비로그인은 3개까지예요.<br /><button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ marginTop: 10, padding: "10px 18px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>로그인하고 5개까지 쓰기</button></>
                 : (membership === "vip" || isAdmin)
                   ? "단어장을 마음껏 만들 수 있어요. (무한)"
-                  : <>로그인 회원은 5개까지예요.<br /><span style={{ color: "#FFB800", fontWeight: 800 }}>👑 VIP가 되면 무한대로!</span></>}
+                  : <>로그인 회원은 5개까지예요.<br /><span style={{ color: "var(--gold)", fontWeight: 800 }}>👑 VIP가 되면 무한대로!</span></>}
             </div>
           )}
         </div>
@@ -2872,7 +2872,7 @@ export default function WordGame() {
           <div style={{ padding: "8px 22px 12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
               <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
-              <span style={{ color: "#FFB800", fontSize: 10, fontWeight: 700 }}>{xpMod}/100</span>
+              <span style={{ color: "var(--gold)", fontSize: 10, fontWeight: 700 }}>{xpMod}/100</span>
             </div>
             <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${xpMod}%`, background: "linear-gradient(90deg,#FFB800,#FF6B00)", borderRadius: 5, transition: "width 0.5s" }} />
@@ -3193,7 +3193,7 @@ export default function WordGame() {
                   {/* 암기 팁 — tip 있을 때만 표시 */}
                   {card.tip && (
                     <div style={{ background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.18)", borderRadius: 14, padding: "10px 18px", width: "100%", textAlign: "center" }}>
-                      <div style={{ color: "#FFB800", fontSize: 12, fontWeight: 700 }}>💡 {card.tip}</div>
+                      <div style={{ color: "var(--gold)", fontSize: 12, fontWeight: 700 }}>💡 {card.tip}</div>
                     </div>
                   )}
                   <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 11, marginTop: 20, fontWeight: 600 }}>
@@ -3224,7 +3224,7 @@ export default function WordGame() {
           <div style={{ marginTop: 20, display: "flex", gap: 20, alignItems: "center" }}>
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>← 몰라요</div>
             <div style={{ background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.15)", borderRadius: 10, padding: "4px 14px" }}>
-              <span style={{ color: "#FFB800", fontSize: 11, fontWeight: 700 }}>정답 +{XP_CORRECT} XP</span>
+              <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700 }}>정답 +{XP_CORRECT} XP</span>
             </div>
             <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
@@ -3253,7 +3253,7 @@ export default function WordGame() {
         <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, marginBottom: 8 }}>
           {finalTotal}개 중 {finalCorrect}개 정답
         </div>
-        <div style={{ color: "#FFB800", fontWeight: 800, fontSize: 15, marginBottom: 32 }}>+{XP_WORLD} XP 보너스 획득!</div>
+        <div style={{ color: "var(--gold)", fontWeight: 800, fontSize: 15, marginBottom: 32 }}>+{XP_WORLD} XP 보너스 획득!</div>
 
         {w.id < WORLDS.length && (
           <div style={{ background: `${w.color}12`, border: `1px solid ${w.color}30`, borderRadius: 20, padding: "16px 20px", marginBottom: 24 }}>
@@ -3293,7 +3293,7 @@ export default function WordGame() {
                   다음 월드 도전! → {nextWorld.emoji}
                 </button>
               ) : (
-                <div style={{ color: "#FFB800", fontWeight: 800, fontSize: 15, textAlign: "center", padding: "10px" }}>🏆 모든 단어 완료!</div>
+                <div style={{ color: "var(--gold)", fontWeight: 800, fontSize: 15, textAlign: "center", padding: "10px" }}>🏆 모든 단어 완료!</div>
               )}
               <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
                 style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
@@ -3348,7 +3348,7 @@ export default function WordGame() {
               </div>
               <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />
               <div style={{ textAlign: "center" }}>
-                <div style={{ color: "#FFB800", fontSize: 22, fontWeight: 900 }}>+{finalCorrect * XP_CORRECT}</div>
+                <div style={{ color: "var(--gold)", fontSize: 22, fontWeight: 900 }}>+{finalCorrect * XP_CORRECT}</div>
                 <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>XP 획득</div>
               </div>
             </div>

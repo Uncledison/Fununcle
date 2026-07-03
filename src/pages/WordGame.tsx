@@ -891,6 +891,27 @@ const parseCustomWords = (text) => {
   return result;
 };
 
+// 옛 파서(첫 공백 기준)로 잘못 저장된 데이터 자동 복구
+// → 뜻(ko)이 영어로 시작하면, en+ko를 합쳐 '한글 시작점' 기준으로 다시 분리
+const repairCustomWords = (words) => {
+  if (!Array.isArray(words)) return words;
+  return words.map((w) => {
+    const en = (w?.en || "").trim();
+    const ko = (w?.ko || "").trim();
+    if (ko && /^[A-Za-z]/.test(ko)) {
+      const combined = (en + " " + ko).trim();
+      const hk = combined.match(/[가-힣]/);
+      if (hk && hk.index > 0) {
+        return { ...w, en: combined.slice(0, hk.index).replace(/[\t,·\-–—]+\s*$/, "").trim(), ko: combined.slice(hk.index).trim() };
+      }
+    }
+    return w;
+  });
+};
+const repairCustomWorlds = (worlds) => Array.isArray(worlds)
+  ? worlds.map((wd) => (wd && wd.isCustom && Array.isArray(wd.words)) ? { ...wd, words: repairCustomWords(wd.words) } : wd)
+  : worlds;
+
 export default function WordGame() {
   usePageSeo({
     title: "초중고 영단어 플래시카드 | 교육부 필수 영단어 암기",
@@ -1015,7 +1036,7 @@ export default function WordGame() {
   const [customWorlds, setCustomWorlds] = useState(() => {
     try {
       const stored = localStorage.getItem('custom_worlds');
-      return stored ? JSON.parse(stored) : [];
+      return stored ? repairCustomWorlds(JSON.parse(stored)) : [];
     } catch(e) { return []; }
   });
   const [customTitle, setCustomTitle] = useState("");
@@ -1075,7 +1096,7 @@ export default function WordGame() {
     try { setProgress(loadProgress()); } catch (e) {}
     setXp(loadStat("xp", 0));
     setStreak(loadStat("streak", 0));
-    try { setCustomWorlds(JSON.parse(localStorage.getItem("custom_worlds") || "[]")); } catch (e) {}
+    try { const fx = repairCustomWorlds(JSON.parse(localStorage.getItem("custom_worlds") || "[]")); localStorage.setItem("custom_worlds", JSON.stringify(fx)); setCustomWorlds(fx); } catch (e) {}
     try { setCustomResume(JSON.parse(localStorage.getItem("custom_resume") || "{}")); } catch (e) {}
     try { setUnlockedStarts(JSON.parse(localStorage.getItem("wordgame_unlocked_starts") || "[]")); } catch (e) {}
     setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
@@ -1163,6 +1184,18 @@ export default function WordGame() {
     Object.entries(p).forEach(([k, v]) => root.style.setProperty(k, v));
     try { localStorage.setItem("wordgame_theme", isLight ? "light" : "dark"); } catch (e) {}
   }, [isLight]);
+
+  // 옛 파서로 잘못 저장된 내 단어장 1회 자동 복구 + 영구 저장(클라우드 동기화 반영)
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("custom_worlds") || "[]");
+      const fixed = repairCustomWorlds(stored);
+      if (JSON.stringify(fixed) !== JSON.stringify(stored)) {
+        localStorage.setItem("custom_worlds", JSON.stringify(fixed));
+        setCustomWorlds(fixed);
+      }
+    } catch (e) {}
+  }, []);
 
   const setConnAliasFor = (otherId, name) => {
     setConnAlias(prev => {

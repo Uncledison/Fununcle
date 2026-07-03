@@ -2016,18 +2016,18 @@ export default function WordGame() {
     <div style={{ padding: "16px 20px 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={() => setScreen("levelselect")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "baseline", gap: 6 }}>
-          <span style={{ color: "#fff", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
+          <span style={{ color: "var(--text)", fontWeight: 900, fontSize: 23, letterSpacing: -0.8 }}>영단어</span>
           <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.1)"}`, padding: session ? "4px 8px" : "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "rgba(255,255,255,0.6)" }}>{session ? (avatar || "👤") : "로그인"}</button>
-          <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
-          <button onClick={() => setShowSettingsModal(true)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>⚙️</button>
+          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, padding: session ? "4px 8px" : "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)" }}>{session ? (avatar || "👤") : "로그인"}</button>
+          <button onClick={() => window.dispatchEvent(new Event("showFeedback"))} style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>💌</button>
+          <button onClick={() => setShowSettingsModal(true)} style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: "6px 10px", borderRadius: 12, cursor: "pointer", fontSize: 14 }}>⚙️</button>
           {showLevel ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "6px 12px" }}>
               <div style={{ textAlign: "right" }}>
                 <div style={{ color: "#FFB800", fontSize: 16, fontWeight: 900, lineHeight: 1 }}>Lv.{level}</div>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
+                <div style={{ color: "var(--muted)", fontSize: 9, fontWeight: 700 }}>{xp} XP</div>
               </div>
             </div>
           ) : (
@@ -2039,11 +2039,11 @@ export default function WordGame() {
         </div>
       </div>
       {/* 라이브러리 전환 토글 */}
-      <div style={{ marginTop: 12, display: "flex", background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 3 }}>
+      <div style={{ marginTop: 12, display: "flex", background: "var(--surface)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 3 }}>
         <button onClick={() => switchLibrary(false)}
-          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !customOnlyMode ? "#FF8C00" : "transparent", color: !customOnlyMode ? "#3a1e00" : "rgba(255,255,255,0.45)" }}>교과서 3000</button>
+          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !customOnlyMode ? "#FF8C00" : "transparent", color: !customOnlyMode ? "#3a1e00" : "var(--muted)" }}>교과서 3000</button>
         <button onClick={() => switchLibrary(true)}
-          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customOnlyMode ? "#A78BFA" : "transparent", color: customOnlyMode ? "#241452" : "rgba(255,255,255,0.45)" }}>내 단어장</button>
+          style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 9, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customOnlyMode ? "#A78BFA" : "transparent", color: customOnlyMode ? "#241452" : "var(--muted)" }}>내 단어장</button>
       </div>
     </div>
     </>
@@ -2212,7 +2212,7 @@ export default function WordGame() {
         </svg>
       </button>
       {/* 탭바 */}
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#0d0d18", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", zIndex: 50 }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "var(--bg2)", borderTop: "1px solid var(--border)", display: "flex", zIndex: 50 }}>
         <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", display: "flex" }}>
         {[
           { key: "map",    label: "홈",      icon: "🏠" },
@@ -2240,7 +2240,7 @@ export default function WordGame() {
           }}
             style={{ flex: 1, padding: "12px 8px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
             <span style={{ fontSize: 20 }}>{t.icon}</span>
-            <span style={{ color: tab === t.key ? "#FFB800" : "rgba(255,255,255,0.3)", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
+            <span style={{ color: tab === t.key ? "#FFB800" : "var(--muted)", fontSize: 10, fontWeight: 700 }}>{t.label}</span>
             {tab === t.key && <div style={{ width: 20, height: 2, background: "#FFB800", borderRadius: 2, marginTop: 2 }} />}
           </button>
         ))}
@@ -2857,7 +2857,7 @@ export default function WordGame() {
 
   // ── MAP 화면 ─────────────────────────────
   if (screen === "map") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
       <LevelConfirmModal />
       {renderAuthModal()}
       {renderSettingsModal()}
@@ -2866,15 +2866,15 @@ export default function WordGame() {
       {renderShareToast()}
 
       {/* 고정 헤더 */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "#0e0e20", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "var(--bg2)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ width: "100%", maxWidth: 480 }}>
           <FunUncleBar showLevel={true} />
           <div style={{ padding: "8px 22px 12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
+              <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
               <span style={{ color: "#FFB800", fontSize: 10, fontWeight: 700 }}>{xpMod}/100</span>
             </div>
-            <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 5, overflow: "hidden" }}>
+            <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${xpMod}%`, background: "linear-gradient(90deg,#FFB800,#FF6B00)", borderRadius: 5, transition: "width 0.5s" }} />
             </div>
           </div>
@@ -2904,21 +2904,21 @@ export default function WordGame() {
 
           return (
             <div key={world.id} id={`world-card-${world.id}`}
-              style={{ background: locked ? "rgba(255,255,255,0.02)" : `linear-gradient(135deg,${world.color}14,${world.dark}20)`, border: `1.5px solid ${locked ? "rgba(255,255,255,0.05)" : world.color + "40"}`, borderRadius: 24, padding: "20px 22px", opacity: locked ? 0.45 : 1, transition: "opacity 0.2s" }}>
+              style={{ background: locked ? "var(--surface)" : `linear-gradient(135deg,${world.color}14,${world.dark}20)`, border: `1.5px solid ${locked ? "var(--border)" : world.color + "40"}`, borderRadius: 24, padding: "20px 22px", opacity: locked ? 0.45 : 1, transition: "opacity 0.2s" }}>
 
               {/* 월드 헤더 */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: locked ? 0 : 14 }}>
-                <div style={{ width: 54, height: 54, background: locked ? "rgba(255,255,255,0.04)" : `${world.color}20`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
+                <div style={{ width: 54, height: 54, background: locked ? "var(--surface)" : `${world.color}20`, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>
                   {locked ? "🔒" : world.emoji}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                    <span style={{ color: locked ? "rgba(255,255,255,0.25)" : "#fff", fontWeight: 800, fontSize: 15 }}>WORLD {world.id}</span>
+                    <span style={{ color: locked ? "var(--muted)" : "var(--text)", fontWeight: 800, fontSize: 15 }}>WORLD {world.id}</span>
                     {p?.cleared && <span style={{ background: world.color, color: "#000", fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 20, letterSpacing: 1 }}>CLEAR ✓</span>}
                     {hasWorldResume && !p?.cleared && <span style={{ background: `${world.color}22`, color: world.color, fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 20 }}>이어하기</span>}
                   </div>
-                  <div style={{ color: locked ? "rgba(255,255,255,0.18)" : world.color, fontWeight: 700, fontSize: 14 }}>{world.title}</div>
-                  <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11, marginTop: 2 }}>{clearedStages}/{totalStages} 스테이지 클리어</div>
+                  <div style={{ color: locked ? "var(--faint)" : world.color, fontWeight: 700, fontSize: 14 }}>{world.title}</div>
+                  <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>{clearedStages}/{totalStages} 스테이지 클리어</div>
                 </div>
                 {/* 플레이 버튼 — 북마크 있으면 이어하기, 없으면 첫 미클리어 스테이지 */}
                 {!locked && (() => {
@@ -2944,10 +2944,10 @@ export default function WordGame() {
                 <>
                   {/* 진행률 바 */}
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, fontWeight: 700 }}>진행률</span>
+                    <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>진행률</span>
                     <span style={{ color: world.color, fontSize: 10, fontWeight: 700 }}>{pct}%</span>
                   </div>
-                  <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 5, overflow: "hidden", marginBottom: 12 }}>
+                  <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden", marginBottom: 12 }}>
                     <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg,${world.dark},${world.color})`, borderRadius: 5, transition: "width 0.5s" }} />
                   </div>
 
@@ -2971,13 +2971,13 @@ export default function WordGame() {
                             borderRadius: 10,
                             background: showCheck ? `${checkColor}33`
                               : isNext ? `${world.color}18`
-                              : "rgba(255,255,255,0.04)",
+                              : "var(--surface)",
                             border: `1.5px solid ${showCheck ? checkColor + "88"
                               : isNext ? world.color + "44"
-                              : "rgba(255,255,255,0.07)"}`,
+                              : "var(--border)"}`,
                             color: showCheck ? checkColor
-                              : isNext ? "rgba(255,255,255,0.7)"
-                              : "rgba(255,255,255,0.2)",
+                              : isNext ? "var(--text2)"
+                              : "var(--faint)",
                             fontSize: showCheck ? 14 : 11,
                             fontWeight: 800,
                             cursor: stageLocked ? "not-allowed" : "pointer",
@@ -3004,7 +3004,7 @@ export default function WordGame() {
         })}
       </div>
 
-      <div style={{ textAlign: "center", padding: "0 20px 32px", color: "rgba(255,255,255,0.12)", fontSize: 10, lineHeight: 1.8 }}>
+      <div style={{ textAlign: "center", padding: "0 20px 32px", color: "var(--faint)", fontSize: 10, lineHeight: 1.8 }}>
         교육부 고시 제2022-33호 [별책 14] 기준<br />
         <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
       </div>

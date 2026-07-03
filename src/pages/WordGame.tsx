@@ -974,6 +974,8 @@ export default function WordGame() {
   const avatarPageCount = Math.ceil(AVATARS.length / AVATAR_PER_PAGE);
   const [avatarPage, setAvatarPage] = useState(0);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  // ── 테마(다크/라이트) ──────────────
+  const [isLight, setIsLight] = useState(() => { try { return localStorage.getItem("wordgame_theme") === "light"; } catch (e) { return false; } });
   const avatarTouchRef = useRef(0);
   const pickAvatar = (em) => { setAvatar(em); try { localStorage.setItem("wordgame_avatar", em); } catch(e) {} };
   const [nickname, setNickname] = useState(() => { try { return localStorage.getItem("wordgame_nickname") || ""; } catch(e) { return ""; } });
@@ -1072,6 +1074,7 @@ export default function WordGame() {
     setCustomOnlyMode(localStorage.getItem("custom_only_mode") === "true");
     try { setAvatar(localStorage.getItem("wordgame_avatar") || ""); } catch (e) {}
     try { setNickname(localStorage.getItem("wordgame_nickname") || ""); } catch (e) {}
+    try { setIsLight(localStorage.getItem("wordgame_theme") === "light"); } catch (e) {}
   };
   // 로그인 감지 시: 승인 여부 확인 → 승인된 경우에만 동기화
   const handleSignedIn = async (userId) => {
@@ -1139,6 +1142,20 @@ export default function WordGame() {
       try { setConnAlias(JSON.parse(localStorage.getItem("wordgame_conn_alias") || "{}")); } catch (e) {}
     })();
   }, [session]);
+
+  // 테마 CSS 변수 적용 (다크/라이트)
+  useEffect(() => {
+    const root = document.documentElement;
+    const p = isLight ? {
+      "--bg": "#f2f4f8", "--bg2": "#ffffff", "--card": "#ffffff", "--surface": "#eceff4", "--surface2": "#e2e6ee",
+      "--border": "rgba(0,0,0,0.10)", "--text": "#16161d", "--text2": "#4b5563", "--muted": "#6b7280", "--faint": "#9aa3af",
+    } : {
+      "--bg": "#07070f", "--bg2": "#0e0e20", "--card": "#1a1a2e", "--surface": "rgba(255,255,255,0.05)", "--surface2": "rgba(255,255,255,0.08)",
+      "--border": "rgba(255,255,255,0.1)", "--text": "#ffffff", "--text2": "rgba(255,255,255,0.6)", "--muted": "rgba(255,255,255,0.4)", "--faint": "rgba(255,255,255,0.25)",
+    };
+    Object.entries(p).forEach(([k, v]) => root.style.setProperty(k, v));
+    try { localStorage.setItem("wordgame_theme", isLight ? "light" : "dark"); } catch (e) {}
+  }, [isLight]);
 
   const setConnAliasFor = (otherId, name) => {
     setConnAlias(prev => {
@@ -1479,20 +1496,27 @@ export default function WordGame() {
   // ── 설정 모달 ──────────────────────────────────────
   const renderSettingsModal = () => {
     if (!showSettingsModal) return null;
-    const itemStyle: React.CSSProperties = { width: "100%", padding: "14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 8, textAlign: "left" };
+    const itemStyle: React.CSSProperties = { width: "100%", padding: "14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, color: "var(--text)", fontWeight: 700, fontSize: 14, cursor: "pointer", marginBottom: 8, textAlign: "left" };
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }} onClick={() => setShowSettingsModal(false)}>
-        <div onClick={e => e.stopPropagation()} style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", overflowY: "auto" }}>
-          <button onClick={() => setShowSettingsModal(false)} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+        <div onClick={e => e.stopPropagation()} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", overflowY: "auto" }}>
+          <button onClick={() => setShowSettingsModal(false)} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "var(--surface2)", border: "none", color: "var(--text)", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
           <div style={{ padding: "28px 22px" }}>
-            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 18px" }}>⚙️ 설정</h3>
+            <h3 style={{ color: "var(--text)", fontSize: 18, fontWeight: 900, margin: "0 0 18px" }}>⚙️ 설정</h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, marginBottom: 8 }}>
+              <span style={{ color: "var(--text)", fontWeight: 700, fontSize: 14 }}>화면 테마</span>
+              <div style={{ display: "flex", gap: 4, background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: 3 }}>
+                <button onClick={() => setIsLight(false)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !isLight ? "#FF8C00" : "transparent", color: !isLight ? "#3a1e00" : "rgba(255,255,255,0.5)" }}>🌙 다크</button>
+                <button onClick={() => setIsLight(true)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: isLight ? "#FFB800" : "transparent", color: isLight ? "#3a1e00" : "rgba(255,255,255,0.5)" }}>☀️ 라이트</button>
+              </div>
+            </div>
             <button onClick={() => { setShowSettingsModal(false); openOnboarding(); }} style={itemStyle}>📖 사용법 보기</button>
             <a href="/terms.html" target="_blank" style={{ ...itemStyle, display: "block", boxSizing: "border-box", textDecoration: "none" }}>📄 이용약관</a>
             <a href="/privacy.html" target="_blank" style={{ ...itemStyle, display: "block", boxSizing: "border-box", textDecoration: "none" }}>🔒 개인정보처리방침</a>
             {session && (
               <>
                 <button onClick={() => { setShowSettingsModal(false); signOut(); }} style={{ ...itemStyle, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444" }}>로그아웃</button>
-                <button onClick={() => { setShowSettingsModal(false); deleteAccount(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline", display: "block", margin: "6px auto 0" }}>회원 탈퇴</button>
+                <button onClick={() => { setShowSettingsModal(false); deleteAccount(); }} style={{ background: "none", border: "none", color: "var(--faint)", fontSize: 12, cursor: "pointer", textDecoration: "underline", display: "block", margin: "6px auto 0" }}>회원 탈퇴</button>
               </>
             )}
           </div>
@@ -2529,7 +2553,10 @@ export default function WordGame() {
   const betaDays = Math.floor(betaDiff / (1000 * 60 * 60 * 24));
 
   if (screen === "levelselect") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {renderSettingsModal()}
+      {renderOnboardingModal()}
+      <button onClick={() => setShowSettingsModal(true)} aria-label="설정" style={{ position: "fixed", top: 12, right: 12, zIndex: 50, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text2)", width: 38, height: 38, borderRadius: 12, cursor: "pointer", fontSize: 16 }}>⚙️</button>
 
       {/* 베타 배너 */}
       <div style={{ width: "100%", background: "linear-gradient(90deg,#FFB800,#FF6B00)", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexShrink: 0 }}>
@@ -2541,14 +2568,14 @@ export default function WordGame() {
       <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 22px 40px", flex: 1 }}>
       {/* 로고 */}
       <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <h1 style={{ color: "#fff", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
+        <h1 style={{ color: "var(--text)", fontSize: 36, fontWeight: 900, margin: 0, lineHeight: 1.1 }}>
           영단어<br />
           <span style={{ background: "linear-gradient(90deg,#FFB800,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 26 }}>플래시카드</span>
         </h1>
         <p style={{ color: "#FFB800", fontSize: 13, marginTop: 12, fontWeight: 700, letterSpacing: 0.5 }}>
           📚 교육부 추천 3,000단어 수록
         </p>
-        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 10, marginTop: 4, fontWeight: 400 }}>
+        <p style={{ color: "var(--faint)", fontSize: 10, marginTop: 4, fontWeight: 400 }}>
           교육부 고시 제2022-33호 [별책 14] 기준
         </p>
       </div>
@@ -2559,13 +2586,13 @@ export default function WordGame() {
         {participantCount !== null && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.2)", borderRadius: 30, padding: "8px 18px", marginBottom: 16 }}>
             <span style={{ fontSize: 16 }}>👥</span>
-            <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 500 }}>
+            <span style={{ color: "var(--text2)", fontSize: 13, fontWeight: 500 }}>
               오늘 <strong style={{ color: "#FFB800", fontWeight: 800 }}>{participantCount}명</strong>이 학습 중이에요
             </span>
           </div>
         )}
 
-        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textAlign: "center", marginBottom: 4 }}>
+        <div style={{ color: "var(--muted)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textAlign: "center", marginBottom: 4 }}>
           어느 레벨부터 시작할까요?
         </div>
 
@@ -2628,10 +2655,10 @@ export default function WordGame() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 3 }}>
-                <span style={{ color: "#fff", fontWeight: 900, fontSize: 18 }}>{lv.label}</span>
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>{lv.sublabel}</span>
+                <span style={{ color: "var(--text)", fontWeight: 900, fontSize: 18 }}>{lv.label}</span>
+                <span style={{ color: "var(--muted)", fontSize: 12 }}>{lv.sublabel}</span>
               </div>
-              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, marginBottom: 6 }}>{lv.desc}</div>
+              <div style={{ color: "var(--text2)", fontSize: 12, marginBottom: 6 }}>{lv.desc}</div>
               <div style={{ display: "inline-block", background: `${lv.color}18`, border: `1px solid ${lv.color}30`, borderRadius: 20, padding: "2px 10px" }}>
                 <span style={{ color: lv.color, fontSize: 10, fontWeight: 700 }}>{lv.tag}</span>
               </div>
@@ -2644,10 +2671,10 @@ export default function WordGame() {
 
       <div style={{ marginTop: 16, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
         <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
-        <div style={{ marginTop: 8, color: "rgba(255,255,255,0.3)", fontSize: 11 }}>
-          <a href="/terms.html" target="_blank" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>이용약관</a>
-          <span style={{ margin: "0 6px", color: "rgba(255,255,255,0.2)" }}>·</span>
-          <a href="/privacy.html" target="_blank" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>개인정보처리방침</a>
+        <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 11 }}>
+          <a href="/terms.html" target="_blank" style={{ color: "var(--muted)", textDecoration: "none" }}>이용약관</a>
+          <span style={{ margin: "0 6px", color: "var(--faint)" }}>·</span>
+          <a href="/privacy.html" target="_blank" style={{ color: "var(--muted)", textDecoration: "none" }}>개인정보처리방침</a>
         </div>
       </div>
       </div>

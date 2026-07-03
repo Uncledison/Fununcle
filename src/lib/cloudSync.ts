@@ -10,6 +10,7 @@ const KEYS = [
   "wordgame_avatar",
   "wordgame_nickname",
   "wordgame_conn_alias",
+  "wordgame_theme",
   // ── 한자 플래시카드 (/hanja) 상태 — 영단어와 별도로 보관, 같은 행에 함께 동기화 ──
   "hanjagame_progress_v1",
   "hanja_custom_worlds",

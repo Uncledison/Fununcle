@@ -2518,7 +2518,7 @@ export default function WordGame() {
                         <span style={{ fontSize: 13, flexShrink: 0 }}>{statusIcon}</span>
                         <span style={{ color: "#fff", fontSize: 15, fontWeight: 800, flex: 1 }}>{word.en}</span>
                         <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{word.ko}</span>
-                        <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, marginLeft: 4, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▼</span>
+                        <span style={{ color: "var(--faint)", fontSize: 12, marginLeft: 4, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▼</span>
                       </div>
                       {/* 펼침 상세 */}
                       {isExpanded && (
@@ -3039,7 +3039,7 @@ export default function WordGame() {
 
     return (
       <div
-        style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center", userSelect: "none" }}
+        style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", justifyContent: "center", userSelect: "none" }}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
@@ -3057,7 +3057,7 @@ export default function WordGame() {
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
-              style={{ background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, padding: "8px 14px", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              style={{ background: "var(--surface)", border: "none", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
               🏠 홈
             </button>
             <div style={{ textAlign: "center" }}>
@@ -3070,15 +3070,15 @@ export default function WordGame() {
                     : <span style={{ background: `${w.color}18`, border: `1px solid ${w.color}33`, borderRadius: 20, padding: "1px 8px", color: w.color, fontSize: 10, fontWeight: 800 }}>스테이지 {activeStage + 1}</span>
                 }
               </div>
-              <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>{cardIdx + 1} / {queue.length}</div>
+              <div style={{ color: "var(--muted)", fontSize: 11 }}>{cardIdx + 1} / {queue.length}</div>
             </div>
-            <div style={{ background: combo >= 3 ? "rgba(255,184,0,0.14)" : "rgba(255,255,255,0.04)", border: `1px solid ${combo >= 3 ? "rgba(255,184,0,0.28)" : "rgba(255,255,255,0.07)"}`, borderRadius: 12, padding: "8px 14px", minWidth: 52, textAlign: "center", transition: "all 0.3s" }}>
-              <span style={{ color: combo >= 3 ? "#FFB800" : "rgba(255,255,255,0.25)", fontWeight: 800, fontSize: 13 }}>
+            <div style={{ background: combo >= 3 ? "rgba(255,184,0,0.14)" : "var(--surface)", border: `1px solid ${combo >= 3 ? "rgba(255,184,0,0.28)" : "var(--border)"}`, borderRadius: 12, padding: "8px 14px", minWidth: 52, textAlign: "center", transition: "all 0.3s" }}>
+              <span style={{ color: combo >= 3 ? "var(--gold)" : "var(--muted)", fontWeight: 800, fontSize: 13 }}>
                 {combo >= 3 ? `🔥${combo}` : `×${combo}`}
               </span>
             </div>
           </div>
-          <div style={{ height: 4, background: "rgba(255,255,255,0.07)", borderRadius: 4, overflow: "hidden" }}>
+          <div style={{ height: 4, background: "var(--surface)", borderRadius: 4, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${progressPct}%`, background: `linear-gradient(90deg,${w.dark},${w.color})`, borderRadius: 4, transition: "width 0.3s" }} />
           </div>
         </div>
@@ -3114,9 +3114,9 @@ export default function WordGame() {
             <div style={{
               width: "100%", height: "100%", minHeight: 400,
               background: flipped
-                ? `linear-gradient(160deg, ${w.dark}33, ${w.color}22, #07070f)`
-                : "rgba(255,255,255,0.05)",
-              border: `1.5px solid ${flipped ? w.color + "44" : "rgba(255,255,255,0.09)"}`,
+                ? `linear-gradient(160deg, ${w.dark}33, ${w.color}22, var(--bg))`
+                : "var(--surface)",
+              border: `1.5px solid ${flipped ? w.color + "44" : "var(--border)"}`,
               borderRadius: 32,
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
@@ -3142,8 +3142,8 @@ export default function WordGame() {
               {/* 앞면 */}
               {!flipped && (
                 <>
-                  <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 24 }}>ENGLISH</div>
-                  <div style={{ color: "#fff", fontSize: card.en.length > 11 ? 32 : card.en.length > 8 ? 38 : 46, fontWeight: 900, textAlign: "center", letterSpacing: 0.5, lineHeight: 1.1, marginBottom: 16 }}>
+                  <div style={{ color: "var(--faint)", fontSize: 11, fontWeight: 700, letterSpacing: 2, marginBottom: 24 }}>ENGLISH</div>
+                  <div style={{ color: "var(--text)", fontSize: card.en.length > 11 ? 32 : card.en.length > 8 ? 38 : 46, fontWeight: 900, textAlign: "center", letterSpacing: 0.5, lineHeight: 1.1, marginBottom: 16 }}>
                     {card.en}
                   </div>
                   {(() => {
@@ -3166,19 +3166,19 @@ export default function WordGame() {
                         onMouseDown={(e) => e.stopPropagation()}
                         onTouchStart={(e) => e.stopPropagation()}
                         aria-label="발음 듣기"
-                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minWidth: 110, margin: "0 auto 28px", padding: "11px 20px", background: speaking ? w.color : `${w.color}1f`, border: `1.5px solid ${speaking ? w.color : w.color + "55"}`, borderRadius: 999, color: speaking ? "#000" : "#fff", fontSize: 18, fontWeight: 800, cursor: "pointer", transform: speaking ? "scale(1.06)" : "scale(1)", boxShadow: speaking ? `0 0 18px ${w.color}99` : "none", transition: "transform .15s, background .15s, box-shadow .15s" }}>
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minWidth: 110, margin: "0 auto 28px", padding: "11px 20px", background: speaking ? w.color : `${w.color}1f`, border: `1.5px solid ${speaking ? w.color : w.color + "55"}`, borderRadius: 999, color: speaking ? "#000" : "var(--text)", fontSize: 18, fontWeight: 800, cursor: "pointer", transform: speaking ? "scale(1.06)" : "scale(1)", boxShadow: speaking ? `0 0 18px ${w.color}99` : "none", transition: "transform .15s, background .15s, box-shadow .15s" }}>
                         <span style={{ display: "inline-block", animation: speaking ? "spkPulse 0.6s ease-in-out infinite" : "none" }}>🔊</span>
                         {speaking ? (
                           <span style={{ display: "inline-flex", alignItems: "flex-end", gap: 2, height: 18 }}>
                             {bar("spkBarA")}{bar("spkBarB")}{bar("spkBarC")}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>발음</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)" }}>발음</span>
                         )}
                       </button>
                     );
                   })()}
-                  <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>탭해서 뜻 확인 👆</div>
+                  <div style={{ color: "var(--faint)", fontSize: 12, fontWeight: 600 }}>탭해서 뜻 확인 👆</div>
                 </>
               )}
 
@@ -3196,7 +3196,7 @@ export default function WordGame() {
                       <div style={{ color: "var(--gold)", fontSize: 12, fontWeight: 700 }}>💡 {card.tip}</div>
                     </div>
                   )}
-                  <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 11, marginTop: 20, fontWeight: 600 }}>
+                  <div style={{ color: "var(--faint)", fontSize: 11, marginTop: 20, fontWeight: 600 }}>
                     스와이프로 판정하세요
                   </div>
                 </>
@@ -3222,11 +3222,11 @@ export default function WordGame() {
 
           {/* XP 힌트 */}
           <div style={{ marginTop: 20, display: "flex", gap: 20, alignItems: "center" }}>
-            <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>← 몰라요</div>
+            <div style={{ color: "var(--faint)", fontSize: 12, fontWeight: 600 }}>← 몰라요</div>
             <div style={{ background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.15)", borderRadius: 10, padding: "4px 14px" }}>
               <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700 }}>정답 +{XP_CORRECT} XP</span>
             </div>
-            <div style={{ color: "rgba(255,255,255,0.18)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
+            <div style={{ color: "var(--faint)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
           </div>
           {activeWorld && !isReview && (
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}

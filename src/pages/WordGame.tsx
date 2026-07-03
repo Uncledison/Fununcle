@@ -1248,12 +1248,12 @@ export default function WordGame() {
     if (!invitePrompt) return null;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 24px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "32px 26px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "32px 26px", maxWidth: 340, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 44, marginBottom: 14 }}>🤝</div>
-          <h3 style={{ color: "#fff", fontSize: 19, fontWeight: 900, margin: "0 0 10px" }}>일촌 신청이 왔어요!</h3>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.6, margin: "0 0 22px" }}><b style={{ color: "#A78BFA" }}>@{invitePrompt.handle}</b> 님과<br />일촌을 맺을까요?</p>
+          <h3 style={{ color: "var(--text)", fontSize: 19, fontWeight: 900, margin: "0 0 10px" }}>일촌 신청이 왔어요!</h3>
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6, margin: "0 0 22px" }}><b style={{ color: "#A78BFA" }}>@{invitePrompt.handle}</b> 님과<br />일촌을 맺을까요?</p>
           <button onClick={doAcceptInvite} style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>수락하기</button>
-          <button onClick={dismissInvite} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>나중에</button>
+          <button onClick={dismissInvite} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>나중에</button>
         </div>
       </div>
     );
@@ -1262,30 +1262,30 @@ export default function WordGame() {
     if (!sendModalSet) return null;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 24px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "28px 22px", maxWidth: 360, width: "100%" }}>
-          <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 4px", textAlign: "center" }}>📤 단어장 보내기</h3>
-          <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", margin: "0 0 18px" }}>"{sendModalSet.title}" ({sendModalSet.words.length}개)</p>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "28px 22px", maxWidth: 360, width: "100%" }}>
+          <h3 style={{ color: "var(--text)", fontSize: 18, fontWeight: 900, margin: "0 0 4px", textAlign: "center" }}>📤 단어장 보내기</h3>
+          <p style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", margin: "0 0 18px" }}>"{sendModalSet.title}" ({sendModalSet.words.length}개)</p>
           {canSendFree && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>아이디로 보내기 (VIP·CEO)</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>아이디로 보내기 (VIP·CEO)</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <input value={sendHandle} onChange={e => setSendHandle(e.target.value)} placeholder="@아이디"
-                  style={{ flex: 1, padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
+                  style={{ flex: 1, padding: "11px 14px", borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 14, boxSizing: "border-box" }} />
                 <button onClick={doSendByHandle} style={{ padding: "0 16px", background: "#FF8C00", border: "none", borderRadius: 12, color: "#fff", fontWeight: 800, cursor: "pointer" }}>보내기</button>
               </div>
             </div>
           )}
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>일촌에게 보내기</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 8 }}>일촌에게 보내기</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto" }}>
             {connections.length === 0 ? (
-              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", padding: "16px" }}>아직 일촌이 없어요.<br />계정에서 초대링크를 보내 일촌을 맺어보세요.</div>
+              <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "16px" }}>아직 일촌이 없어요.<br />계정에서 초대링크를 보내 일촌을 맺어보세요.</div>
             ) : connections.map(c => (
-              <button key={c.other_id} onClick={() => doSendSet(c.other_id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 16px", background: "rgba(167,139,250,0.1)", border: "1px solid #A78BFA40", borderRadius: 14, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                <span>{connAlias[c.other_id] || c.name}</span><span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>@{c.handle} 📤</span>
+              <button key={c.other_id} onClick={() => doSendSet(c.other_id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 16px", background: "rgba(167,139,250,0.1)", border: "1px solid #A78BFA40", borderRadius: 14, color: "var(--text)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                <span>{connAlias[c.other_id] || c.name}</span><span style={{ color: "var(--muted)", fontSize: 12 }}>@{c.handle} 📤</span>
               </button>
             ))}
           </div>
-          <button onClick={() => { setSendModalSet(null); setSendHandle(""); }} style={{ width: "100%", padding: "12px", marginTop: 14, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+          <button onClick={() => { setSendModalSet(null); setSendHandle(""); }} style={{ width: "100%", padding: "12px", marginTop: 14, background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
         </div>
       </div>
     );
@@ -1293,7 +1293,7 @@ export default function WordGame() {
   const renderShareToast = () => {
     if (!shareMsg) return null;
     return (
-      <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 1300, background: "#1a1a2e", border: "1px solid #A78BFA55", borderRadius: 16, padding: "12px 20px", color: "#fff", fontSize: 13, fontWeight: 700, maxWidth: 320, textAlign: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}>{shareMsg}</div>
+      <div style={{ position: "fixed", bottom: 90, left: "50%", transform: "translateX(-50%)", zIndex: 1300, background: "var(--card)", border: "1px solid #A78BFA55", borderRadius: 16, padding: "12px 20px", color: "var(--text)", fontSize: 13, fontWeight: 700, maxWidth: 320, textAlign: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}>{shareMsg}</div>
     );
   };
 
@@ -1379,33 +1379,33 @@ export default function WordGame() {
     if (!showAuthModal) return null;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "0 24px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, maxWidth: 360, width: "100%", maxHeight: "88vh", position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "var(--surface2)", border: "none", color: "var(--text)", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
           <div style={{ padding: "32px 26px", textAlign: "center", overflowY: "auto" }}>
           {session ? (
             <>
               <div style={{ fontSize: 50, marginBottom: 8, lineHeight: 1 }}>{avatar || "👤"}</div>
-              <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 4px" }}>
+              <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 4px" }}>
                 {nickname.trim() || session.user?.user_metadata?.name || session.user?.user_metadata?.full_name || (session.user?.email || "").split("@")[0]}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, margin: "0 0 10px" }}>{session.user.email}</p>
+              <p style={{ color: "var(--muted)", fontSize: 12, margin: "0 0 10px" }}>{session.user.email}</p>
               <div style={{ display: "inline-block", fontSize: 12, margin: "0 0 6px", padding: "3px 12px", borderRadius: 20, fontWeight: 800,
-                background: isAdmin ? "rgba(255,107,0,0.15)" : membership === "vip" ? "rgba(255,184,0,0.15)" : "rgba(255,255,255,0.06)",
-                color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "rgba(255,255,255,0.4)" }}>
+                background: isAdmin ? "rgba(255,107,0,0.15)" : membership === "vip" ? "rgba(255,184,0,0.15)" : "var(--border)",
+                color: isAdmin ? "#FF8C00" : membership === "vip" ? "#FFB800" : "var(--muted)" }}>
                 {isAdmin ? "👔 CEO" : membership === "vip" ? "👑 VIP 회원" : "일반 회원"}
               </div>
               <p style={{ color: "var(--gold)", fontSize: 13, fontWeight: 800, margin: "6px 0 16px" }}>🏆 외운 단어 {totalMasteredCount}개 · Lv.{level}</p>
               <div style={{ margin: "0 0 16px", textAlign: "left" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>별명</div>
+                <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>별명</div>
                 <input value={nickname} onChange={e => changeNickname(e.target.value)} maxLength={12}
                   placeholder={session.user?.user_metadata?.name || "별명을 입력하세요"}
-                  style={{ width: "100%", padding: "11px 14px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", fontSize: 14, boxSizing: "border-box" }} />
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 14, boxSizing: "border-box" }} />
               </div>
               <div style={{ margin: "0 0 18px" }}>
                 {!showAvatarPicker ? (
-                  <button onClick={() => setShowAvatarPicker(true)} style={{ width: "100%", padding: "11px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "rgba(255,255,255,0.7)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🎨 아바타 바꾸기 {avatar || "👤"}</button>
+                  <button onClick={() => setShowAvatarPicker(true)} style={{ width: "100%", padding: "11px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text2)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>🎨 아바타 바꾸기 {avatar || "👤"}</button>
                 ) : (<>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>아바타 고르기 ✨ <span style={{ color: "rgba(255,255,255,0.25)" }}>(좌우로 넘기기)</span></div>
+                <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 8 }}>아바타 고르기 ✨ <span style={{ color: "var(--faint)" }}>(좌우로 넘기기)</span></div>
                 <div
                   onTouchStart={(e) => { avatarTouchRef.current = e.touches[0].clientX; }}
                   onTouchEnd={(e) => {
@@ -1415,33 +1415,33 @@ export default function WordGame() {
                   }}
                   style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 5 }}>
                   {AVATARS.slice(avatarPage * AVATAR_PER_PAGE, avatarPage * AVATAR_PER_PAGE + AVATAR_PER_PAGE).map((em, i) => (
-                    <button key={avatarPage + "-" + i} onClick={() => pickAvatar(em)} style={{ aspectRatio: "1", padding: 0, fontSize: 18, borderRadius: 9, cursor: "pointer", border: avatar === em ? "2px solid #FF8C00" : "1px solid rgba(255,255,255,0.1)", background: avatar === em ? "rgba(255,140,0,0.2)" : "rgba(255,255,255,0.04)" }}>{em}</button>
+                    <button key={avatarPage + "-" + i} onClick={() => pickAvatar(em)} style={{ aspectRatio: "1", padding: 0, fontSize: 18, borderRadius: 9, cursor: "pointer", border: avatar === em ? "2px solid #FF8C00" : "1px solid var(--border)", background: avatar === em ? "rgba(255,140,0,0.2)" : "var(--surface)" }}>{em}</button>
                   ))}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 10 }}>
-                  <button onClick={() => setAvatarPage(p => Math.max(p - 1, 0))} disabled={avatarPage === 0} style={{ background: "none", border: "none", color: avatarPage === 0 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>‹</button>
+                  <button onClick={() => setAvatarPage(p => Math.max(p - 1, 0))} disabled={avatarPage === 0} style={{ background: "none", border: "none", color: avatarPage === 0 ? "var(--faint)" : "var(--text)", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>‹</button>
                   <div style={{ display: "flex", gap: 6 }}>
                     {Array.from({ length: avatarPageCount }).map((_, i) => (
-                      <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i === avatarPage ? "#FF8C00" : "rgba(255,255,255,0.2)" }} />
+                      <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i === avatarPage ? "#FF8C00" : "var(--border)" }} />
                     ))}
                   </div>
-                  <button onClick={() => setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1))} disabled={avatarPage === avatarPageCount - 1} style={{ background: "none", border: "none", color: avatarPage === avatarPageCount - 1 ? "rgba(255,255,255,0.2)" : "#fff", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>›</button>
+                  <button onClick={() => setAvatarPage(p => Math.min(p + 1, avatarPageCount - 1))} disabled={avatarPage === avatarPageCount - 1} style={{ background: "none", border: "none", color: avatarPage === avatarPageCount - 1 ? "var(--faint)" : "var(--text)", fontSize: 24, fontWeight: 900, cursor: "pointer", padding: "0 6px", lineHeight: 1 }}>›</button>
                 </div>
                 </>)}
               </div>
               {myHandle && (
-                <div style={{ margin: "0 0 16px", textAlign: "left", borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 16 }}>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>내 아이디 · 일촌 {connections.length > 0 && `${connections.length}명`}</div>
+                <div style={{ margin: "0 0 16px", textAlign: "left", borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>내 아이디 · 일촌 {connections.length > 0 && `${connections.length}명`}</div>
                   <div style={{ color: "#A78BFA", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>@{myHandle}</div>
                   {connections.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
                       {connections.map(c => {
                         const label = connAlias[c.other_id] || c.name;
                         return (
-                          <div key={c.other_id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "9px 12px" }}>
+                          <div key={c.other_id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "var(--surface)", borderRadius: 12, padding: "9px 12px" }}>
                             <div style={{ minWidth: 0 }}>
-                              <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</div>
-                              <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>@{c.handle}</div>
+                              <div style={{ color: "var(--text)", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</div>
+                              <div style={{ color: "var(--muted)", fontSize: 11 }}>@{c.handle}</div>
                             </div>
                             <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                               <button onClick={() => renameConn(c.other_id, c.name)} style={{ padding: "6px 9px", background: "rgba(167,139,250,0.12)", border: "none", borderRadius: 9, color: "#A78BFA", fontSize: 12, cursor: "pointer" }}>✏️ 별명</button>
@@ -1453,22 +1453,22 @@ export default function WordGame() {
                     </div>
                   )}
                   <button onClick={copyInviteLink} style={{ width: "100%", padding: "12px", background: "rgba(167,139,250,0.15)", border: "1px solid #A78BFA55", borderRadius: 14, color: "#C4B5FD", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>🔗 일촌 초대링크 복사</button>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>복사해서 카톡으로 가족에게 보내세요</div>
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>복사해서 카톡으로 가족에게 보내세요</div>
                 </div>
               )}
               {isAdmin && (
                 <button onClick={() => { window.location.href = "/admin.html"; }} style={{ width: "100%", padding: "14px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8 }}>📋 승인 대시보드 바로가기</button>
               )}
-              <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
-              <div style={{ marginTop: 6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10 }}>
-                <button onClick={() => { setShowAuthModal(false); setShowSettingsModal(true); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>⚙️ 설정 (로그아웃·탈퇴)</button>
+              <button onClick={() => setShowAuthModal(false)} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+              <div style={{ marginTop: 6, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+                <button onClick={() => { setShowAuthModal(false); setShowSettingsModal(true); }} style={{ background: "none", border: "none", color: "var(--faint)", fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>⚙️ 설정 (로그아웃·탈퇴)</button>
               </div>
             </>
           ) : (
             <>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
-              <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>로그인</h3>
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>로그인하면 내 단어장·진도가 클라우드에 저장돼요.<br />폰을 바꾸거나 잃어버려도 그대로 복구! 📱➡️💻</p>
+              <h3 style={{ color: "var(--text)", fontSize: 18, fontWeight: 900, margin: "0 0 8px" }}>로그인</h3>
+              <p style={{ color: "var(--text2)", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>로그인하면 내 단어장·진도가 클라우드에 저장돼요.<br />폰을 바꾸거나 잃어버려도 그대로 복구! 📱➡️💻</p>
 
               {/* 소셜 로그인 */}
               <button onClick={() => signInWithProvider("kakao")} style={{ width: "100%", padding: "14px", background: "#FEE500", border: "none", borderRadius: 14, color: "#191600", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -1480,11 +1480,11 @@ export default function WordGame() {
 
               {authStatus === "error" && <div style={{ color: "#EF4444", fontSize: 12, margin: "0 0 12px", lineHeight: 1.5 }}>{authError || "로그인 실패. 다시 시도해주세요."}</div>}
 
-              <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, lineHeight: 1.6, margin: "4px 0 12px" }}>
-                로그인 시 <a href="/terms.html" target="_blank" style={{ color: "rgba(255,255,255,0.55)" }}>이용약관</a> 및 <a href="/privacy.html" target="_blank" style={{ color: "rgba(255,255,255,0.55)" }}>개인정보처리방침</a>에 동의합니다.
+              <p style={{ color: "var(--muted)", fontSize: 11, lineHeight: 1.6, margin: "4px 0 12px" }}>
+                로그인 시 <a href="/terms.html" target="_blank" style={{ color: "var(--text2)" }}>이용약관</a> 및 <a href="/privacy.html" target="_blank" style={{ color: "var(--text2)" }}>개인정보처리방침</a>에 동의합니다.
               </p>
 
-              <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
+              <button onClick={() => { setShowAuthModal(false); setAuthStatus(""); }} style={{ width: "100%", padding: "12px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>닫기</button>
             </>
           )}
           </div>
@@ -1506,8 +1506,8 @@ export default function WordGame() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, marginBottom: 8 }}>
               <span style={{ color: "var(--text)", fontWeight: 700, fontSize: 14 }}>화면 테마</span>
               <div style={{ display: "flex", gap: 4, background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: 3 }}>
-                <button onClick={() => setIsLight(false)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !isLight ? "#FF8C00" : "transparent", color: !isLight ? "#3a1e00" : "rgba(255,255,255,0.5)" }}>🌙 다크</button>
-                <button onClick={() => setIsLight(true)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: isLight ? "#FFB800" : "transparent", color: isLight ? "#3a1e00" : "rgba(255,255,255,0.5)" }}>☀️ 라이트</button>
+                <button onClick={() => setIsLight(false)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: !isLight ? "#FF8C00" : "transparent", color: !isLight ? "#3a1e00" : "var(--text2)" }}>🌙 다크</button>
+                <button onClick={() => setIsLight(true)} style={{ padding: "6px 12px", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: isLight ? "#FFB800" : "transparent", color: isLight ? "#3a1e00" : "var(--text2)" }}>☀️ 라이트</button>
               </div>
             </div>
             <button onClick={() => { setShowSettingsModal(false); openOnboarding(); }} style={itemStyle}>📖 사용법 보기</button>
@@ -1532,16 +1532,16 @@ export default function WordGame() {
     const isLast = onboardingSlide === ONBOARDING_SLIDES.length - 1;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 20px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 24, maxWidth: 420, width: "100%", overflow: "hidden", position: "relative" }}>
-          <button onClick={finishOnboarding} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 24, maxWidth: 420, width: "100%", overflow: "hidden", position: "relative" }}>
+          <button onClick={finishOnboarding} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "var(--surface2)", border: "none", color: "var(--text)", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
           <div style={{ padding: "18px 20px 0" }}>
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {ONBOARDING_SLIDES.map((_, i) => (
-                <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardingSlide ? "#FF8C00" : "rgba(255,255,255,0.15)" }} />
+                <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardingSlide ? "#FF8C00" : "var(--border)" }} />
               ))}
             </div>
-            <h3 style={{ color: "#fff", fontSize: 18, fontWeight: 900, margin: "0 0 4px" }}>{slide.title}</h3>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "0 0 14px" }}>{slide.desc}</p>
+            <h3 style={{ color: "var(--text)", fontSize: 18, fontWeight: 900, margin: "0 0 4px" }}>{slide.title}</h3>
+            <p style={{ color: "var(--text2)", fontSize: 13, margin: "0 0 14px" }}>{slide.desc}</p>
           </div>
           <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", background: "#000" }}>
             <iframe
@@ -1554,7 +1554,7 @@ export default function WordGame() {
             />
           </div>
           <div style={{ display: "flex", gap: 8, padding: "16px 20px" }}>
-            <button onClick={finishOnboarding} style={{ flex: "0 0 auto", padding: "12px 14px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>건너뛰기</button>
+            <button onClick={finishOnboarding} style={{ flex: "0 0 auto", padding: "12px 14px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>건너뛰기</button>
             <button
               onClick={() => isLast ? finishOnboarding() : setOnboardingSlide(s => s + 1)}
               style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>
@@ -2052,16 +2052,16 @@ export default function WordGame() {
   // ── 레벨변경 확인 팝업 ────────────────────────
   const LevelConfirmModal = () => !showLevelConfirm ? null : (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
-      <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 44, marginBottom: 16 }}>⚠️</div>
-        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>레벨을 변경할까요?</h3>
-        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+        <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>레벨을 변경할까요?</h3>
+        <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
           현재 학습 기록이 모두<br />초기화됩니다.
         </p>
         <div style={{ display: "flex", gap: 10 }}>
           <button
             onClick={() => setShowLevelConfirm(false)}
-            style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            style={{ flex: 1, padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
             취소
           </button>
           <button
@@ -2096,10 +2096,10 @@ export default function WordGame() {
     };
     return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
-      <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 44, marginBottom: 16 }}>{canSave ? "📌" : "🚪"}</div>
-        <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
-        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+        <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
+        <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
           {canSave
             ? <>지금 위치를 저장하면<br />다음에 <b style={{ color: "#A78BFA" }}>이어서 하기</b>로 계속할 수 있어요.</>
             : <>현재 스테이지 진행 기록은<br />저장되지 않습니다.</>}
@@ -2117,18 +2117,18 @@ export default function WordGame() {
               </button>
             )}
             <button onClick={() => setShowQuitConfirm(false)}
-              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
               ▶ 계속하기
             </button>
             <button onClick={plainExit}
-              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "12px", background: "none", border: "none", color: "var(--muted)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
               🚪 그냥 나가기 <span style={{ fontSize: 12, opacity: 0.75 }}>(이어하기 저장 안 함)</span>
             </button>
           </div>
         ) : (
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setShowQuitConfirm(false)}
-              style={{ flex: 1, padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              style={{ flex: 1, padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
               계속하기
             </button>
             <button onClick={plainExit}
@@ -2150,10 +2150,10 @@ export default function WordGame() {
     const done = rec.pos || 0;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
-        <div style={{ background: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 44, marginBottom: 16 }}>📖</div>
-          <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 8px" }}>{resumePrompt.title}</h3>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+          <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 8px" }}>{resumePrompt.title}</h3>
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
             지난번 <b style={{ color: "#A78BFA" }}>{done}번째</b>까지 했어요.<br />이어서 할까요? (총 {total}개)
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -2162,11 +2162,11 @@ export default function WordGame() {
               ▶ 이어서 하기 ({done + 1}번부터)
             </button>
             <button onClick={() => startCustomWorld(resumePrompt, false)}
-              style={{ padding: "15px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.7)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
               🔄 처음부터 하기
             </button>
             <button onClick={() => setResumePrompt(null)}
-              style={{ padding: "12px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "12px", background: "none", border: "none", color: "var(--muted)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
               닫기
             </button>
           </div>
@@ -2253,18 +2253,18 @@ export default function WordGame() {
   // ── 승인 대기 게이트 (로그인했지만 아직 미승인) ──────────────
   if (session && approved === false) {
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
         <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 56, marginBottom: 18 }}>🕐</div>
-          <h2 style={{ color: "#fff", fontSize: 22, fontWeight: 900, margin: "0 0 12px" }}>가입 신청 완료!</h2>
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.7, margin: "0 0 8px" }}>
+          <h2 style={{ color: "var(--text)", fontSize: 22, fontWeight: 900, margin: "0 0 12px" }}>가입 신청 완료!</h2>
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.7, margin: "0 0 8px" }}>
             관리자 승인을 기다리는 중이에요.<br />승인되면 폰·PC 동기화와 모든 기능이 열립니다.
           </p>
-          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, margin: "0 0 28px" }}>{session.user?.email || ""}</p>
+          <p style={{ color: "var(--muted)", fontSize: 12, margin: "0 0 28px" }}>{session.user?.email || ""}</p>
           <button onClick={() => window.location.reload()} style={{ width: "100%", padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", marginBottom: 10 }}>
             🔄 승인됐어요? 새로고침
           </button>
-          <button onClick={signOut} style={{ width: "100%", padding: "13px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+          <button onClick={signOut} style={{ width: "100%", padding: "13px", background: "var(--border)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
             로그아웃하고 둘러보기
           </button>
         </div>
@@ -2279,14 +2279,14 @@ export default function WordGame() {
     );
 
     return (
-      <div style={{ minHeight:"100dvh", background:"#07070f", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", justifyContent:"center" }}>
+      <div style={{ minHeight:"100dvh", background:"var(--bg)", fontFamily:"'Segoe UI',system-ui,sans-serif", display:"flex", justifyContent:"center" }}>
         <LevelConfirmModal />
         {renderAuthModal()}
         {renderSettingsModal()}
         {renderOnboardingModal()}
         <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", paddingBottom:80 }}>
         {/* 헤더 */}
-        <div style={{ background:"linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+        <div style={{ background:"linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)" }}>
           <FunUncleBar showLevel={true} />
           <div style={{ padding:"12px 22px 16px" }}>
           {/* 검색창 */}
@@ -2298,17 +2298,17 @@ export default function WordGame() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               autoFocus
-              style={{ width:"100%", padding:"14px 16px 14px 46px", background:"rgba(255,255,255,0.07)", border:"1px solid rgba(255,255,255,0.12)", borderRadius:16, color:"#fff", fontSize:16, fontWeight:600, outline:"none", boxSizing:"border-box" }}
+              style={{ width:"100%", padding:"14px 16px 14px 46px", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:16, color:"var(--text)", fontSize:16, fontWeight:600, outline:"none", boxSizing:"border-box" }}
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")}
-                style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", background:"rgba(255,255,255,0.1)", border:"none", borderRadius:"50%", width:24, height:24, color:"rgba(255,255,255,0.5)", cursor:"pointer", fontSize:12 }}>
+                style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", background:"var(--surface2)", border:"none", borderRadius:"50%", width:24, height:24, color:"var(--text2)", cursor:"pointer", fontSize:12 }}>
                 ✕
               </button>
             )}
           </div>
           {q.length > 0 && (
-            <div style={{ color:"rgba(255,255,255,0.25)", fontSize:11, fontWeight:600, marginTop:8 }}>
+            <div style={{ color:"var(--faint)", fontSize:11, fontWeight:600, marginTop:8 }}>
               {results.length > 0 ? `${results.length}개 검색됨` : "검색 결과 없음"}
             </div>
           )}
@@ -2320,13 +2320,13 @@ export default function WordGame() {
           {q.length === 0 ? (
             <div style={{ textAlign:"center", padding:"60px 20px" }}>
               <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
-              <div style={{ color:"rgba(255,255,255,0.2)", fontSize:14, fontWeight:700 }}>영어 단어나 한글 뜻으로 검색하세요</div>
-              <div style={{ color:"rgba(255,255,255,0.12)", fontSize:12, marginTop:8 }}>{customOnlyMode ? `등록된 ${allWords.length}개 단어 검색 가능` : "전체 3,010개 단어 검색 가능"}</div>
+              <div style={{ color:"var(--faint)", fontSize:14, fontWeight:700 }}>영어 단어나 한글 뜻으로 검색하세요</div>
+              <div style={{ color:"var(--border)", fontSize:12, marginTop:8 }}>{customOnlyMode ? `등록된 ${allWords.length}개 단어 검색 가능` : "전체 3,010개 단어 검색 가능"}</div>
             </div>
           ) : results.length === 0 ? (
             <div style={{ textAlign:"center", padding:"60px 20px" }}>
               <div style={{ fontSize:48, marginBottom:16 }}>😅</div>
-              <div style={{ color:"rgba(255,255,255,0.2)", fontSize:14, fontWeight:700 }}>"{searchQuery}" 검색 결과가 없어요</div>
+              <div style={{ color:"var(--faint)", fontSize:14, fontWeight:700 }}>"{searchQuery}" 검색 결과가 없어요</div>
             </div>
           ) : (
             <div style={{ display:"flex", flexDirection:"column", gap:8, paddingTop:8 }}>
@@ -2339,24 +2339,24 @@ export default function WordGame() {
                 return (
                   <button key={i}
                     onClick={() => setExpandedCard(isExpanded ? null : word.en + "_search")}
-                    style={{ background:isExpanded ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)", border:`1px solid ${isExpanded ? word.worldColor+"33" : "rgba(255,255,255,0.06)"}`, borderRadius:14, padding:"12px 14px", textAlign:"left", cursor:"pointer", transition:"all 0.2s" }}>
+                    style={{ background:isExpanded ? "var(--surface)" : "var(--surface)", border:`1px solid ${isExpanded ? word.worldColor+"33" : "var(--border)"}`, borderRadius:14, padding:"12px 14px", textAlign:"left", cursor:"pointer", transition:"all 0.2s" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ fontSize:13 }}>{statusIcon}</span>
-                      <span style={{ color:"#fff", fontSize:15, fontWeight:800, flex:1 }}>{word.en}</span>
-                      <span style={{ color:"rgba(255,255,255,0.45)", fontSize:13 }}>{word.ko}</span>
-                      <span style={{ color:"rgba(255,255,255,0.18)", fontSize:12, marginLeft:4, transform:isExpanded?"rotate(180deg)":"none", transition:"transform 0.2s", display:"inline-block" }}>▼</span>
+                      <span style={{ color:"var(--text)", fontSize:15, fontWeight:800, flex:1 }}>{word.en}</span>
+                      <span style={{ color:"var(--muted)", fontSize:13 }}>{word.ko}</span>
+                      <span style={{ color:"var(--faint)", fontSize:12, marginLeft:4, transform:isExpanded?"rotate(180deg)":"none", transition:"transform 0.2s", display:"inline-block" }}>▼</span>
                     </div>
                     {/* 펼침 */}
                     {isExpanded && (
-                      <div style={{ marginTop:12, paddingTop:12, borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ marginTop:12, paddingTop:12, borderTop:"1px solid var(--border)" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10 }}>
                           <span style={{ fontSize:13 }}>{word.worldEmoji}</span>
                           <span style={{ color:word.worldColor, fontSize:11, fontWeight:700 }}>{word.worldTitle}</span>
-                          <span style={{ color:"rgba(255,255,255,0.2)", fontSize:10 }}>WORLD {word.worldId}</span>
+                          <span style={{ color:"var(--faint)", fontSize:10 }}>WORLD {word.worldId}</span>
                         </div>
                         <div style={{ background:`${word.worldColor}10`, border:`1px solid ${word.worldColor}22`, borderRadius:10, padding:"10px 14px", marginBottom:8 }}>
-                          <div style={{ color:"rgba(255,255,255,0.3)", fontSize:9, fontWeight:700, letterSpacing:1, marginBottom:4 }}>한국어 뜻</div>
-                          <div style={{ color:"#fff", fontSize:20, fontWeight:900 }}>{word.ko}</div>
+                          <div style={{ color:"var(--muted)", fontSize:9, fontWeight:700, letterSpacing:1, marginBottom:4 }}>한국어 뜻</div>
+                          <div style={{ color:"var(--text)", fontSize:20, fontWeight:900 }}>{word.ko}</div>
                         </div>
                         {word.tip && (
                           <div style={{ background:"rgba(255,184,0,0.07)", border:"1px solid rgba(255,184,0,0.14)", borderRadius:10, padding:"8px 14px" }}>
@@ -2406,20 +2406,20 @@ export default function WordGame() {
     }).filter(g => g.filteredWords.length > 0);
 
     const filters = [
-      { key: "all",      label: "전체",    count: allWords.length,    color: "rgba(255,255,255,0.55)", activeBg: "rgba(255,255,255,0.08)", activeBorder: "rgba(255,255,255,0.2)" },
+      { key: "all",      label: "전체",    count: allWords.length,    color: "var(--text2)", activeBg: "var(--surface2)", activeBorder: "var(--border)" },
       { key: "mastered", label: "마스터",   count: allMastered.length, color: "#4ADE80",               activeBg: "rgba(74,222,128,0.12)",  activeBorder: "rgba(74,222,128,0.35)" },
       { key: "failed",   label: "복습필요", count: allFailed.length,   color: "#EF4444",               activeBg: "rgba(239,68,68,0.12)",   activeBorder: "rgba(239,68,68,0.35)"  },
     ];
 
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <LevelConfirmModal />
         {renderAuthModal()}
         {renderSettingsModal()}
         {renderOnboardingModal()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
-        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)" }}>
+        <div style={{ background: "linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)" }}>
           <FunUncleBar showLevel={true} />
           <div style={{ padding: "12px 22px 20px" }}>
           {/* 통계 카드 = 필터 버튼 (클릭하면 필터 전환) */}
@@ -2428,9 +2428,9 @@ export default function WordGame() {
               const isActive = vocabFilter === f.key;
               return (
                 <button key={f.key} onClick={() => setVocabFilter(f.key)}
-                  style={{ flex: 1, background: isActive ? f.activeBg : "rgba(255,255,255,0.03)", border: `1.5px solid ${isActive ? f.activeBorder : "rgba(255,255,255,0.07)"}`, borderRadius: 16, padding: "14px 8px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}>
-                  <div style={{ color: isActive ? f.color : "rgba(255,255,255,0.35)", fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{f.count}</div>
-                  <div style={{ color: isActive ? f.color : "rgba(255,255,255,0.25)", fontSize: 10, marginTop: 5, fontWeight: 700 }}>{f.label}</div>
+                  style={{ flex: 1, background: isActive ? f.activeBg : "var(--surface)", border: `1.5px solid ${isActive ? f.activeBorder : "var(--surface)"}`, borderRadius: 16, padding: "14px 8px", textAlign: "center", cursor: "pointer", transition: "all 0.2s" }}>
+                  <div style={{ color: isActive ? f.color : "var(--muted)", fontSize: 24, fontWeight: 900, lineHeight: 1 }}>{f.count}</div>
+                  <div style={{ color: isActive ? f.color : "var(--faint)", fontSize: 10, marginTop: 5, fontWeight: 700 }}>{f.label}</div>
                   {isActive && <div style={{ width: 20, height: 2, background: f.color, borderRadius: 2, margin: "6px auto 0" }} />}
                 </button>
               );
@@ -2476,7 +2476,7 @@ export default function WordGame() {
               <div style={{ fontSize: 48, marginBottom: 16 }}>
                 {vocabFilter === "mastered" ? "🌱" : vocabFilter === "failed" ? "🎉" : "📖"}
               </div>
-              <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 14, fontWeight: 700 }}>
+              <div style={{ color: "var(--faint)", fontSize: 14, fontWeight: 700 }}>
                 {vocabFilter === "mastered" ? "아직 마스터한 단어가 없어요! 게임을 시작해보세요!"
                   : vocabFilter === "failed" ? "틀린 단어가 없어요! 완벽해요 🎉"
                   : "게임을 시작하면 단어가 여기 쌓여요!"}
@@ -2489,7 +2489,7 @@ export default function WordGame() {
                 <span style={{ fontSize: 16 }}>{group.emoji}</span>
                 <span style={{ color: group.color, fontWeight: 800, fontSize: 13 }}>{group.title}</span>
                 <div style={{ flex: 1, height: 1, background: `${group.color}25`, marginLeft: 4 }} />
-                <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: 600 }}>{group.filteredWords.length}개</span>
+                <span style={{ color: "var(--faint)", fontSize: 11, fontWeight: 600 }}>{group.filteredWords.length}개</span>
                 {/* 그룹 헤더 복습 버튼 — 해당 월드에 틀린 단어 있을 때만 */}
                 {(() => {
                   const gp = progress.find(p => p.worldId === group.id);
@@ -2507,25 +2507,25 @@ export default function WordGame() {
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {group.filteredWords.map((word, i) => {
                   const isExpanded = expandedCard === word.en;
-                  const statusColor = word.isMastered ? "#4ADE80" : word.isFailed ? "#EF4444" : "rgba(255,255,255,0.2)";
+                  const statusColor = word.isMastered ? "#4ADE80" : word.isFailed ? "#EF4444" : "var(--faint)";
                   const statusIcon  = word.isMastered ? "✅" : word.isFailed ? "🔴" : "⬜";
                   return (
                     <button key={`${word.en}-${i}`}
                       onClick={() => setExpandedCard(isExpanded ? null : word.en)}
-                      style={{ background: isExpanded ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)", border: `1px solid ${isExpanded ? group.color + "33" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, padding: "12px 14px", textAlign: "left", cursor: "pointer", transition: "all 0.2s" }}>
+                      style={{ background: isExpanded ? "var(--surface)" : "var(--surface)", border: `1px solid ${isExpanded ? group.color + "33" : "var(--border)"}`, borderRadius: 14, padding: "12px 14px", textAlign: "left", cursor: "pointer", transition: "all 0.2s" }}>
                       {/* 접힌 상태 */}
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ fontSize: 13, flexShrink: 0 }}>{statusIcon}</span>
-                        <span style={{ color: "#fff", fontSize: 15, fontWeight: 800, flex: 1 }}>{word.en}</span>
-                        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{word.ko}</span>
+                        <span style={{ color: "var(--text)", fontSize: 15, fontWeight: 800, flex: 1 }}>{word.en}</span>
+                        <span style={{ color: "var(--muted)", fontSize: 13 }}>{word.ko}</span>
                         <span style={{ color: "var(--faint)", fontSize: 12, marginLeft: 4, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▼</span>
                       </div>
                       {/* 펼침 상세 */}
                       {isExpanded && (
-                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
                           <div style={{ background: `${group.color}10`, border: `1px solid ${group.color}22`, borderRadius: 10, padding: "10px 14px", marginBottom: 8 }}>
-                            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>한국어 뜻</div>
-                            <div style={{ color: "#fff", fontSize: 20, fontWeight: 900 }}>{word.ko}</div>
+                            <div style={{ color: "var(--muted)", fontSize: 9, fontWeight: 700, letterSpacing: 1, marginBottom: 4 }}>한국어 뜻</div>
+                            <div style={{ color: "var(--text)", fontSize: 20, fontWeight: 900 }}>{word.ko}</div>
                           </div>
                           <div style={{ background: "rgba(255,184,0,0.07)", border: "1px solid rgba(255,184,0,0.14)", borderRadius: 10, padding: "8px 14px" }}>
                             <div style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700 }}>💡 {word.tip}</div>
@@ -2669,7 +2669,7 @@ export default function WordGame() {
 
       </div>
 
-      <div style={{ marginTop: 16, color: "rgba(255,255,255,0.1)", fontSize: 10, textAlign: "center" }}>
+      <div style={{ marginTop: 16, color: "var(--faint)", fontSize: 10, textAlign: "center" }}>
         <a href="https://fun.uncledison.com" style={{ color: "#FF8C00", fontWeight: 700, textDecoration: "none" }}>fun.uncledison.com</a>
         <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 11 }}>
           <a href="/terms.html" target="_blank" style={{ color: "var(--muted)", textDecoration: "none" }}>이용약관</a>
@@ -3187,7 +3187,7 @@ export default function WordGame() {
                 <>
                   {/* 뜻 */}
                   <div style={{ background: `linear-gradient(135deg,${w.dark}88,${w.color}44)`, border: `1px solid ${w.color}44`, borderRadius: 18, padding: "20px 28px", marginBottom: 16, width: "100%", textAlign: "center" }}>
-                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, marginBottom: 8 }}>한국어</div>
+                    <div style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, marginBottom: 8 }}>한국어</div>
                     <div style={{ color: "#fff", fontSize: 32, fontWeight: 900 }}>{card.ko}</div>
                   </div>
                   {/* 암기 팁 — tip 있을 때만 표시 */}
@@ -3243,22 +3243,22 @@ export default function WordGame() {
 
   // ── WORLD CLEAR ───────────────────────────
   if (screen === "worldclear") return (
-    <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", justifyContent: "center" }}>
       <LevelConfirmModal />
       <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
       <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
         <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
         <div style={{ color: w.color, fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>{activeWorld?.isCustom ? "단어장 완주!" : `WORLD ${w.id} CLEAR!`}</div>
-        <h2 style={{ color: "#fff", fontSize: 30, fontWeight: 900, margin: "0 0 8px" }}>{w.title}<br />클리어!</h2>
-        <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, marginBottom: 8 }}>
+        <h2 style={{ color: "var(--text)", fontSize: 30, fontWeight: 900, margin: "0 0 8px" }}>{w.title}<br />클리어!</h2>
+        <div style={{ color: "var(--muted)", fontSize: 14, marginBottom: 8 }}>
           {finalTotal}개 중 {finalCorrect}개 정답
         </div>
         <div style={{ color: "var(--gold)", fontWeight: 800, fontSize: 15, marginBottom: 32 }}>+{XP_WORLD} XP 보너스 획득!</div>
 
         {w.id < WORLDS.length && (
           <div style={{ background: `${w.color}12`, border: `1px solid ${w.color}30`, borderRadius: 20, padding: "16px 20px", marginBottom: 24 }}>
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginBottom: 6 }}>🔓 다음 월드 해금!</div>
-            <div style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>
+            <div style={{ color: "var(--muted)", fontSize: 11, marginBottom: 6 }}>🔓 다음 월드 해금!</div>
+            <div style={{ color: "var(--text)", fontWeight: 800, fontSize: 16 }}>
               WORLD {w.id + 1} — {WORLDS[w.id].title}
             </div>
           </div>
@@ -3271,7 +3271,7 @@ export default function WordGame() {
               🔄 처음부터 다시
             </button>
             <button onClick={() => setScreen("customVocab")}
-              style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              style={{ padding: "18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
               내 단어장으로
             </button>
           </div>
@@ -3296,7 +3296,7 @@ export default function WordGame() {
                 <div style={{ color: "var(--gold)", fontWeight: 800, fontSize: 15, textAlign: "center", padding: "10px" }}>🏆 모든 단어 완료!</div>
               )}
               <button onClick={() => setScreen((typeof w !== "undefined" && w?.isCustom) || activeWorld?.isCustom ? (customOnlyMode ? "customVocab" : "levelselect") : "map")}
-                style={{ padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, color: "rgba(255,255,255,0.55)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                style={{ padding: "18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                 홈으로
               </button>
             </div>
@@ -3314,7 +3314,7 @@ export default function WordGame() {
     const rate      = finalTotal > 0 ? Math.round(finalCorrect / finalTotal * 100) : 0;
 
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", justifyContent: "center" }}>
         <LevelConfirmModal />
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
@@ -3324,32 +3324,32 @@ export default function WordGame() {
             {allClear ? "🎊" : rate >= 70 ? "💪" : "🔥"}
           </div>
           <div style={{ color: w.color, fontSize: 12, fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>복습 완료!</div>
-          <h2 style={{ color: "#fff", fontSize: 28, fontWeight: 900, margin: "0 0 6px" }}>
+          <h2 style={{ color: "var(--text)", fontSize: 28, fontWeight: 900, margin: "0 0 6px" }}>
             {allClear ? "완벽 마스터!" : rate >= 70 ? "많이 외웠어요!" : "조금만 더!"}
           </h2>
-          <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, marginBottom: 28 }}>
+          <div style={{ color: "var(--muted)", fontSize: 14, marginBottom: 28 }}>
             {finalTotal}개 중 {finalCorrect}개 정답
           </div>
 
           {/* 스코어 카드 */}
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, padding: "24px 28px", marginBottom: 20 }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 24, padding: "24px 28px", marginBottom: 20 }}>
             <div style={{ fontSize: 56, fontWeight: 900, color: allClear ? w.color : rate >= 70 ? "#FFB800" : "#EF4444", lineHeight: 1 }}>{rate}%</div>
 
             {/* 상세 카운트 */}
             <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 16 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ color: w.color, fontSize: 22, fontWeight: 900 }}>{finalCorrect}</div>
-                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>맞힌 단어</div>
+                <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>맞힌 단어</div>
               </div>
-              <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />
+              <div style={{ width: 1, background: "var(--border)" }} />
               <div style={{ textAlign: "center" }}>
                 <div style={{ color: "#EF4444", fontSize: 22, fontWeight: 900 }}>{finalTotal - finalCorrect}</div>
-                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>아직 틀린 단어</div>
+                <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>아직 틀린 단어</div>
               </div>
-              <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />
+              <div style={{ width: 1, background: "var(--border)" }} />
               <div style={{ textAlign: "center" }}>
                 <div style={{ color: "var(--gold)", fontSize: 22, fontWeight: 900 }}>+{finalCorrect * XP_CORRECT}</div>
-                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, marginTop: 2 }}>XP 획득</div>
+                <div style={{ color: "var(--muted)", fontSize: 11, marginTop: 2 }}>XP 획득</div>
               </div>
             </div>
 
@@ -3389,7 +3389,7 @@ export default function WordGame() {
               </button>
             )}
             <button onClick={() => setScreen(activeWorld?.isCustom ? "customVocab" : "map")}
-              style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+              style={{ padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, color: "var(--muted)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               {activeWorld?.isCustom ? "내 단어장으로" : "홈으로"}
             </button>
           </div>
@@ -3408,16 +3408,16 @@ export default function WordGame() {
     const rate = finalTotal > 0 ? Math.round(finalCorrect / finalTotal * 100) : 0;
     const p    = progress.find(p => p.worldId === w.id);
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", display: "flex", justifyContent: "center" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", justifyContent: "center" }}>
         <LevelConfirmModal />
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ textAlign: "center", maxWidth: 360, width: "100%" }}>
           <div style={{ fontSize: 56, marginBottom: 16 }}>💪</div>
-          <h2 style={{ color: "#fff", fontSize: 28, fontWeight: 900, margin: "0 0 6px" }}>다시 도전!</h2>
-          <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, marginBottom: 28 }}>클리어 조건: 70% 이상 정답</div>
-          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, padding: "28px", marginBottom: 20 }}>
+          <h2 style={{ color: "var(--text)", fontSize: 28, fontWeight: 900, margin: "0 0 6px" }}>다시 도전!</h2>
+          <div style={{ color: "var(--muted)", fontSize: 13, marginBottom: 28 }}>클리어 조건: 70% 이상 정답</div>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 24, padding: "28px", marginBottom: 20 }}>
             <div style={{ fontSize: 60, fontWeight: 900, color: "#EF4444", lineHeight: 1 }}>{rate}%</div>
-            <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 14, marginTop: 8 }}>{finalTotal}개 중 {finalCorrect}개 정답</div>
+            <div style={{ color: "var(--muted)", fontSize: 14, marginTop: 8 }}>{finalTotal}개 중 {finalCorrect}개 정답</div>
             {p.failed.length > 0 && (
               <div style={{ marginTop: 10, color: "#EF4444", fontSize: 12, fontWeight: 600 }}>
                 틀린 단어 {p.failed.length}개 → 다음엔 먼저 나와요!
@@ -3450,7 +3450,7 @@ export default function WordGame() {
               </button>
             )}
             <button onClick={() => setScreen(activeWorld?.isCustom ? "customVocab" : "map")}
-              style={{ padding: "16px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
+              style={{ padding: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 18, color: "var(--muted)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
               {activeWorld?.isCustom ? "내 단어장으로" : "홈으로"}
             </button>
           </div>

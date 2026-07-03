@@ -2685,7 +2685,7 @@ export default function WordGame() {
   // ── 커스텀 단어장 화면 ─────────────────────────────
   if (screen === "customVocab") {
     return (
-      <div style={{ minHeight: "100dvh", background: "#07070f", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
         {renderAuthModal()}
         {renderSettingsModal()}
@@ -2695,7 +2695,7 @@ export default function WordGame() {
         {renderShareToast()}
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
-        <div style={{ background: "linear-gradient(180deg,#0e0e20 0%,#07070f 100%)", paddingBottom: 8 }}>
+        <div style={{ background: "linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)", paddingBottom: 8 }}>
           <FunUncleBar showLevel={true} />
         </div>
 
@@ -2707,14 +2707,14 @@ export default function WordGame() {
               <div style={{ color: "#C4B5FD", fontWeight: 800, fontSize: 14, marginBottom: 10 }}>📩 받은 단어장 {inbox.length}개</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {inbox.map(t => (
-                  <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "10px 12px" }}>
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: "var(--surface2)", borderRadius: 12, padding: "10px 12px" }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title || "단어장"}</div>
-                      <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 11 }}>{t.from_name || "익명"} · 단어 {(t.words || []).length}개</div>
+                      <div style={{ color: "var(--text)", fontSize: 14, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.title || "단어장"}</div>
+                      <div style={{ color: "var(--muted)", fontSize: 11 }}>{t.from_name || "익명"} · 단어 {(t.words || []).length}개</div>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                       <button onClick={() => importTransfer(t)} style={{ padding: "8px 12px", background: "#A78BFA", border: "none", borderRadius: 10, color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>추가</button>
-                      <button onClick={() => { deleteTransfer(t.id); setInbox(prev => prev.filter(x => x.id !== t.id)); }} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.5)", fontSize: 12, cursor: "pointer" }}>✕</button>
+                      <button onClick={() => { deleteTransfer(t.id); setInbox(prev => prev.filter(x => x.id !== t.id)); }} style={{ padding: "8px 10px", background: "var(--surface)", border: "none", borderRadius: 10, color: "var(--text2)", fontSize: 12, cursor: "pointer" }}>✕</button>
                     </div>
                   </div>
                 ))}
@@ -2730,13 +2730,13 @@ export default function WordGame() {
               return (
               <div key={cw.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button onClick={() => openCustomWorld(cw)} style={{ flex: 1, padding: "18px 20px", background: "linear-gradient(135deg,#A78BFA14,#6d28d920)", border: "1.5px solid #A78BFA40", borderRadius: 20, textAlign: "left", cursor: "pointer" }}>
-                  <div style={{ color: "#fff", fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{cw.title}</div>
+                  <div style={{ color: "var(--text)", fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{cw.title}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>단어 {cw.words.length}개</span>
+                    <span style={{ color: "var(--text2)", fontSize: 13 }}>단어 {cw.words.length}개</span>
                     {inProgress && <span style={{ background: "#A78BFA22", color: "#C4B5FD", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10 }}>이어하기 {rec.pos}/{total}</span>}
                   </div>
                   {inProgress && (
-                    <div style={{ marginTop: 8, height: 5, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ marginTop: 8, height: 5, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: "linear-gradient(90deg,#6d28d9,#A78BFA)", borderRadius: 3 }} />
                     </div>
                   )}
@@ -2757,16 +2757,16 @@ export default function WordGame() {
               );
             })}
             {customWorlds.length === 0 && (
-              <div style={{ color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "40px 0" }}>생성된 단어장이 없습니다.<br/>아래에서 만들어보세요!</div>
+              <div style={{ color: "var(--muted)", textAlign: "center", padding: "40px 0" }}>생성된 단어장이 없습니다.<br/>아래에서 만들어보세요!</div>
             )}
           </div>
 
           {(editingId !== null || customWorlds.length < maxSets) ? (
-            <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${editingId !== null ? "#A78BFA66" : "rgba(255,255,255,0.08)"}`, borderRadius: 20, padding: 24, marginTop: 12 }}>
-              <h3 style={{ color: "#fff", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
-              
-              <input type="text" placeholder="단어장 이름 (미입력 시 날짜로 저장)" value={customTitle} onChange={e => setCustomTitle(e.target.value)} 
-                style={{ width: "100%", padding: "14px 16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", marginBottom: 12 }} />
+            <div style={{ background: "var(--surface)", border: `1px solid ${editingId !== null ? "#A78BFA66" : "var(--border)"}`, borderRadius: 20, padding: 24, marginTop: 12 }}>
+              <h3 style={{ color: "var(--text)", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
+
+              <input type="text" placeholder="단어장 이름 (미입력 시 날짜로 저장)" value={customTitle} onChange={e => setCustomTitle(e.target.value)}
+                style={{ width: "100%", padding: "14px 16px", borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", color: "var(--text)", marginBottom: 12 }} />
               
               <div
                 onDragOver={e => e.preventDefault()}
@@ -2788,11 +2788,11 @@ export default function WordGame() {
                   placeholder={"sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요"}
                   value={customInput} 
                   onChange={e => setCustomInput(e.target.value)}
-                  style={{ width: "100%", height: 220, padding: "16px", borderRadius: 12, background: "rgba(0,0,0,0.3)", border: "1px dashed rgba(255,255,255,0.2)", color: "#fff", marginBottom: 12, resize: "none" }} 
+                  style={{ width: "100%", height: 220, padding: "16px", borderRadius: 12, background: "var(--bg2)", border: "1px dashed var(--border)", color: "var(--text)", marginBottom: 12, resize: "none" }}
                 />
               </div>
-              
-              <div style={{ marginBottom: 16, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+
+              <div style={{ marginBottom: 16, fontSize: 12, color: "var(--muted)" }}>
                 ※ 텍스트 파일(txt, csv)을 여기에 드래그앤드롭 하면 내용이 자동으로 채워집니다.
               </div>
 
@@ -2834,13 +2834,13 @@ export default function WordGame() {
                 {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/${maxSetsLabel})`}
               </button>
               {editingId !== null && (
-                <button onClick={cancelEditCustom} style={{ width: "100%", padding: "13px", marginTop: 10, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, color: "rgba(255,255,255,0.6)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                <button onClick={cancelEditCustom} style={{ width: "100%", padding: "13px", marginTop: 10, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
                   취소
                 </button>
               )}
             </div>
           ) : (
-            <div style={{ color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "20px", background: "rgba(255,255,255,0.04)", borderRadius: 16, fontSize: 14 }}>
+            <div style={{ color: "var(--text2)", textAlign: "center", padding: "20px", background: "var(--surface)", borderRadius: 16, fontSize: 14 }}>
               {!session
                 ? <>비로그인은 3개까지예요.<br /><button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ marginTop: 10, padding: "10px 18px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>로그인하고 5개까지 쓰기</button></>
                 : (membership === "vip" || isAdmin)

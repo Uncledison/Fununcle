@@ -2239,7 +2239,7 @@ export default function WordGame() {
         <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", display: "flex" }}>
         {[
           { key: "map",    label: "홈",      icon: "🏠" },
-          { key: "vocab",  label: "내 단어장", icon: "📖" },
+          { key: "vocab",  label: "복습", icon: "📖" },
           { key: "search", label: "검색",     icon: "🔍" },
         ].map(t => (
           <button key={t.key} onClick={() => {
@@ -2589,7 +2589,7 @@ export default function WordGame() {
 
       {/* 계정·설정 버튼 */}
       <div style={{ width: "100%", maxWidth: 440, display: "flex", justifyContent: "flex-end", padding: "8px 16px 0" }}>
-        <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} aria-label="계정·설정" style={{ height: 34, minWidth: 34, padding: "0 12px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", gap: 5 }}>{session ? (avatar || "👤") : "로그인"} <span style={{ fontSize: 13 }}>⚙️</span></button>
+        <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} aria-label="계정" style={{ height: 34, minWidth: 34, padding: "0 12px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", justifyContent: "center" }}>{session ? (avatar || "👤") : "로그인"}</button>
       </div>
 
       <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 22px 20px", flex: 1 }}>

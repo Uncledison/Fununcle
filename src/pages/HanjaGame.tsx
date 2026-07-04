@@ -162,7 +162,7 @@ const loadProgress = () => {
     const saved = JSON.parse(raw);
     const savedProgress = Array.isArray(saved?.progress) ? saved.progress : [];
     const merged = base.map((w) => {
-      const s = savedProgress.find((p) => p && p.worldId === w.id);
+      const s = savedProgress.find((p) => p && p.worldId === w.worldId);
       if (!s) return w;
       const stageCleared = w.stageCleared.map((v, i) =>
         Array.isArray(s.stageCleared) ? !!s.stageCleared[i] : v
@@ -180,7 +180,7 @@ const loadProgress = () => {
       };
     });
     // 내한자장(커스텀) 진행기록도 보존 — base에 없는 worldId 엔트리 복원
-    const baseIds = new Set(base.map((w) => w.id));
+    const baseIds = new Set(base.map((w) => w.worldId));
     const extra = savedProgress
       .filter((p) => p && !baseIds.has(p.worldId))
       .map((p) => ({
@@ -219,11 +219,17 @@ const parseCustomWords = (text) => {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    const match = trimmed.match(/^([^\t, ]+)[\t, ]+(.+)$/);
-    if (match) {
-      result.push({ en: match[1].trim(), ko: match[2].trim(), tip: "" });
+    // 한글(훈음)이 처음 나오는 지점 기준으로 한자/훈음 분리
+    // → "水泳 수영" = 한자:"水泳", 훈음:"수영" (여러 글자 한자도 정상)
+    const hk = trimmed.match(/[가-힣]/);
+    if (hk && hk.index > 0) {
+      const en = trimmed.slice(0, hk.index).replace(/[\t,·\-–—]+\s*$/, "").trim();
+      const ko = trimmed.slice(hk.index).trim();
+      result.push({ en, ko, tip: "" });
     } else {
-      result.push({ en: trimmed, ko: "", tip: "" });
+      const match = trimmed.match(/^([^\t,]+)[\t,]+(.+)$/);
+      if (match) result.push({ en: match[1].trim(), ko: match[2].trim(), tip: "" });
+      else result.push({ en: trimmed, ko: "", tip: "" });
     }
   }
   return result;

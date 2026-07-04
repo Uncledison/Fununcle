@@ -1343,7 +1343,7 @@ export default function WordGame() {
     if (!syncReadyRef.current) return;            // 초기 pull(교체/백업) 완료 전엔 푸시 금지(클라우드 덮어쓰기 방지)
     const t = setTimeout(() => { pushCloud(session.user.id); }, 1500);
     return () => clearTimeout(t);
-  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar, nickname]);
+  }, [session, approved, progress, xp, streak, customWorlds, customResume, customOnlyMode, unlockedStarts, avatar, nickname, isLight, connAlias]);
 
   // ── 로그인 액션 ──────────────
   const sendMagicLink = async () => {

@@ -1013,9 +1013,10 @@ export default function WordGame() {
   const [showOnboarding,  setShowOnboarding]  = useState(false);
   const [onboardingSlide, setOnboardingSlide] = useState(0);
   const ONBOARDING_SLIDES = [
-    { title: "영단어 활용법",     desc: "영단어 플래시카드, 이렇게 써보세요",      youtubeId: "P8B46pn77Ik" },
-    { title: "사진에서 단어 추출", desc: "사진 한 장으로 단어장 뚝딱 만들기",       youtubeId: "uzyPAOfq6G0" },
-    { title: "내 단어 공유하기",   desc: "가족·친구에게 단어장 공유하는 법",       youtubeId: "roUM9-LZe8c" },
+    { title: "영단어 플래시 활용방법", desc: "영단어 플래시카드, 이렇게 써보세요",      youtubeId: "QMDyHMtPkIA" },
+    { title: "사진으로 영단어 추출방법", desc: "사진 한 장으로 단어장 뚝딱 만들기",       youtubeId: "FEHG5bSbXmY" },
+    { title: "영단어 전송방법",     desc: "가족·친구에게 단어장 공유하는 법",       youtubeId: "Gdjnsn9E3qA" },
+    { title: "앱아이콘 생성방법",   desc: "안드로이드 홈 화면에 앱으로 추가하기",     youtubeId: "4Pyd190aY_0" },
   ];
   const finishOnboarding = () => {
     setShowOnboarding(false);
@@ -1592,9 +1593,9 @@ export default function WordGame() {
     const isLast = onboardingSlide === ONBOARDING_SLIDES.length - 1;
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "0 20px" }}>
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 24, maxWidth: 420, width: "100%", overflow: "hidden", position: "relative" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 24, maxWidth: 380, width: "100%", maxHeight: "94vh", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
           <button onClick={finishOnboarding} aria-label="닫기" style={{ position: "absolute", top: 12, right: 12, zIndex: 2, width: 34, height: 34, borderRadius: "50%", background: "var(--surface2)", border: "none", color: "var(--text)", fontSize: 17, lineHeight: 1, cursor: "pointer" }}>✕</button>
-          <div style={{ padding: "18px 20px 0" }}>
+          <div style={{ padding: "18px 20px 0", flexShrink: 0 }}>
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {ONBOARDING_SLIDES.map((_, i) => (
                 <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= onboardingSlide ? "#FF8C00" : "var(--border)" }} />
@@ -1603,17 +1604,17 @@ export default function WordGame() {
             <h3 style={{ color: "var(--text)", fontSize: 18, fontWeight: 900, margin: "0 0 4px" }}>{slide.title}</h3>
             <p style={{ color: "var(--text2)", fontSize: 13, margin: "0 0 14px" }}>{slide.desc}</p>
           </div>
-          <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", background: "#000" }}>
+          <div style={{ flex: 1, minHeight: 0, width: "100%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginTop: 4 }}>
             <iframe
               key={slide.youtubeId}
               src={`https://www.youtube.com/embed/${slide.youtubeId}?rel=0`}
               title={slide.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+              style={{ height: "100%", aspectRatio: "9 / 16", maxWidth: "100%", border: "none", display: "block" }}
             />
           </div>
-          <div style={{ display: "flex", gap: 8, padding: "16px 20px" }}>
+          <div style={{ display: "flex", gap: 8, padding: "16px 20px", flexShrink: 0 }}>
             <button onClick={finishOnboarding} style={{ flex: "0 0 auto", padding: "12px 14px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>건너뛰기</button>
             <button
               onClick={() => isLast ? finishOnboarding() : setOnboardingSlide(s => s + 1)}

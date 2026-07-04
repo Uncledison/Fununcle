@@ -1430,7 +1430,6 @@ export default function WordGame() {
           </div>
         </div>
         <button onClick={() => { setShowAuthModal(false); openOnboarding(); }} style={settingsItem}>📖 사용법 보기</button>
-        <button onClick={() => { try { navigator.clipboard.writeText("https://fun.uncledison.com/guide.html"); } catch (e) {} alert("사용법 링크가 복사됐어요!\n카톡에 붙여넣어 보내세요 📋"); }} style={settingsItem}>📤 사용법 공유 (링크 복사)</button>
         <button onClick={() => { setShowAuthModal(false); window.dispatchEvent(new Event("showFeedback")); }} style={settingsItem}>💌 문의·피드백</button>
         <a href="/terms.html" target="_blank" style={settingsItem}>📄 이용약관</a>
         <a href="/privacy.html" target="_blank" style={settingsItem}>🔒 개인정보처리방침</a>

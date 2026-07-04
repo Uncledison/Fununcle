@@ -1430,6 +1430,7 @@ export default function WordGame() {
           </div>
         </div>
         <button onClick={() => { setShowAuthModal(false); openOnboarding(); }} style={settingsItem}>📖 사용법 보기</button>
+        <button onClick={() => { try { navigator.clipboard.writeText("https://fun.uncledison.com/guide.html"); } catch (e) {} alert("사용법 링크가 복사됐어요!\n카톡에 붙여넣어 보내세요 📋"); }} style={settingsItem}>📤 사용법 공유 (링크 복사)</button>
         <button onClick={() => { setShowAuthModal(false); window.dispatchEvent(new Event("showFeedback")); }} style={settingsItem}>💌 문의·피드백</button>
         <a href="/terms.html" target="_blank" style={settingsItem}>📄 이용약관</a>
         <a href="/privacy.html" target="_blank" style={settingsItem}>🔒 개인정보처리방침</a>
@@ -1616,6 +1617,7 @@ export default function WordGame() {
           </div>
           <div style={{ display: "flex", gap: 8, padding: "16px 20px", flexShrink: 0 }}>
             <button onClick={finishOnboarding} style={{ flex: "0 0 auto", padding: "12px 14px", background: "none", border: "none", color: "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>건너뛰기</button>
+            <button onClick={() => { try { navigator.clipboard.writeText("https://fun.uncledison.com/guide.html"); } catch (e) {} alert("사용법 링크가 복사됐어요!\n카톡에 붙여넣어 보내세요 📋"); }} style={{ flex: "0 0 auto", padding: "12px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, color: "var(--text2)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>📤 공유</button>
             <button
               onClick={() => isLast ? finishOnboarding() : setOnboardingSlide(s => s + 1)}
               style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 14, color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}>

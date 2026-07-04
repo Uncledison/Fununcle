@@ -817,7 +817,7 @@ const loadProgress = () => {
     const saved = JSON.parse(raw);
     const savedProgress = Array.isArray(saved?.progress) ? saved.progress : [];
     const merged = base.map((w) => {
-      const s = savedProgress.find((p) => p && p.worldId === w.id);
+      const s = savedProgress.find((p) => p && p.worldId === w.worldId);
       if (!s) return w;
       const stageCleared = w.stageCleared.map((v, i) =>
         Array.isArray(s.stageCleared) ? !!s.stageCleared[i] : v
@@ -835,7 +835,7 @@ const loadProgress = () => {
       };
     });
     // 내단어장(커스텀) 진행기록도 보존 — base에 없는 worldId 엔트리 복원
-    const baseIds = new Set(base.map((w) => w.id));
+    const baseIds = new Set(base.map((w) => w.worldId));
     const extra = savedProgress
       .filter((p) => p && !baseIds.has(p.worldId))
       .map((p) => ({

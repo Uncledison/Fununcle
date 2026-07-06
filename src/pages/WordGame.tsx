@@ -1044,6 +1044,8 @@ export default function WordGame() {
   const [customInput, setCustomInput] = useState("");
   const [editingId, setEditingId] = useState(null);          // 편집 중인 커스텀 세트 id (null=새로 만들기)
   const [customType, setCustomType] = useState("word");      // 세트 종류: word(단어장) | sentence(문장·이야기)
+  const [sectionCollapsed, setSectionCollapsed] = useState(() => { try { return JSON.parse(localStorage.getItem("wordgame_section_collapsed") || "{}"); } catch (e) { return {}; } });
+  const toggleSection = (type, val) => { setSectionCollapsed(prev => { const next = { ...prev, [type]: val }; try { localStorage.setItem("wordgame_section_collapsed", JSON.stringify(next)); } catch (e) {} return next; }); };
   // ── 듣기(오디오북) 모드 ──────────────
   const [listenWorld,   setListenWorld]   = useState(null);
   const [listenIdx,     setListenIdx]     = useState(0);
@@ -1065,6 +1067,15 @@ export default function WordGame() {
   const setLReps   = (v) => { listenRepsRef.current = v; setListenReps(v); };
   const setLRate   = (v) => { listenRateRef.current = v; setListenRate(v); };
   const setLGap    = (v) => { listenGapRef.current = v; setListenGap(v); };
+  // 수면 타이머(분): 0=끄기
+  const [listenTimer, setListenTimer] = useState(0);
+  const sleepTimerRef = useRef(null);
+  const setSleepTimer = (min) => {
+    setListenTimer(min);
+    if (sleepTimerRef.current) { clearTimeout(sleepTimerRef.current); sleepTimerRef.current = null; }
+    if (min > 0) sleepTimerRef.current = setTimeout(() => { listenPause(); setListenTimer(0); sleepTimerRef.current = null; }, min * 60000);
+  };
+  const clearSleepTimer = () => { if (sleepTimerRef.current) { clearTimeout(sleepTimerRef.current); sleepTimerRef.current = null; } setListenTimer(0); };
   const wakeLockRef      = useRef(null);
   const acquireWakeLock = async () => {
     try { if ((navigator as any).wakeLock && !wakeLockRef.current) wakeLockRef.current = await (navigator as any).wakeLock.request("screen"); } catch (e) {}
@@ -1125,6 +1136,7 @@ export default function WordGame() {
   };
   const exitListen = () => {
     listenPause();
+    clearSleepTimer();
     setScreen(customOnlyMode ? "customVocab" : "map");
   };
   const [resumePrompt, setResumePrompt] = useState(null);    // 이어/처음 선택 팝업 대상 세트
@@ -1952,16 +1964,17 @@ export default function WordGame() {
     setCustomType("word");
     setCustomInput("");
   };
-  // 세트 순서 이동 (같은 타입 그룹 내에서만 위/아래로)
-  const moveCustom = (ordered, i, dir) => {
+  // 세트 순서 이동 (섹션 내 위/아래) — sets는 해당 그룹 배열
+  const moveCustom = (sets, i, dir) => {
     const j = i + dir;
-    if (j < 0 || j >= ordered.length) return;
-    const isS = (w) => w.type === "sentence";
-    if (isS(ordered[i]) !== isS(ordered[j])) return; // 그룹 경계 넘지 않음
-    const next = [...ordered];
-    [next[i], next[j]] = [next[j], next[i]];
-    setCustomWorlds(next);
-    try { localStorage.setItem("custom_worlds", JSON.stringify(next)); } catch (e) {}
+    if (j < 0 || j >= sets.length) return;
+    const arr = [...customWorlds];
+    const ia = arr.findIndex(w => w.id === sets[i].id);
+    const ib = arr.findIndex(w => w.id === sets[j].id);
+    if (ia < 0 || ib < 0) return;
+    [arr[ia], arr[ib]] = [arr[ib], arr[ia]];
+    setCustomWorlds(arr);
+    try { localStorage.setItem("custom_worlds", JSON.stringify(arr)); } catch (e) {}
   };
 
   // ── 복습 모드 시작 ────────────────────────
@@ -2889,6 +2902,13 @@ export default function WordGame() {
             {seg(listenGap === 450, () => setLGap(450), "짧게")}
             {seg(listenGap === 1400, () => setLGap(1400), "길게")}
           </div>
+          <div style={segWrap}>
+            <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>⏰</span>
+            {seg(listenTimer === 0, () => setSleepTimer(0), "끄기")}
+            {seg(listenTimer === 15, () => setSleepTimer(15), "15분")}
+            {seg(listenTimer === 30, () => setSleepTimer(30), "30분")}
+            {seg(listenTimer === 60, () => setSleepTimer(60), "60분")}
+          </div>
         </div>
 
         <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 34, padding: "16px 0 40px" }}>
@@ -2949,50 +2969,58 @@ export default function WordGame() {
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {[...customWorlds].sort((a,b)=>((a.type==="sentence")?1:0)-((b.type==="sentence")?1:0)).map((cw, i, ordered) => {
-              const rec = customResume[cw.id];
-              const total = Array.isArray(rec?.order) ? rec.order.length : cw.words.length;
-              const inProgress = rec && Array.isArray(rec.order) && rec.pos > 0 && rec.pos < rec.order.length;
-              const isStory = cw.type === "sentence";
-              const c  = isStory ? "#2DD4BF" : "#A78BFA";
-              const cd = isStory ? "#0f766e" : "#6d28d9";
-              const showHeader = i === 0 || ((ordered[i-1].type === "sentence") !== isStory);
-              const canUp   = i > 0 && ((ordered[i-1].type === "sentence") === isStory);
-              const canDown = i < ordered.length - 1 && ((ordered[i+1].type === "sentence") === isStory);
+            {(() => {
               const iconBtn = (bg, bd, col) => ({ width: 33, height: 33, padding: 0, background: bg, border: bd, borderRadius: 9, color: col, cursor: "pointer", flexShrink: 0, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" });
-              return (
-              <div key={cw.id}>
-                {showHeader && (
-                  <div style={{ color: c, fontSize: 12, fontWeight: 800, margin: i === 0 ? "0 0 8px 2px" : "8px 0 8px 2px" }}>{isStory ? "📖 이야기" : "📘 단어장"}</div>
-                )}
-                <div style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px" }}>
-                  <div onClick={() => openCustomWorld(cw)} style={{ cursor: "pointer" }}>
-                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
-                        <span style={{ color: "var(--text)", fontSize: 16, fontWeight: 800 }}>{cw.title}</span>
-                        <span style={{ color: "var(--text2)", fontSize: 12 }}>{isStory ? "문장" : "단어"} {cw.words.length}개</span>
+              const renderCard = (cw, i, sets) => {
+                const rec = customResume[cw.id];
+                const total = Array.isArray(rec?.order) ? rec.order.length : cw.words.length;
+                const inProgress = rec && Array.isArray(rec.order) && rec.pos > 0 && rec.pos < rec.order.length;
+                const isStory = cw.type === "sentence";
+                const c  = isStory ? "#2DD4BF" : "#A78BFA";
+                const cd = isStory ? "#0f766e" : "#6d28d9";
+                return (
+                  <div key={cw.id} style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px" }}>
+                    <div onClick={() => openCustomWorld(cw)} style={{ cursor: "pointer" }}>
+                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                          <span style={{ color: "var(--text)", fontSize: 16, fontWeight: 800 }}>{cw.title}</span>
+                          <span style={{ color: "var(--text2)", fontSize: 12 }}>{isStory ? "문장" : "단어"} {cw.words.length}개</span>
+                        </div>
+                        {inProgress && <span style={{ background: `${c}22`, color: c, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10, flexShrink: 0, whiteSpace: "nowrap" }}>이어하기 {rec.pos}/{total}</span>}
                       </div>
-                      {inProgress && <span style={{ background: `${c}22`, color: c, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10, flexShrink: 0, whiteSpace: "nowrap" }}>이어하기 {rec.pos}/{total}</span>}
+                      {inProgress && (
+                        <div style={{ marginTop: 7, height: 4, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: `linear-gradient(90deg,${cd},${c})`, borderRadius: 3 }} />
+                        </div>
+                      )}
                     </div>
-                    {inProgress && (
-                      <div style={{ marginTop: 7, height: 4, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: `linear-gradient(90deg,${cd},${c})`, borderRadius: 3 }} />
-                      </div>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                      <button onClick={() => moveCustom(sets, i, -1)} disabled={i === 0} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === 0 ? "var(--faint)" : "var(--text2)")}>▲</button>
+                      <button onClick={() => moveCustom(sets, i, 1)} disabled={i === sets.length - 1} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === sets.length - 1 ? "var(--faint)" : "var(--text2)")}>▼</button>
+                      <div style={{ flex: 1 }} />
+                      {isStory && <button onClick={() => openListen(cw)} aria-label="자동재생" title="자동재생(듣기)" style={iconBtn(`${c}22`, `1px solid ${c}55`, c)}>📖</button>}
+                      {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
+                      <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
+                      <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-                    <button onClick={() => moveCustom(ordered, i, -1)} disabled={!canUp} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", canUp ? "var(--text2)" : "var(--faint)")}>▲</button>
-                    <button onClick={() => moveCustom(ordered, i, 1)} disabled={!canDown} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", canDown ? "var(--text2)" : "var(--faint)")}>▼</button>
-                    <div style={{ flex: 1 }} />
-                    {isStory && <button onClick={() => openListen(cw)} aria-label="자동재생" title="자동재생(듣기)" style={iconBtn(`${c}22`, `1px solid ${c}55`, c)}>📖</button>}
-                    {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
-                    <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
-                    <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                );
+              };
+              const renderSection = (type, label, c) => {
+                const sets = customWorlds.filter(w => (type === "story") === (w.type === "sentence"));
+                if (sets.length === 0) return null;
+                const collapsed = sectionCollapsed[type] !== undefined ? sectionCollapsed[type] : sets.length > 5;
+                return (
+                  <div key={type} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <button onClick={() => toggleSection(type, !collapsed)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", padding: 2, color: c, fontSize: 13, fontWeight: 800, textAlign: "left" }}>
+                      <span style={{ fontSize: 11, width: 10 }}>{collapsed ? "▸" : "▾"}</span>{label} <span style={{ color: "var(--muted)", fontWeight: 700 }}>{sets.length}개</span>
+                    </button>
+                    {!collapsed && sets.map((cw, i) => renderCard(cw, i, sets))}
                   </div>
-                </div>
-              </div>
-              );
-            })}
+                );
+              };
+              return (<>{renderSection("word", "📘 단어장", "#A78BFA")}{renderSection("story", "📖 이야기", "#2DD4BF")}</>);
+            })()}
             {customWorlds.length === 0 && (
               <div style={{ color: "var(--muted)", textAlign: "center", padding: "40px 0" }}>생성된 단어장이 없습니다.<br/>아래에서 만들어보세요!</div>
             )}

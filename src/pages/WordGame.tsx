@@ -1043,6 +1043,7 @@ export default function WordGame() {
   const [customTitle, setCustomTitle] = useState("");
   const [customInput, setCustomInput] = useState("");
   const [editingId, setEditingId] = useState(null);          // 편집 중인 커스텀 세트 id (null=새로 만들기)
+  const [customType, setCustomType] = useState("word");      // 세트 종류: word(단어장) | sentence(문장·이야기)
   const [resumePrompt, setResumePrompt] = useState(null);    // 이어/처음 선택 팝업 대상 세트
   const [customResume, setCustomResume] = useState(() => {    // 세트별 이어하기 북마크
     try { return JSON.parse(localStorage.getItem('custom_resume') || '{}'); } catch(e) { return {}; }
@@ -1797,8 +1798,9 @@ export default function WordGame() {
       correct = rec.correct || 0;
       total = rec.total || 0;
     } else {
-      // 처음부터: 새로 섞음 + 기존 북마크 제거
-      orderEns = shuffle(world.words.map(w => w.en));
+      // 처음부터: 문장·이야기는 입력 순서대로(순차), 단어장은 섞음 + 기존 북마크 제거
+      const ens = world.words.map(w => w.en);
+      orderEns = world.type === "sentence" ? ens : shuffle(ens);
       pos = 0; correct = 0; total = 0;
       clearCustomResume(world.id);
     }
@@ -1858,11 +1860,13 @@ export default function WordGame() {
   const startEditCustom = (world) => {
     setEditingId(world.id);
     setCustomTitle(world.title);
+    setCustomType(world.type === "sentence" ? "sentence" : "word");
     setCustomInput(world.words.map(w => (w.ko ? `${w.en} ${w.ko}` : w.en)).join("\n"));
   };
   const cancelEditCustom = () => {
     setEditingId(null);
     setCustomTitle("");
+    setCustomType("word");
     setCustomInput("");
   };
 
@@ -2785,9 +2789,12 @@ export default function WordGame() {
               return (
               <div key={cw.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button onClick={() => openCustomWorld(cw)} style={{ flex: 1, padding: "18px 20px", background: "linear-gradient(135deg,#A78BFA14,#6d28d920)", border: "1.5px solid #A78BFA40", borderRadius: 20, textAlign: "left", cursor: "pointer" }}>
-                  <div style={{ color: "var(--text)", fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{cw.title}</div>
+                  <div style={{ color: "var(--text)", fontSize: 18, fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 7 }}>
+                    {cw.title}
+                    {cw.type === "sentence" && <span style={{ background: "#A78BFA22", color: "#C4B5FD", fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 10, flexShrink: 0 }}>📖 이야기</span>}
+                  </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "var(--text2)", fontSize: 13 }}>단어 {cw.words.length}개</span>
+                    <span style={{ color: "var(--text2)", fontSize: 13 }}>{cw.type === "sentence" ? "문장" : "단어"} {cw.words.length}개</span>
                     {inProgress && <span style={{ background: "#A78BFA22", color: "#C4B5FD", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10 }}>이어하기 {rec.pos}/{total}</span>}
                   </div>
                   {inProgress && (
@@ -2818,7 +2825,15 @@ export default function WordGame() {
 
           {(editingId !== null || customWorlds.length < maxSets) ? (
             <div style={{ background: "var(--surface)", border: `1px solid ${editingId !== null ? "#A78BFA66" : "var(--border)"}`, borderRadius: 20, padding: 24, marginTop: 12 }}>
-              <h3 style={{ color: "var(--text)", fontSize: 16, margin: "0 0 16px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
+              <h3 style={{ color: "var(--text)", fontSize: 16, margin: "0 0 14px", fontWeight: 700 }}>{editingId !== null ? "✏️ 단어장 편집" : "새 단어장 만들기"}</h3>
+
+              <div style={{ display: "flex", gap: 6, background: "var(--surface2)", borderRadius: 12, padding: 3, marginBottom: 6 }}>
+                <button onClick={() => setCustomType("word")} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customType === "word" ? "#A78BFA" : "transparent", color: customType === "word" ? "#fff" : "var(--muted)" }}>📘 단어장</button>
+                <button onClick={() => setCustomType("sentence")} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customType === "sentence" ? "#A78BFA" : "transparent", color: customType === "sentence" ? "#fff" : "var(--muted)" }}>📖 문장·이야기</button>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12 }}>
+                {customType === "sentence" ? "➡️ 입력한 순서대로 재생돼요 (동화·문장용)" : "🔀 랜덤으로 섞어서 학습해요"}
+              </div>
 
               <input type="text" placeholder="단어장 이름 (미입력 시 날짜로 저장)" value={customTitle} onChange={e => setCustomTitle(e.target.value)}
                 style={{ width: "100%", padding: "14px 16px", borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", color: "var(--text)", marginBottom: 12 }} />
@@ -2839,8 +2854,10 @@ export default function WordGame() {
                   }
                 }}
               >
-                <textarea 
-                  placeholder={"sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요"}
+                <textarea
+                  placeholder={customType === "sentence"
+                    ? "The fox ran fast. 여우가 빠르게 달렸다.\nHe was very hungry. 그는 매우 배고팠다.\nThen he saw a house. 그때 집을 보았어요.\n\n한 줄에 '영어 문장 + 뜻', 순서대로 입력하세요"
+                    : "sport 스포츠\nmusic 음악\nmovie 영화\ncomputer 컴퓨터\ninternet 인터넷\nremember 기억하다\nunderstand 이해하다\n\n이런식으로 입력하세요"}
                   value={customInput} 
                   onChange={e => setCustomInput(e.target.value)}
                   style={{ width: "100%", height: 220, padding: "16px", borderRadius: 12, background: "var(--bg2)", border: "1px dashed var(--border)", color: "var(--text)", marginBottom: 12, resize: "none" }}
@@ -2861,7 +2878,7 @@ export default function WordGame() {
                 if (editingId !== null) {
                   // 편집 저장: 제목·단어 교체, 진행 북마크 초기화(위치 꼬임 방지)
                   const newWorlds = customWorlds.map(w =>
-                    w.id === editingId ? { ...w, title: customTitle || w.title, words } : w
+                    w.id === editingId ? { ...w, title: customTitle || w.title, words, type: customType, emoji: customType === "sentence" ? "📖" : "📝" } : w
                   );
                   setCustomWorlds(newWorlds);
                   localStorage.setItem('custom_worlds', JSON.stringify(newWorlds));
@@ -2873,11 +2890,12 @@ export default function WordGame() {
                 const newWorld = {
                   id: 1000 + Date.now() % 100000,
                   title: customTitle || defaultTitle,
-                  emoji: "📝",
+                  emoji: customType === "sentence" ? "📖" : "📝",
                   color: "#A78BFA", dark: "#6d28d9",
                   desc: "사용자 생성 단어장",
                   words: words,
-                  isCustom: true
+                  isCustom: true,
+                  type: customType,
                 };
 
                 const newWorlds = [...customWorlds, newWorld];
@@ -2885,6 +2903,7 @@ export default function WordGame() {
                 localStorage.setItem('custom_worlds', JSON.stringify(newWorlds));
                 setCustomInput("");
                 setCustomTitle("");
+                setCustomType("word");
               }} style={{ width: "100%", padding: "16px", background: "#A78BFA", border: "none", borderRadius: 16, color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer" }}>
                 {editingId !== null ? "💾 저장하기" : `추가하기 (${customWorlds.length}/${maxSetsLabel})`}
               </button>

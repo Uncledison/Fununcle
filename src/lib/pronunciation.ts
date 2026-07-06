@@ -24,7 +24,7 @@ export function stopSpeak() {
   try { window.speechSynthesis?.cancel(); } catch (e) {}
 }
 
-function playUrl(src: string): Promise<void> {
+function playUrl(src: string, rate = 1): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       if (current) {
@@ -32,6 +32,7 @@ function playUrl(src: string): Promise<void> {
         current = null;
       }
       const a = new Audio(src);
+      a.playbackRate = rate;
       current = a;
       a.onended = () => resolve();
       a.onerror = () => reject(new Error("audio error"));
@@ -42,7 +43,7 @@ function playUrl(src: string): Promise<void> {
   });
 }
 
-function browserTTS(text: string): Promise<void> {
+function browserTTS(text: string, rate = 0.95): Promise<void> {
   return new Promise((resolve) => {
     try {
       const synth = window.speechSynthesis;
@@ -50,7 +51,7 @@ function browserTTS(text: string): Promise<void> {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "en-US";
-      u.rate = 0.9;
+      u.rate = rate;
       u.onend = () => resolve();
       u.onerror = () => resolve();
       synth.speak(u);
@@ -60,8 +61,8 @@ function browserTTS(text: string): Promise<void> {
   });
 }
 
-/** 단어/문장 발음 재생. 어디서든 await 없이 호출해도 됨. */
-export async function speak(rawWord: string) {
+/** 단어/문장 발음 재생. rate로 재생 속도 조절(1=보통). await 없이 호출 가능. */
+export async function speak(rawWord: string, rate = 1) {
   const word = (rawWord || "").trim();
   if (!word) return;
 
@@ -71,7 +72,7 @@ export async function speak(rawWord: string) {
   // 1) 고정 단어: MW mp3
   if (file) {
     try {
-      await playUrl(`/audio/${file}`);
+      await playUrl(`/audio/${file}`, rate);
       return;
     } catch {
       /* mp3 누락/깨짐 → 아래로 폴백 */
@@ -80,10 +81,10 @@ export async function speak(rawWord: string) {
 
   // 2) 내 단어장 등: edge-tts 서버함수 (mp3 스트림 반환)
   try {
-    await playUrl(`/api/tts?text=${encodeURIComponent(word)}`);
+    await playUrl(`/api/tts?text=${encodeURIComponent(word)}`, rate);
     return;
   } catch {
     // 3) 최종 폴백: 브라우저 TTS
-    await browserTTS(word);
+    await browserTTS(word, rate * 0.95);
   }
 }

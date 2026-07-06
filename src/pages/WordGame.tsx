@@ -1052,6 +1052,19 @@ export default function WordGame() {
   const listenIdxRef     = useRef(0);
   const listenPlayingRef = useRef(false);
   const listenTokenRef   = useRef(0);
+  // 듣기 설정
+  const [listenRepeat, setListenRepeat] = useState("none");  // none | all | one
+  const [listenReps,   setListenReps]   = useState(1);       // 각 문장 반복 횟수 1|2
+  const [listenRate,   setListenRate]   = useState(1);       // 0.75 | 1 | 1.25
+  const [listenGap,    setListenGap]    = useState(450);     // 문장 간 간격(ms) 450|1400
+  const listenRepeatRef = useRef("none");
+  const listenRepsRef   = useRef(1);
+  const listenRateRef   = useRef(1);
+  const listenGapRef    = useRef(450);
+  const setLRepeat = (v) => { listenRepeatRef.current = v; setListenRepeat(v); };
+  const setLReps   = (v) => { listenRepsRef.current = v; setListenReps(v); };
+  const setLRate   = (v) => { listenRateRef.current = v; setListenRate(v); };
+  const setLGap    = (v) => { listenGapRef.current = v; setListenGap(v); };
   const wakeLockRef      = useRef(null);
   const acquireWakeLock = async () => {
     try { if ((navigator as any).wakeLock && !wakeLockRef.current) wakeLockRef.current = await (navigator as any).wakeLock.request("screen"); } catch (e) {}
@@ -1059,15 +1072,25 @@ export default function WordGame() {
   const releaseWakeLock = () => { try { wakeLockRef.current?.release?.(); } catch (e) {} wakeLockRef.current = null; };
   const runListen = async (token) => {
     const words = listenWorldRef.current?.words || [];
+    const stale = () => !listenPlayingRef.current || token !== listenTokenRef.current;
     while (listenPlayingRef.current && token === listenTokenRef.current) {
       const idx = listenIdxRef.current;
       const w = words[idx];
       if (!w) { listenPlayingRef.current = false; setListenPlaying(false); break; }
-      try { await speak(w.en); } catch (e) {}
-      if (!listenPlayingRef.current || token !== listenTokenRef.current) return;
-      await new Promise(r => setTimeout(r, 450));           // 문장 간 간격
-      if (!listenPlayingRef.current || token !== listenTokenRef.current) return;
-      if (idx + 1 >= words.length) { listenPlayingRef.current = false; setListenPlaying(false); break; } // 끝
+      const reps = listenRepsRef.current;
+      for (let r = 0; r < reps; r++) {
+        try { await speak(w.en, listenRateRef.current); } catch (e) {}
+        if (stale()) return;
+        if (r < reps - 1) { await new Promise(res => setTimeout(res, 350)); if (stale()) return; }
+      }
+      await new Promise(res => setTimeout(res, listenGapRef.current)); // 문장 간 간격
+      if (stale()) return;
+      const mode = listenRepeatRef.current;
+      if (mode === "one") continue;                          // 한 문장 무한 반복
+      if (idx + 1 >= words.length) {
+        if (mode === "all") { listenIdxRef.current = 0; setListenIdx(0); continue; } // 전체 반복
+        listenPlayingRef.current = false; setListenPlaying(false); break;            // 끝(정지)
+      }
       listenIdxRef.current = idx + 1; setListenIdx(idx + 1);
     }
   };
@@ -2819,6 +2842,10 @@ export default function WordGame() {
     const total = lwords.length;
     const pct = total ? Math.round((listenIdx + 1) / total * 100) : 0;
     const atEnd = listenIdx >= total - 1;
+    const segWrap: React.CSSProperties = { display: "flex", alignItems: "center", gap: 2, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: 2 };
+    const seg = (on, onClick, label) => (
+      <button onClick={onClick} style={{ padding: "5px 9px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: 800, cursor: "pointer", background: on ? "#A78BFA" : "transparent", color: on ? "#fff" : "var(--muted)" }}>{label}</button>
+    );
     return (
       <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <div style={{ width: "100%", maxWidth: 480, padding: "16px 20px 8px" }}>
@@ -2838,7 +2865,33 @@ export default function WordGame() {
           {cur.ko && <div style={{ color: "var(--text2)", fontSize: 16, textAlign: "center", lineHeight: 1.5 }}>{cur.ko}</div>}
         </div>
 
-        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 34, padding: "18px 0 44px" }}>
+        {/* 설정 바 */}
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, padding: "0 16px" }}>
+          <div style={segWrap}>
+            <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>반복</span>
+            {seg(listenRepeat === "none", () => setLRepeat("none"), "안함")}
+            {seg(listenRepeat === "all", () => setLRepeat("all"), "전체")}
+            {seg(listenRepeat === "one", () => setLRepeat("one"), "한문장")}
+          </div>
+          <div style={segWrap}>
+            <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>문장</span>
+            {seg(listenReps === 1, () => setLReps(1), "1회")}
+            {seg(listenReps === 2, () => setLReps(2), "2회")}
+          </div>
+          <div style={segWrap}>
+            <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>속도</span>
+            {seg(listenRate === 0.75, () => setLRate(0.75), "0.75x")}
+            {seg(listenRate === 1, () => setLRate(1), "1x")}
+            {seg(listenRate === 1.25, () => setLRate(1.25), "1.25x")}
+          </div>
+          <div style={segWrap}>
+            <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>간격</span>
+            {seg(listenGap === 450, () => setLGap(450), "짧게")}
+            {seg(listenGap === 1400, () => setLGap(1400), "길게")}
+          </div>
+        </div>
+
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 34, padding: "16px 0 40px" }}>
           <button onClick={() => listenSeek(listenIdx - 1)} disabled={listenIdx === 0} aria-label="이전" style={{ background: "none", border: "none", padding: 6, color: listenIdx === 0 ? "var(--faint)" : "var(--text)", cursor: listenIdx === 0 ? "default" : "pointer", display: "flex" }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2.4v12H6zm3.2 6l9.8 6V6z"/></svg>
           </button>
@@ -2906,34 +2959,35 @@ export default function WordGame() {
               const showHeader = i === 0 || ((ordered[i-1].type === "sentence") !== isStory);
               const canUp   = i > 0 && ((ordered[i-1].type === "sentence") === isStory);
               const canDown = i < ordered.length - 1 && ((ordered[i+1].type === "sentence") === isStory);
-              const iconBtn = (bg, bd, col) => ({ width: 40, height: 40, padding: 0, background: bg, border: bd, borderRadius: 12, color: col, cursor: "pointer", flexShrink: 0, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" });
+              const iconBtn = (bg, bd, col) => ({ width: 33, height: 33, padding: 0, background: bg, border: bd, borderRadius: 9, color: col, cursor: "pointer", flexShrink: 0, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" });
               return (
               <div key={cw.id}>
                 {showHeader && (
-                  <div style={{ color: c, fontSize: 12, fontWeight: 800, margin: i === 0 ? "0 0 8px 2px" : "8px 0 8px 2px" }}>{isStory ? "📖 문장·이야기" : "📘 단어장"}</div>
+                  <div style={{ color: c, fontSize: 12, fontWeight: 800, margin: i === 0 ? "0 0 8px 2px" : "8px 0 8px 2px" }}>{isStory ? "📖 이야기" : "📘 단어장"}</div>
                 )}
-                <div style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 20, padding: "14px 16px" }}>
+                <div style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px" }}>
                   <div onClick={() => openCustomWorld(cw)} style={{ cursor: "pointer" }}>
-                    <div style={{ display: "inline-block", background: `${c}22`, color: c, fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 9, marginBottom: 6 }}>{isStory ? "📖 이야기" : "📘 단어"}</div>
-                    <div style={{ color: "var(--text)", fontSize: 17, fontWeight: 800, marginBottom: 4, lineHeight: 1.25 }}>{cw.title}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ color: "var(--text2)", fontSize: 13 }}>{isStory ? "문장" : "단어"} {cw.words.length}개</span>
-                      {inProgress && <span style={{ background: `${c}22`, color: c, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10 }}>이어하기 {rec.pos}/{total}</span>}
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                        <span style={{ color: "var(--text)", fontSize: 16, fontWeight: 800 }}>{cw.title}</span>
+                        <span style={{ color: "var(--text2)", fontSize: 12 }}>{isStory ? "문장" : "단어"} {cw.words.length}개</span>
+                      </div>
+                      {inProgress && <span style={{ background: `${c}22`, color: c, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10, flexShrink: 0, whiteSpace: "nowrap" }}>이어하기 {rec.pos}/{total}</span>}
                     </div>
                     {inProgress && (
-                      <div style={{ marginTop: 8, height: 5, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ marginTop: 7, height: 4, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
                         <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: `linear-gradient(90deg,${cd},${c})`, borderRadius: 3 }} />
                       </div>
                     )}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                    <button onClick={() => moveCustom(ordered, i, -1)} disabled={!canUp} aria-label="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", canUp ? "var(--text2)" : "var(--faint)")}>▲</button>
-                    <button onClick={() => moveCustom(ordered, i, 1)} disabled={!canDown} aria-label="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", canDown ? "var(--text2)" : "var(--faint)")}>▼</button>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                    <button onClick={() => moveCustom(ordered, i, -1)} disabled={!canUp} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", canUp ? "var(--text2)" : "var(--faint)")}>▲</button>
+                    <button onClick={() => moveCustom(ordered, i, 1)} disabled={!canDown} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", canDown ? "var(--text2)" : "var(--faint)")}>▼</button>
                     <div style={{ flex: 1 }} />
-                    {isStory && <button onClick={() => openListen(cw)} aria-label="듣기" style={iconBtn(`${c}22`, `1px solid ${c}55`, c)}>📖</button>}
-                    {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
-                    <button onClick={() => startEditCustom(cw)} aria-label="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
-                    <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); }} aria-label="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                    {isStory && <button onClick={() => openListen(cw)} aria-label="자동재생" title="자동재생(듣기)" style={iconBtn(`${c}22`, `1px solid ${c}55`, c)}>📖</button>}
+                    {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
+                    <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
+                    <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
                   </div>
                 </div>
               </div>
@@ -2950,7 +3004,7 @@ export default function WordGame() {
 
               <div style={{ display: "flex", gap: 6, background: "var(--surface2)", borderRadius: 12, padding: 3, marginBottom: 6 }}>
                 <button onClick={() => setCustomType("word")} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customType === "word" ? "#A78BFA" : "transparent", color: customType === "word" ? "#fff" : "var(--muted)" }}>📘 단어장</button>
-                <button onClick={() => setCustomType("sentence")} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customType === "sentence" ? "#A78BFA" : "transparent", color: customType === "sentence" ? "#fff" : "var(--muted)" }}>📖 문장·이야기</button>
+                <button onClick={() => setCustomType("sentence")} style={{ flex: 1, padding: "9px 0", border: "none", borderRadius: 10, cursor: "pointer", fontSize: 13, fontWeight: 800, background: customType === "sentence" ? "#A78BFA" : "transparent", color: customType === "sentence" ? "#fff" : "var(--muted)" }}>📖 이야기</button>
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 12 }}>
                 {customType === "sentence" ? "➡️ 입력한 순서대로 재생돼요 (동화·문장용)" : "🔀 랜덤으로 섞어서 학습해요"}

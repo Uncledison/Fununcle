@@ -1067,6 +1067,7 @@ export default function WordGame() {
   const setLReps   = (v) => { listenRepsRef.current = v; setListenReps(v); };
   const setLRate   = (v) => { listenRateRef.current = v; setListenRate(v); };
   const setLGap    = (v) => { listenGapRef.current = v; setListenGap(v); };
+  const [showListenSettings, setShowListenSettings] = useState(false);
   // 수면 타이머(분): 0=끄기
   const [listenTimer, setListenTimer] = useState(0);
   const sleepTimerRef = useRef(null);
@@ -2878,7 +2879,17 @@ export default function WordGame() {
           {cur.ko && <div style={{ color: "var(--text2)", fontSize: 16, textAlign: "center", lineHeight: 1.5 }}>{cur.ko}</div>}
         </div>
 
-        {/* 설정 바 */}
+        {/* 설정 요약칩 (탭하면 펼침) */}
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", justifyContent: "center", padding: "0 16px 6px" }}>
+          <button onClick={() => setShowListenSettings(v => !v)} style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 999, padding: "7px 14px", color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            <span>⚙️</span>
+            <span>반복 {listenRepeat === "all" ? "전체" : listenRepeat === "one" ? "한문장" : "안함"}{listenReps === 2 ? "·2회" : ""} · {listenRate}x · 간격 {listenGap === 1400 ? "길게" : "짧게"}{listenTimer > 0 ? ` · ⏰${listenTimer}분` : ""}</span>
+            <span style={{ fontSize: 10, color: "var(--faint)" }}>{showListenSettings ? "▲" : "▼"}</span>
+          </button>
+        </div>
+
+        {/* 설정 바 (펼침) */}
+        {showListenSettings && (
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, padding: "0 16px" }}>
           <div style={segWrap}>
             <span style={{ color: "var(--faint)", fontSize: 10, fontWeight: 700, padding: "0 4px" }}>반복</span>
@@ -2910,6 +2921,7 @@ export default function WordGame() {
             {seg(listenTimer === 60, () => setSleepTimer(60), "60분")}
           </div>
         </div>
+        )}
 
         <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 34, padding: "16px 0 40px" }}>
           <button onClick={() => listenSeek(listenIdx - 1)} disabled={listenIdx === 0} aria-label="이전" style={{ background: "none", border: "none", padding: 6, color: listenIdx === 0 ? "var(--faint)" : "var(--text)", cursor: listenIdx === 0 ? "default" : "pointer", display: "flex" }}>

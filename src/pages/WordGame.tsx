@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
-import { speak } from "../lib/pronunciation";
+import { speak, stopSpeak } from "../lib/pronunciation";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState, clearLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
@@ -1044,6 +1044,66 @@ export default function WordGame() {
   const [customInput, setCustomInput] = useState("");
   const [editingId, setEditingId] = useState(null);          // 편집 중인 커스텀 세트 id (null=새로 만들기)
   const [customType, setCustomType] = useState("word");      // 세트 종류: word(단어장) | sentence(문장·이야기)
+  // ── 듣기(오디오북) 모드 ──────────────
+  const [listenWorld,   setListenWorld]   = useState(null);
+  const [listenIdx,     setListenIdx]     = useState(0);
+  const [listenPlaying, setListenPlaying] = useState(false);
+  const listenWorldRef   = useRef(null);
+  const listenIdxRef     = useRef(0);
+  const listenPlayingRef = useRef(false);
+  const listenTokenRef   = useRef(0);
+  const wakeLockRef      = useRef(null);
+  const acquireWakeLock = async () => {
+    try { if ((navigator as any).wakeLock && !wakeLockRef.current) wakeLockRef.current = await (navigator as any).wakeLock.request("screen"); } catch (e) {}
+  };
+  const releaseWakeLock = () => { try { wakeLockRef.current?.release?.(); } catch (e) {} wakeLockRef.current = null; };
+  const runListen = async (token) => {
+    const words = listenWorldRef.current?.words || [];
+    while (listenPlayingRef.current && token === listenTokenRef.current) {
+      const idx = listenIdxRef.current;
+      const w = words[idx];
+      if (!w) { listenPlayingRef.current = false; setListenPlaying(false); break; }
+      try { await speak(w.en); } catch (e) {}
+      if (!listenPlayingRef.current || token !== listenTokenRef.current) return;
+      await new Promise(r => setTimeout(r, 450));           // 문장 간 간격
+      if (!listenPlayingRef.current || token !== listenTokenRef.current) return;
+      if (idx + 1 >= words.length) { listenPlayingRef.current = false; setListenPlaying(false); break; } // 끝
+      listenIdxRef.current = idx + 1; setListenIdx(idx + 1);
+    }
+  };
+  const listenPlay = () => {
+    if (!listenWorldRef.current || listenPlayingRef.current) return;
+    if (listenIdxRef.current >= (listenWorldRef.current.words?.length || 0)) { listenIdxRef.current = 0; setListenIdx(0); }
+    listenPlayingRef.current = true; setListenPlaying(true);
+    acquireWakeLock();
+    runListen(++listenTokenRef.current);
+  };
+  const listenPause = () => {
+    listenPlayingRef.current = false; setListenPlaying(false);
+    listenTokenRef.current++;
+    try { stopSpeak(); } catch (e) {}
+    releaseWakeLock();
+  };
+  const listenSeek = (idx) => {
+    const words = listenWorldRef.current?.words || [];
+    const clamped = Math.max(0, Math.min(idx, words.length - 1));
+    const wasPlaying = listenPlayingRef.current;
+    listenTokenRef.current++;
+    try { stopSpeak(); } catch (e) {}
+    listenIdxRef.current = clamped; setListenIdx(clamped);
+    if (wasPlaying) { listenPlayingRef.current = true; setListenPlaying(true); runListen(listenTokenRef.current); }
+  };
+  const openListen = (world) => {
+    listenWorldRef.current = world;
+    setListenWorld(world);
+    listenIdxRef.current = 0; setListenIdx(0);
+    setScreen("listen");
+    setTimeout(() => listenPlay(), 350);
+  };
+  const exitListen = () => {
+    listenPause();
+    setScreen(customOnlyMode ? "customVocab" : "map");
+  };
   const [resumePrompt, setResumePrompt] = useState(null);    // 이어/처음 선택 팝업 대상 세트
   const [customResume, setCustomResume] = useState(() => {    // 세트별 이어하기 북마크
     try { return JSON.parse(localStorage.getItem('custom_resume') || '{}'); } catch(e) { return {}; }
@@ -2741,6 +2801,41 @@ export default function WordGame() {
   );
 
 
+  // ── 듣기(오디오북) 화면 ─────────────────────────────
+  if (screen === "listen" && listenWorld) {
+    const lwords = listenWorld.words || [];
+    const cur = lwords[listenIdx] || { en: "", ko: "" };
+    const total = lwords.length;
+    const pct = total ? Math.round((listenIdx + 1) / total * 100) : 0;
+    const atEnd = listenIdx >= total - 1;
+    return (
+      <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ width: "100%", maxWidth: 480, padding: "16px 20px 8px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <button onClick={exitListen} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 나가기</button>
+            <div style={{ color: "var(--text)", fontWeight: 800, fontSize: 14, textAlign: "center", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 10px" }}>📖 {listenWorld.title}</div>
+            <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 700, minWidth: 46, textAlign: "right" }}>{listenIdx + 1}/{total}</div>
+          </div>
+          <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#6d28d9,#A78BFA)", borderRadius: 5, transition: "width 0.3s" }} />
+          </div>
+        </div>
+
+        <div style={{ flex: 1, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 26px", gap: 18 }}>
+          <div style={{ fontSize: 11, color: "var(--faint)", fontWeight: 700, letterSpacing: 2 }}>{listenPlaying ? "🔊 재생 중…" : (atEnd && !listenPlaying ? "끝났어요" : "일시정지")}</div>
+          <div style={{ color: "var(--text)", fontSize: (cur.en || "").length > 60 ? 22 : 28, fontWeight: 800, textAlign: "center", lineHeight: 1.35 }}>{cur.en}</div>
+          {cur.ko && <div style={{ color: "var(--text2)", fontSize: 16, textAlign: "center", lineHeight: 1.5 }}>{cur.ko}</div>}
+        </div>
+
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 30, padding: "18px 0 44px" }}>
+          <button onClick={() => listenSeek(listenIdx - 1)} disabled={listenIdx === 0} style={{ background: "none", border: "none", color: listenIdx === 0 ? "var(--faint)" : "var(--text)", fontSize: 28, cursor: listenIdx === 0 ? "default" : "pointer" }}>⏮</button>
+          <button onClick={() => listenPlaying ? listenPause() : listenPlay()} style={{ width: 68, height: 68, borderRadius: "50%", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", color: "#fff", fontSize: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px #6d28d955" }}>{listenPlaying ? "⏸" : "▶"}</button>
+          <button onClick={() => listenSeek(listenIdx + 1)} disabled={atEnd} style={{ background: "none", border: "none", color: atEnd ? "var(--faint)" : "var(--text)", fontSize: 28, cursor: atEnd ? "default" : "pointer" }}>⏭</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── 커스텀 단어장 화면 ─────────────────────────────
   if (screen === "customVocab") {
     return (
@@ -2803,6 +2898,9 @@ export default function WordGame() {
                     </div>
                   )}
                 </button>
+                {cw.type === "sentence" && (
+                  <button onClick={() => openListen(cw)} aria-label="듣기" style={{ padding: "16px 13px", background: "rgba(167,139,250,0.18)", border: "1px solid #A78BFA55", borderRadius: 16, color: "#C4B5FD", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>📖</button>
+                )}
                 {session && approved === true && (
                   <button onClick={() => setSendModalSet(cw)} aria-label="보내기" style={{ padding: "16px 13px", background: "rgba(74,222,128,0.12)", border: "none", borderRadius: 16, color: "#4ADE80", cursor: "pointer", flexShrink: 0, fontSize: 15 }}>📤</button>
                 )}

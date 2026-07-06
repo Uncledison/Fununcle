@@ -18,6 +18,12 @@ function loadMap(): Promise<Record<string, string>> {
 
 let current: HTMLAudioElement | null = null;
 
+/** 현재 재생 중인 발음/문장 정지 (듣기 모드 일시정지·이동용) */
+export function stopSpeak() {
+  try { if (current) { current.pause(); current = null; } } catch (e) {}
+  try { window.speechSynthesis?.cancel(); } catch (e) {}
+}
+
 function playUrl(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     try {

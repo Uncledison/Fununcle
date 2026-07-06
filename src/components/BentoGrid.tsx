@@ -417,7 +417,40 @@ export const BentoGrid: React.FC = () => {
                     </div>
                 </BentoCard>
 
-                {/* 10. Coming Soon - Interaction Trigger */}
+                {/* 10. Math Curling (수학 컬링 - 정적 하위앱 /curling) */}
+                <a
+                    href="/curling/"
+                    className="md:col-span-1 md:row-span-1 relative group block overflow-hidden rounded-3xl aspect-video z-10"
+                    aria-label="태극 수학 컬링"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.5, delay: 0.42 }}
+                        whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                        className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-[#e3f1f9] to-[#ffffff] overflow-hidden border border-[#007aff]/20"
+                    >
+                        <div className="z-10 text-center">
+                            <h3 className="text-5xl font-black text-[#1d1d1f] tracking-tighter drop-shadow-sm leading-none">
+                                <span className="text-[#007aff] block mb-1">MATH</span>CURLING
+                            </h3>
+                        </div>
+                        <motion.div
+                            animate={{ x: [-10, 10, -10], y: [0, -5, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute top-4 right-4 w-10 h-10 rounded-full border-[5px] border-[#ff3b30] opacity-80"
+                        />
+                        <motion.div
+                            animate={{ x: [10, -10, 10], y: [0, 5, 0] }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                            className="absolute bottom-4 left-4 w-10 h-10 rounded-full border-[5px] border-[#007aff] opacity-80"
+                        />
+                        <NewBadge date={new Date().toISOString()} />
+                    </motion.div>
+                </a>
+
+                {/* 11. Coming Soon - Interaction Trigger */}
                 <BentoCard
                     delay={0.45}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"

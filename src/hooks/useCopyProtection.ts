@@ -4,6 +4,10 @@ export const useCopyProtection = () => {
     useEffect(() => {
         // Disable Right Click
         const handleContextMenu = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+                return;
+            }
             e.preventDefault();
         };
 

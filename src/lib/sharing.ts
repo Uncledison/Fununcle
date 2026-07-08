@@ -60,12 +60,17 @@ export async function removeConnection(otherId: string, myId: string) {
   } catch (e) { return false; }
 }
 
-// 단어셋 전송
-export async function sendSet(toUserId: string, fromName: string, title: string, words: any) {
+// 단어셋 전송 (type: word | sentence)
+export async function sendSet(toUserId: string, fromName: string, title: string, words: any, type: string = "word") {
   try {
     const me = (await supabase.auth.getUser()).data.user;
-    const { error } = await supabase.from("set_transfers")
-      .insert({ from_user: me?.id, from_name: fromName, to_user: toUserId, title, words, status: "pending" });
+    const base = { from_user: me?.id, from_name: fromName, to_user: toUserId, title, words, status: "pending" };
+    let { error } = await supabase.from("set_transfers").insert({ ...base, type });
+    if (error) {
+      // type 컬럼이 아직 없으면 폴백(단어장으로 저장) — 전송 자체는 유지
+      const r2 = await supabase.from("set_transfers").insert(base);
+      error = r2.error;
+    }
     return !error;
   } catch (e) { return false; }
 }

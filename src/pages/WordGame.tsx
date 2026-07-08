@@ -1358,7 +1358,8 @@ export default function WordGame() {
   };
   const importTransfer = (t) => {
     const words = Array.isArray(t.words) ? t.words : [];
-    const newWorld = { id: 1000 + Date.now() % 100000, title: t.title || "받은 단어장", emoji: "📩", color: "#A78BFA", dark: "#6d28d9", desc: "받은 단어장", words, isCustom: true };
+    const isStory = t.type === "sentence";
+    const newWorld = { id: 1000 + Date.now() % 100000, title: t.title || (isStory ? "받은 이야기" : "받은 단어장"), emoji: isStory ? "📖" : "📩", color: isStory ? "#2DD4BF" : "#A78BFA", dark: isStory ? "#0f766e" : "#6d28d9", desc: "받은 세트", words, isCustom: true, type: isStory ? "sentence" : "word" };
     const next = [...customWorlds, newWorld];
     setCustomWorlds(next);
     try { localStorage.setItem("custom_worlds", JSON.stringify(next)); } catch (e) {}
@@ -1370,7 +1371,7 @@ export default function WordGame() {
   const doSendSet = async (toUserId) => {
     if (!sendModalSet) return;
     const fromName = nickname.trim() || session?.user?.user_metadata?.name || "익명";
-    const ok = await sendSet(toUserId, fromName, sendModalSet.title, sendModalSet.words);
+    const ok = await sendSet(toUserId, fromName, sendModalSet.title, sendModalSet.words, sendModalSet.type === "sentence" ? "sentence" : "word");
     setSendModalSet(null); setSendHandle("");
     setShareMsg(ok ? "전송 완료! 상대의 '받은 단어장'에 도착해요 📤" : "전송 실패");
     setTimeout(() => setShareMsg(""), 3500);
@@ -1528,7 +1529,7 @@ export default function WordGame() {
           </div>
         </div>
         <button onClick={() => { setShowAuthModal(false); openOnboarding(); }} style={settingsItem}>📖 사용법 보기</button>
-        <button onClick={() => { setShowAuthModal(false); window.dispatchEvent(new Event("showFeedback")); }} style={settingsItem}>💌 문의·피드백</button>
+        <button onClick={() => { setShowAuthModal(false); window.dispatchEvent(new Event("showFeedback")); }} style={settingsItem}>💌 후기 쓰기</button>
         <a href="/terms.html" target="_blank" style={settingsItem}>📄 이용약관</a>
         <a href="/privacy.html" target="_blank" style={settingsItem}>🔒 개인정보처리방침</a>
       </div>

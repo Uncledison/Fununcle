@@ -1013,8 +1013,9 @@ export default function WordGame() {
   const [showOnboarding,  setShowOnboarding]  = useState(false);
   const [onboardingSlide, setOnboardingSlide] = useState(0);
   const ONBOARDING_SLIDES = [
-    { title: "영단어 플래시 활용방법", desc: "영단어 플래시카드, 이렇게 써보세요",      youtubeId: "QMDyHMtPkIA" },
-    { title: "사진으로 영단어 추출방법", desc: "사진 한 장으로 단어장 뚝딱 만들기",       youtubeId: "FEHG5bSbXmY" },
+    { title: "영단어 플래시카드 활용방법", desc: "플래시카드·문장 자동재생·전송까지",      youtubeId: "9GUzsFSQws4" },
+    { title: "사진으로 영단어 추출하는 방법", desc: "사진 한 장으로 단어장 뚝딱 만들기",     youtubeId: "kOSdlaTKuxY" },
+    { title: "사진에서 영어문장 추출하는 방법", desc: "사진 속 문장을 이야기 세트로",        youtubeId: "IU9G07foNSk" },
     { title: "영단어 전송방법",     desc: "가족·친구에게 단어장 공유하는 법",       youtubeId: "Gdjnsn9E3qA" },
     { title: "앱아이콘 생성방법",   desc: "안드로이드 홈 화면에 앱으로 추가하기",     youtubeId: "4Pyd190aY_0" },
   ];

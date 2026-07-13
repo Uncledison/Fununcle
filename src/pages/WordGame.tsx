@@ -3473,7 +3473,9 @@ export default function WordGame() {
               width: "100%", height: "100%", minHeight: 400,
               background: flipped
                 ? `linear-gradient(160deg, ${w.dark}33, ${w.color}22, var(--bg))`
-                : "var(--card)",
+                : isLight
+                  ? "var(--card)"
+                  : `radial-gradient(circle at 50% 38%, #2c2c52 0%, var(--card) 72%)`,
               border: `1.5px solid ${flipped ? w.color + "44" : "var(--border)"}`,
               borderRadius: 32,
               display: "flex", flexDirection: "column",

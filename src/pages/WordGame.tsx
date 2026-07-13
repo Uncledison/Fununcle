@@ -3463,6 +3463,7 @@ export default function WordGame() {
               transform: `translateX(${translateX}) rotate(${rotate}deg)`,
               transition: isDragging ? "none" : swipeDir ? "transform 0.36s cubic-bezier(.4,0,.2,1)" : "transform 0.25s cubic-bezier(.4,0,.2,1)",
               animation: (teachSwipe && !isDragging && !swipeDir) ? "teachCardNudge 1.6s cubic-bezier(.4,0,.2,1) 1" : "none",
+              boxShadow: isLight ? `0 8px 24px rgba(20,20,27,0.08)` : `0 0 48px ${w.color}2e, 0 8px 28px rgba(0,0,0,0.5)`,
               cursor: isDragging ? "grabbing" : "grab",
               flexShrink: 0,
             }}
@@ -3472,7 +3473,7 @@ export default function WordGame() {
               width: "100%", height: "100%", minHeight: 400,
               background: flipped
                 ? `linear-gradient(160deg, ${w.dark}33, ${w.color}22, var(--bg))`
-                : "var(--surface)",
+                : "var(--card)",
               border: `1.5px solid ${flipped ? w.color + "44" : "var(--border)"}`,
               borderRadius: 32,
               display: "flex", flexDirection: "column",

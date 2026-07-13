@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak, stopSpeak } from "../lib/pronunciation";
@@ -788,6 +789,7 @@ const STAGE_SIZE    = 20;   // 한 스테이지당 단어 수
 const XP_CORRECT    = 10;
 const XP_WORLD      = 200;
 const SWIPE_THRESH  = 80;
+const SWIPE_TAUGHT_KEY = "wordgame_swipe_taught_v1";
 
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
@@ -959,6 +961,8 @@ export default function WordGame() {
   const [combo,           setCombo]           = useState(0);
   const [comboPopup,      setComboPopup]      = useState(false);
   const [animKey,         setAnimKey]         = useState(0);
+  const [teachSwipe,      setTeachSwipe]      = useState(false); // 최초 1회 스와이프 티칭 애니메이션
+  const teachTimerRef = useRef(null);
   const [speakingWord,    setSpeakingWord]    = useState(null); // 발음 재생 중인 단어
   const [finalCorrect,    setFinalCorrect]    = useState(0);
   const [finalTotal,      setFinalTotal]      = useState(0);
@@ -1999,10 +2003,38 @@ export default function WordGame() {
     setScreen("game");
   };
 
+  // ── 스와이프 티칭 애니메이션 (최초 1회) ──────────
+  useEffect(() => {
+    if (screen !== "game" || !queue[cardIdx] || cardIdx !== 0) return;
+    try { if (localStorage.getItem(SWIPE_TAUGHT_KEY)) return; } catch (e) {}
+    teachTimerRef.current = setTimeout(() => {
+      setTeachSwipe(true);
+      teachTimerRef.current = setTimeout(() => {
+        setTeachSwipe(false);
+        try { localStorage.setItem(SWIPE_TAUGHT_KEY, "1"); } catch (e) {}
+      }, 1600);
+    }, 400);
+    return () => clearTimeout(teachTimerRef.current);
+  }, [screen, cardIdx, queue]);
+
+  // ── 이전/다음 단어 이동 (판정 없이 그냥 카드만 넘김) ──
+  const goToCard = useCallback((dir) => {
+    if (processingRef.current) return;
+    const nextIdx = cardIdx + (dir === "next" ? 1 : -1);
+    if (nextIdx < 0 || nextIdx >= queue.length) return;
+    setCardIdx(nextIdx);
+    setFlipped(false);
+    setDragX(0);
+    setAnimKey(k => k + 1);
+  }, [cardIdx, queue]);
+
   // ── 스와이프 확정 ─────────────────────────
   const doSwipe = useCallback((dir) => {
     if (processingRef.current) return;
     processingRef.current = true;
+    if (teachTimerRef.current) { clearTimeout(teachTimerRef.current); teachTimerRef.current = null; }
+    setTeachSwipe(false);
+    try { localStorage.setItem(SWIPE_TAUGHT_KEY, "1"); } catch (e) {}
     setSwipeDir(dir);
     setIsDragging(false);
 
@@ -3344,6 +3376,23 @@ export default function WordGame() {
           @keyframes spkBarA { 0%,100%{height:5px} 50%{height:17px} }
           @keyframes spkBarB { 0%,100%{height:15px} 50%{height:5px} }
           @keyframes spkBarC { 0%,100%{height:8px} 50%{height:18px} }
+          @keyframes teachCardNudge {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            12%      { transform: translateX(-16px) rotate(-4deg); }
+            25%      { transform: translateX(0) rotate(0deg); }
+            62%      { transform: translateX(16px) rotate(4deg); }
+            75%      { transform: translateX(0) rotate(0deg); }
+          }
+          @keyframes teachOverlayLeft {
+            0%, 100% { opacity: 0; }
+            12%      { opacity: 0.5; }
+            25%      { opacity: 0; }
+          }
+          @keyframes teachOverlayRight {
+            0%, 100% { opacity: 0; }
+            62%      { opacity: 0.5; }
+            75%      { opacity: 0; }
+          }
         `}</style>
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", cursor: isDragging ? "grabbing" : "grab", paddingBottom: 80 }}>
         {/* 상단 */}
@@ -3399,6 +3448,7 @@ export default function WordGame() {
               position: "relative", borderRadius: 32, overflow: "hidden",
               transform: `translateX(${translateX}) rotate(${rotate}deg)`,
               transition: isDragging ? "none" : swipeDir ? "transform 0.36s cubic-bezier(.4,0,.2,1)" : "transform 0.25s cubic-bezier(.4,0,.2,1)",
+              animation: (teachSwipe && !isDragging && !swipeDir) ? "teachCardNudge 1.6s cubic-bezier(.4,0,.2,1) 1" : "none",
               cursor: isDragging ? "grabbing" : "grab",
               flexShrink: 0,
             }}
@@ -3418,17 +3468,17 @@ export default function WordGame() {
               transition: "background 0.3s, border 0.3s",
             }}>
 
-              {/* 좌 아이콘 (몰라요) */}
+              {/* 좌 아이콘 (몰라요 방향) */}
               <div style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(239,68,68,0.15)", border: "1.5px solid rgba(239,68,68,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 18, color: "#EF4444" }}>✗</span>
+                  <ChevronLeft size={20} color="#EF4444" strokeWidth={2.4} />
                 </div>
               </div>
 
-              {/* 우 아이콘 (알아요) */}
+              {/* 우 아이콘 (알아요 방향) */}
               <div style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${w.color}20`, border: `1.5px solid ${w.color}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 18, color: w.color }}>✓</span>
+                  <ChevronRight size={20} color={w.color} strokeWidth={2.4} />
                 </div>
               </div>
 
@@ -3497,7 +3547,7 @@ export default function WordGame() {
             </div>
 
             {/* 오른쪽 스와이프 오버레이 */}
-            <div style={{ position: "absolute", inset: 0, borderRadius: 32, background: `${w.color}`, opacity: rightOpacity, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: isDragging ? "none" : "opacity 0.2s" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: 32, background: `${w.color}`, opacity: rightOpacity, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: isDragging ? "none" : "opacity 0.2s", animation: teachSwipe ? "teachOverlayRight 1.6s ease-in-out 1" : "none" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 48 }}>✓</div>
                 <div style={{ color: "#000", fontSize: 20, fontWeight: 900, marginTop: 8 }}>알아요!</div>
@@ -3505,7 +3555,7 @@ export default function WordGame() {
             </div>
 
             {/* 왼쪽 스와이프 오버레이 */}
-            <div style={{ position: "absolute", inset: 0, borderRadius: 32, background: "#EF4444", opacity: leftOpacity, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: isDragging ? "none" : "opacity 0.2s" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: 32, background: "#EF4444", opacity: leftOpacity, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: isDragging ? "none" : "opacity 0.2s", animation: teachSwipe ? "teachOverlayLeft 1.6s ease-in-out 1" : "none" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 48 }}>✗</div>
                 <div style={{ color: "#fff", fontSize: 20, fontWeight: 900, marginTop: 8 }}>몰라요</div>
@@ -3513,13 +3563,25 @@ export default function WordGame() {
             </div>
           </div>
 
-          {/* XP 힌트 */}
-          <div style={{ marginTop: 20, display: "flex", gap: 20, alignItems: "center" }}>
-            <div style={{ color: "var(--faint)", fontSize: 12, fontWeight: 600 }}>← 몰라요</div>
-            <div style={{ background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.15)", borderRadius: 10, padding: "4px 14px" }}>
+          {/* 이전/다음 단어 이동 + XP 힌트 */}
+          <div style={{ marginTop: 20, width: "100%", maxWidth: 340, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <button
+              onClick={() => goToCard("prev")}
+              disabled={cardIdx === 0}
+              style={{ display: "flex", alignItems: "center", gap: 2, padding: "7px 12px 7px 8px", borderRadius: 999, background: "var(--surface)", border: "1.5px solid var(--border)", color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: cardIdx === 0 ? "default" : "pointer", opacity: cardIdx === 0 ? 0.35 : 1, flexShrink: 0 }}>
+              <ChevronLeft size={16} strokeWidth={2.2} />
+              이전 단어
+            </button>
+            <div style={{ background: "rgba(255,184,0,0.08)", border: "1px solid rgba(255,184,0,0.15)", borderRadius: 10, padding: "4px 14px", flexShrink: 0 }}>
               <span style={{ color: "var(--gold)", fontSize: 11, fontWeight: 700 }}>정답 +{XP_CORRECT} XP</span>
             </div>
-            <div style={{ color: "var(--faint)", fontSize: 12, fontWeight: 600 }}>알아요 →</div>
+            <button
+              onClick={() => goToCard("next")}
+              disabled={cardIdx === queue.length - 1}
+              style={{ display: "flex", alignItems: "center", gap: 2, padding: "7px 8px 7px 12px", borderRadius: 999, background: "var(--surface)", border: "1.5px solid var(--border)", color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: cardIdx === queue.length - 1 ? "default" : "pointer", opacity: cardIdx === queue.length - 1 ? 0.35 : 1, flexShrink: 0 }}>
+              다음 단어
+              <ChevronRight size={16} strokeWidth={2.2} />
+            </button>
           </div>
           {activeWorld && !isReview && (
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}

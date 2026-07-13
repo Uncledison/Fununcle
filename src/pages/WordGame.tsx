@@ -3488,13 +3488,13 @@ export default function WordGame() {
             }}>
 
               {/* 좌 아이콘 (몰라요 방향) */}
-              <div style={{ position: "absolute", left: -6, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
-                <ChevronLeft size={26} color="#EF4444" strokeWidth={2.6} />
+              <div style={{ position: "absolute", left: -18, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+                <ChevronLeft size={20} color="#EF4444" strokeWidth={2} />
               </div>
 
               {/* 우 아이콘 (알아요 방향) */}
-              <div style={{ position: "absolute", right: -6, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
-                <ChevronRight size={26} color={w.color} strokeWidth={2.6} />
+              <div style={{ position: "absolute", right: -18, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+                <ChevronRight size={20} color={w.color} strokeWidth={2} />
               </div>
 
               {/* 앞면 */}

@@ -3448,7 +3448,7 @@ export default function WordGame() {
         )}
 
         {/* 카드 래퍼 */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 22px 20px" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 8px 20px" }}>
           {/* 카드 */}
           <div
             key={animKey}
@@ -3458,7 +3458,7 @@ export default function WordGame() {
             onMouseDown={onMouseDown}
             onClick={() => { if (Math.abs(dragX) < 5 && !processingRef.current) setFlipped(f => !f); }}
             style={{
-              width: "100%", maxWidth: 340, minHeight: 400,
+              width: "100%", maxWidth: 300, minHeight: 400,
               position: "relative", borderRadius: 32,
               transform: `translateX(${translateX}) rotate(${rotate}deg)`,
               transition: isDragging ? "none" : swipeDir ? "transform 0.36s cubic-bezier(.4,0,.2,1)" : "transform 0.25s cubic-bezier(.4,0,.2,1)",
@@ -3488,12 +3488,12 @@ export default function WordGame() {
             }}>
 
               {/* 좌 아이콘 (몰라요 방향) */}
-              <div style={{ position: "absolute", left: -18, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+              <div style={{ position: "absolute", left: -34, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <ChevronLeft size={20} color="#EF4444" strokeWidth={2} />
               </div>
 
               {/* 우 아이콘 (알아요 방향) */}
-              <div style={{ position: "absolute", right: -18, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+              <div style={{ position: "absolute", right: -34, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <ChevronRight size={20} color={w.color} strokeWidth={2} />
               </div>
 

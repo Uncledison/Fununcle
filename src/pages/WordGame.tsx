@@ -2240,6 +2240,10 @@ export default function WordGame() {
               <span style={{ color: "var(--gold)", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
             </div>
           )}
+          <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
+            style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {isLight ? "🌙" : "☀️"}
+          </button>
         </div>
       </div>
       {/* 라이브러리 전환 토글 */}
@@ -2769,7 +2773,11 @@ export default function WordGame() {
       </div>
 
       {/* 계정·설정 버튼 */}
-      <div style={{ width: "100%", maxWidth: 440, display: "flex", justifyContent: "flex-end", padding: "8px 16px 0" }}>
+      <div style={{ width: "100%", maxWidth: 440, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, padding: "8px 16px 0" }}>
+        <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
+          style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isLight ? "🌙" : "☀️"}
+        </button>
         <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} aria-label="계정" style={{ height: 34, minWidth: 34, padding: "0 12px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", justifyContent: "center" }}>{session ? (avatar || "👤") : "로그인"}</button>
       </div>
 
@@ -3398,10 +3406,16 @@ export default function WordGame() {
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
-              style={{ background: "var(--surface)", border: "none", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              🏠 홈
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
+                style={{ background: "var(--surface)", border: "none", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                🏠 홈
+              </button>
+              <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
+                style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {isLight ? "🌙" : "☀️"}
+              </button>
+            </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <div style={{ color: w.color, fontWeight: 800, fontSize: 13 }}>{w.emoji} {w.title}</div>

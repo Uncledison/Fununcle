@@ -3365,8 +3365,8 @@ export default function WordGame() {
       : (isDragging && dragX < 0) ? swipeProgress * 0.9 : 0;
 
     // 아이콘 투명도
-    const rightIconOp = isSwipingRight ? 0.15 + swipeProgress * 0.85 : 0.12;
-    const leftIconOp  = isSwipingLeft  ? 0.15 + swipeProgress * 0.85 : 0.12;
+    const rightIconOp = isSwipingRight ? 0.15 + swipeProgress * 0.85 : 0.45;
+    const leftIconOp  = isSwipingLeft  ? 0.15 + swipeProgress * 0.85 : 0.45;
 
     const progressPct = (cardIdx / queue.length) * 100;
 
@@ -3459,11 +3459,13 @@ export default function WordGame() {
             onClick={() => { if (Math.abs(dragX) < 5 && !processingRef.current) setFlipped(f => !f); }}
             style={{
               width: "100%", maxWidth: 340, minHeight: 400,
-              position: "relative", borderRadius: 32, overflow: "hidden",
+              position: "relative", borderRadius: 32,
               transform: `translateX(${translateX}) rotate(${rotate}deg)`,
               transition: isDragging ? "none" : swipeDir ? "transform 0.36s cubic-bezier(.4,0,.2,1)" : "transform 0.25s cubic-bezier(.4,0,.2,1)",
               animation: (teachSwipe && !isDragging && !swipeDir) ? "teachCardNudge 1.6s cubic-bezier(.4,0,.2,1) 1" : "none",
-              boxShadow: isLight ? `0 8px 24px rgba(20,20,27,0.08)` : `0 0 48px ${w.color}2e, 0 8px 28px rgba(0,0,0,0.5)`,
+              boxShadow: isLight
+                ? `0 8px 24px rgba(20,20,27,0.08)`
+                : `0 0 60px 10px rgba(255,255,255,0.08), 0 0 110px 34px ${w.color}29, 0 10px 32px rgba(0,0,0,0.55)`,
               cursor: isDragging ? "grabbing" : "grab",
               flexShrink: 0,
             }}
@@ -3486,14 +3488,14 @@ export default function WordGame() {
             }}>
 
               {/* 좌 아이콘 (몰라요 방향) */}
-              <div style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+              <div style={{ position: "absolute", left: -6, top: "50%", transform: "translateY(-50%)", opacity: leftIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(239,68,68,0.15)", border: "1.5px solid rgba(239,68,68,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <ChevronLeft size={20} color="#EF4444" strokeWidth={2.4} />
                 </div>
               </div>
 
               {/* 우 아이콘 (알아요 방향) */}
-              <div style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
+              <div style={{ position: "absolute", right: -6, top: "50%", transform: "translateY(-50%)", opacity: rightIconOp, transition: isDragging ? "none" : "opacity 0.2s" }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${w.color}20`, border: `1.5px solid ${w.color}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <ChevronRight size={20} color={w.color} strokeWidth={2.4} />
                 </div>

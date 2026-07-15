@@ -3787,7 +3787,7 @@ export default function WordGame() {
               <ChevronRight size={16} strokeWidth={2.2} />
             </button>
           </div>
-          {activeWorld && !isReview && (
+          {activeWorld && (
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
               style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: activeWorld?.isCustom ? "rgba(167,139,250,0.14)" : `${w.color}18`, border: `1.5px solid ${activeWorld?.isCustom ? "#A78BFA55" : w.color + "55"}`, borderRadius: 16, color: activeWorld?.isCustom ? "#C4B5FD" : w.color, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
               나가기

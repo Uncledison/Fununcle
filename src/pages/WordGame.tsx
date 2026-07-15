@@ -1155,12 +1155,41 @@ export default function WordGame() {
     listenSeekFromClientX(e.clientX);
   };
   const onListenBarUp = () => setListenSeeking(false);
-  const openListen = (world) => {
+  // 듣기(자동재생) 진행 북마크 — 단어장 재생과 별개로 관리(순서가 섞이지 않는 원본 순서 기준)
+  const [listenResume, setListenResume] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('custom_listen_resume') || '{}'); } catch(e) { return {}; }
+  });
+  const saveListenResume = (id, rec) => {
+    setListenResume(prev => {
+      const next = { ...prev, [id]: rec };
+      try { localStorage.setItem('custom_listen_resume', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  };
+  const clearListenResume = (id) => {
+    setListenResume(prev => {
+      const next = { ...prev }; delete next[id];
+      try { localStorage.setItem('custom_listen_resume', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  };
+  const hasListenResume = (world) => {
+    const rec = listenResume[world.id];
+    return !!(rec && rec.idx > 0 && rec.idx < rec.total - 1);
+  };
+  const [listenResumePrompt, setListenResumePrompt] = useState(null);      // 듣기 이어서/처음부터 팝업 대상 세트
+  const [showListenQuitConfirm, setShowListenQuitConfirm] = useState(false); // 듣기 중 나가기 확인 팝업
+  const startListen = (world, startIdx) => {
     listenWorldRef.current = world;
     setListenWorld(world);
-    listenIdxRef.current = 0; setListenIdx(0);
+    listenIdxRef.current = startIdx; setListenIdx(startIdx);
+    setListenResumePrompt(null);
     setScreen("listen");
     setTimeout(() => listenPlay(), 350);
+  };
+  const openListen = (world) => {
+    if (hasListenResume(world)) { setListenResumePrompt(world); return; }
+    startListen(world, 0);
   };
   const exitListen = () => {
     listenPause();
@@ -2328,7 +2357,7 @@ export default function WordGame() {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
         <div style={{ fontSize: 44, marginBottom: 16 }}>{canSave ? "📌" : "🚪"}</div>
-        <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "오늘은 여기까지?" : "학습을 종료할까요?"}</h3>
+        <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "나가기" : "학습을 종료할까요?"}</h3>
         <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
           {canSave
             ? <>지금 위치를 저장하면<br />다음에 <b style={{ color: "#A78BFA" }}>이어서 하기</b>로 계속할 수 있어요.</>
@@ -2400,6 +2429,100 @@ export default function WordGame() {
               닫기
             </button>
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 듣기(자동재생) 이어서/처음부터 팝업 ──────────
+  const ListenResumePromptModal = () => {
+    if (!listenResumePrompt) return null;
+    const rec = listenResume[listenResumePrompt.id] || {};
+    const total = rec.total || listenResumePrompt.words.length;
+    const done = rec.idx || 0;
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 44, marginBottom: 16 }}>🔊</div>
+          <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 8px" }}>{listenResumePrompt.title}</h3>
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.7, margin: "0 0 24px" }}>
+            지난번 <b style={{ color: "#A78BFA" }}>{done + 1}번째</b>까지 들었어요.<br />이어서 들을까요? (총 {total}개)
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={() => startListen(listenResumePrompt, done)}
+              style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+              ▶ 이어서 듣기 ({done + 1}번부터)
+            </button>
+            <button onClick={() => startListen(listenResumePrompt, 0)}
+              style={{ padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+              🔄 처음부터 듣기
+            </button>
+            <button onClick={() => setListenResumePrompt(null)}
+              style={{ padding: "12px", background: "none", border: "none", color: "var(--muted)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 듣기(자동재생) 중 나가기 확인 팝업 ────────────
+  const ListenQuitConfirmModal = () => {
+    if (!showListenQuitConfirm) return null;
+    const total = listenWorld?.words?.length || 0;
+    const atEnd = total > 0 && listenIdx >= total - 1;
+    const canSave = total > 1 && !atEnd;
+    const saveAndExit = () => {
+      if (listenWorld) {
+        if (canSave) saveListenResume(listenWorld.id, { idx: listenIdx, total });
+        else clearListenResume(listenWorld.id);
+      }
+      setShowListenQuitConfirm(false);
+      exitListen();
+    };
+    const plainExit = () => {
+      if (atEnd && listenWorld) clearListenResume(listenWorld.id); // 끝까지 들었으면 이전 북마크 정리
+      setShowListenQuitConfirm(false);
+      exitListen();
+    };
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "0 24px" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 28, padding: "36px 28px", maxWidth: 340, width: "100%", textAlign: "center" }}>
+          <div style={{ fontSize: 44, marginBottom: 16 }}>{canSave ? "📌" : "🎧"}</div>
+          <h3 style={{ color: "var(--text)", fontSize: 20, fontWeight: 900, margin: "0 0 12px" }}>{canSave ? "나가기" : "재생을 마칠까요?"}</h3>
+          <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.7, margin: "0 0 28px" }}>
+            {canSave
+              ? <>지금 위치를 저장하면<br />다음에 <b style={{ color: "#A78BFA" }}>이어서 듣기</b>로 계속할 수 있어요.</>
+              : <>끝까지 들으셨어요. 수고하셨어요!</>}
+          </p>
+          {canSave ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button onClick={saveAndExit}
+                style={{ padding: "15px", background: "linear-gradient(135deg,#A78BFA,#6d28d9)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+                💾 저장하고 나가기
+              </button>
+              <button onClick={() => setShowListenQuitConfirm(false)}
+                style={{ padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                ▶ 계속 듣기
+              </button>
+              <button onClick={plainExit}
+                style={{ padding: "12px", background: "none", border: "none", color: "var(--muted)", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                🚪 그냥 나가기 <span style={{ fontSize: 12, opacity: 0.75 }}>(이어하기 저장 안 함)</span>
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setShowListenQuitConfirm(false)}
+                style={{ flex: 1, padding: "15px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, color: "var(--text2)", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                계속하기
+              </button>
+              <button onClick={plainExit}
+                style={{ flex: 1, padding: "15px", background: "linear-gradient(135deg,#FF8C00,#FF6B00)", border: "none", borderRadius: 16, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer" }}>
+                나가기
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -2926,9 +3049,10 @@ export default function WordGame() {
     );
     return (
       <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <ListenQuitConfirmModal />
         <div style={{ width: "100%", maxWidth: 480, padding: "16px 20px 8px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <button onClick={exitListen} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 나가기</button>
+            <button onClick={() => setShowListenQuitConfirm(true)} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 나가기</button>
             <div style={{ color: "var(--text)", fontWeight: 800, fontSize: 14, textAlign: "center", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 10px" }}>📖 {listenWorld.title}</div>
             <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 700, minWidth: 46, textAlign: "right" }}>{listenIdx + 1}/{total}</div>
           </div>
@@ -2998,7 +3122,7 @@ export default function WordGame() {
         </div>
         )}
 
-        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 20, padding: "16px 0 40px" }}>
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 20, padding: "16px 0 8px" }}>
           <button onClick={() => listenSeek(0)} disabled={listenIdx === 0} aria-label="처음으로" title="처음으로" style={{ background: "none", border: "none", padding: 4, color: listenIdx === 0 ? "var(--faint)" : "var(--muted)", cursor: listenIdx === 0 ? "default" : "pointer", display: "flex" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="2" height="12"/><path d="M18.41 7.41L17 6l-6 6 6 6 1.41-1.41L13.83 12z"/></svg>
           </button>
@@ -3017,6 +3141,10 @@ export default function WordGame() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="16" y="6" width="2" height="12"/><path d="M5.59 7.41L7 6l6 6-6 6-1.41-1.41L10.17 12z"/></svg>
           </button>
         </div>
+        <button onClick={() => setShowListenQuitConfirm(true)}
+          style={{ width: "100%", maxWidth: 320, margin: "0 auto 40px", display: "block", padding: "15px", background: "rgba(167,139,250,0.14)", border: "1.5px solid #A78BFA55", borderRadius: 16, color: "#C4B5FD", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+          나가기
+        </button>
       </div>
     );
   }
@@ -3026,6 +3154,7 @@ export default function WordGame() {
     return (
       <div style={{ minHeight: "100dvh", background: "var(--bg)", fontFamily: "'Segoe UI', system-ui, sans-serif", display: "flex", justifyContent: "center" }}>
         <ResumePromptModal />
+        <ListenResumePromptModal />
         {renderAuthModal()}
         {renderSettingsModal()}
         {renderOnboardingModal()}
@@ -3077,7 +3206,8 @@ export default function WordGame() {
                 const secondaryAction = isStory ? () => openCustomWorld(cw) : () => openListen(cw);
                 const secondaryLabel  = isStory ? "플래시카드 모드" : "자동재생 모드";
                 return (
-                  <div key={cw.id} style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px" }}>
+                  <div key={cw.id} onClick={primaryAction}
+                    style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px", cursor: "pointer" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
@@ -3086,7 +3216,7 @@ export default function WordGame() {
                         </div>
                         {inProgress && <span style={{ color: c, fontSize: 11, fontWeight: 800 }}>이어하기 {rec.pos}/{total}</span>}
                       </div>
-                      <button onClick={primaryAction} aria-label={isStory ? "자동재생 시작" : "플래시카드 시작"} title={isStory ? "자동재생" : "플래시카드"}
+                      <button onClick={(e) => { e.stopPropagation(); primaryAction(); }} aria-label={isStory ? "자동재생 시작" : "플래시카드 시작"} title={isStory ? "자동재생" : "플래시카드"}
                         style={{ flexShrink: 0, width: 44, height: 44, background: `linear-gradient(135deg,${c},${cd})`, border: "none", borderRadius: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
                       </button>
@@ -3097,18 +3227,18 @@ export default function WordGame() {
                       </div>
                     )}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-                      <button onClick={secondaryAction} style={{ padding: "6px 10px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 9, color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{secondaryLabel}</button>
+                      <button onClick={(e) => { e.stopPropagation(); secondaryAction(); }} style={{ padding: "6px 10px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 9, color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{secondaryLabel}</button>
                       <div style={{ flex: 1 }} />
-                      <button onClick={() => setManageOpenId(managing ? null : cw.id)} style={{ padding: "6px 10px", background: managing ? `${c}22` : "var(--surface)", border: `1px solid ${managing ? c + "55" : "var(--border)"}`, borderRadius: 9, color: managing ? c : "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>관리</button>
+                      <button onClick={(e) => { e.stopPropagation(); setManageOpenId(managing ? null : cw.id); }} style={{ padding: "6px 10px", background: managing ? `${c}22` : "var(--surface)", border: `1px solid ${managing ? c + "55" : "var(--border)"}`, borderRadius: 9, color: managing ? c : "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>관리</button>
                     </div>
                     {managing && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, paddingTop: 8, borderTop: "1px dashed var(--border)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, paddingTop: 8, borderTop: "1px dashed var(--border)" }}>
                         <button onClick={() => moveCustom(sets, i, -1)} disabled={i === 0} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === 0 ? "var(--faint)" : "var(--text2)")}>▲</button>
                         <button onClick={() => moveCustom(sets, i, 1)} disabled={i === sets.length - 1} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === sets.length - 1 ? "var(--faint)" : "var(--text2)")}>▼</button>
                         <div style={{ flex: 1 }} />
                         {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
                         <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
-                        <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); if (manageOpenId === cw.id) setManageOpenId(null); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                        <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); clearListenResume(cw.id); if (editingId === cw.id) cancelEditCustom(); if (manageOpenId === cw.id) setManageOpenId(null); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
                       </div>
                     )}
                   </div>
@@ -3288,8 +3418,8 @@ export default function WordGame() {
           const hasWorldResume = !!(wrec && Array.isArray(wrec.order) && wrec.pos > 0 && wrec.pos < wrec.order.length);
 
           return (
-            <div key={world.id} id={`world-card-${world.id}`}
-              style={{ background: locked ? "var(--surface)" : `linear-gradient(135deg,${world.color}14,${world.dark}20)`, border: `1.5px solid ${locked ? "var(--border)" : world.color + "40"}`, borderRadius: 24, padding: "20px 22px", opacity: locked ? 0.45 : 1, transition: "opacity 0.2s" }}>
+            <div key={world.id} id={`world-card-${world.id}`} onClick={locked ? undefined : () => startWorld(world)}
+              style={{ background: locked ? "var(--surface)" : `linear-gradient(135deg,${world.color}14,${world.dark}20)`, border: `1.5px solid ${locked ? "var(--border)" : world.color + "40"}`, borderRadius: 24, padding: "20px 22px", opacity: locked ? 0.45 : 1, transition: "opacity 0.2s", cursor: locked ? "default" : "pointer" }}>
 
               {/* 월드 헤더 */}
               <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: locked ? 0 : 14 }}>
@@ -3655,7 +3785,7 @@ export default function WordGame() {
           {activeWorld && !isReview && (
             <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
               style={{ width: "100%", maxWidth: 320, margin: "22px auto 0", display: "block", padding: "15px", background: activeWorld?.isCustom ? "rgba(167,139,250,0.14)" : `${w.color}18`, border: `1.5px solid ${activeWorld?.isCustom ? "#A78BFA55" : w.color + "55"}`, borderRadius: 16, color: activeWorld?.isCustom ? "#C4B5FD" : w.color, fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
-              📌 오늘은 여기까지
+              나가기
             </button>
           )}
         </div>

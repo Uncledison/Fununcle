@@ -1049,6 +1049,7 @@ export default function WordGame() {
   const [customInput, setCustomInput] = useState("");
   const [editingId, setEditingId] = useState(null);          // 편집 중인 커스텀 세트 id (null=새로 만들기)
   const [customType, setCustomType] = useState("word");      // 세트 종류: word(단어장) | sentence(문장·이야기)
+  const [manageOpenId, setManageOpenId] = useState(null);    // 카드 "관리"(편집/삭제/순서/보내기) 펼침 대상 id
   const [sectionCollapsed, setSectionCollapsed] = useState(() => { try { return JSON.parse(localStorage.getItem("wordgame_section_collapsed") || "{}"); } catch (e) { return {}; } });
   const toggleSection = (type, val) => { setSectionCollapsed(prev => { const next = { ...prev, [type]: val }; try { localStorage.setItem("wordgame_section_collapsed", JSON.stringify(next)); } catch (e) {} return next; }); };
   // ── 듣기(오디오북) 모드 ──────────────
@@ -1133,6 +1134,27 @@ export default function WordGame() {
     listenIdxRef.current = clamped; setListenIdx(clamped);
     if (wasPlaying) { listenPlayingRef.current = true; setListenPlaying(true); runListen(listenTokenRef.current); }
   };
+  // 듣기 화면 상단 진행바 드래그 탐색
+  const listenBarRef = useRef(null);
+  const [listenSeeking, setListenSeeking] = useState(false);
+  const listenSeekFromClientX = (clientX) => {
+    const el = listenBarRef.current;
+    const total = listenWorldRef.current?.words?.length || 0;
+    if (!el || total <= 1) return;
+    const rect = el.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    listenSeek(Math.round(pct * (total - 1)));
+  };
+  const onListenBarDown = (e) => {
+    setListenSeeking(true);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    listenSeekFromClientX(e.clientX);
+  };
+  const onListenBarMove = (e) => {
+    if (!listenSeeking) return;
+    listenSeekFromClientX(e.clientX);
+  };
+  const onListenBarUp = () => setListenSeeking(false);
   const openListen = (world) => {
     listenWorldRef.current = world;
     setListenWorld(world);
@@ -2910,9 +2932,20 @@ export default function WordGame() {
             <div style={{ color: "var(--text)", fontWeight: 800, fontSize: 14, textAlign: "center", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 10px" }}>📖 {listenWorld.title}</div>
             <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 700, minWidth: 46, textAlign: "right" }}>{listenIdx + 1}/{total}</div>
           </div>
-          <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#6d28d9,#A78BFA)", borderRadius: 5, transition: "width 0.3s" }} />
+          <div
+            ref={listenBarRef}
+            onPointerDown={onListenBarDown}
+            onPointerMove={onListenBarMove}
+            onPointerUp={onListenBarUp}
+            onPointerCancel={onListenBarUp}
+            style={{ position: "relative", padding: "9px 0", cursor: total > 1 ? "grab" : "default", touchAction: "none" }}
+          >
+            <div style={{ height: 5, background: "var(--surface)", borderRadius: 5, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: "linear-gradient(90deg,#6d28d9,#A78BFA)", borderRadius: 5, transition: listenSeeking ? "none" : "width 0.3s" }} />
+            </div>
+            <div style={{ position: "absolute", left: `${pct}%`, top: "50%", transform: "translate(-50%,-50%)", width: 14, height: 14, borderRadius: "50%", background: "#A78BFA", boxShadow: "0 0 0 3px var(--bg)", pointerEvents: "none" }} />
           </div>
+          <div style={{ fontSize: 10, color: "var(--faint)", textAlign: "center" }}>눌러서 끌면 원하는 문장으로 이동</div>
         </div>
 
         <div style={{ flex: 1, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 26px", gap: 18 }}>
@@ -2965,7 +2998,10 @@ export default function WordGame() {
         </div>
         )}
 
-        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 34, padding: "16px 0 40px" }}>
+        <div style={{ width: "100%", maxWidth: 480, display: "flex", alignItems: "center", justifyContent: "center", gap: 20, padding: "16px 0 40px" }}>
+          <button onClick={() => listenSeek(0)} disabled={listenIdx === 0} aria-label="처음으로" title="처음으로" style={{ background: "none", border: "none", padding: 4, color: listenIdx === 0 ? "var(--faint)" : "var(--muted)", cursor: listenIdx === 0 ? "default" : "pointer", display: "flex" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="2" height="12"/><path d="M18.41 7.41L17 6l-6 6 6 6 1.41-1.41L13.83 12z"/></svg>
+          </button>
           <button onClick={() => listenSeek(listenIdx - 1)} disabled={listenIdx === 0} aria-label="이전" style={{ background: "none", border: "none", padding: 6, color: listenIdx === 0 ? "var(--faint)" : "var(--text)", cursor: listenIdx === 0 ? "default" : "pointer", display: "flex" }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2.4v12H6zm3.2 6l9.8 6V6z"/></svg>
           </button>
@@ -2976,6 +3012,9 @@ export default function WordGame() {
           </button>
           <button onClick={() => listenSeek(listenIdx + 1)} disabled={atEnd} aria-label="다음" style={{ background: "none", border: "none", padding: 6, color: atEnd ? "var(--faint)" : "var(--text)", cursor: atEnd ? "default" : "pointer", display: "flex" }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M15.6 6H18v12h-2.4zM6 6v12l9.8-6z"/></svg>
+          </button>
+          <button onClick={() => listenSeek(total - 1)} disabled={atEnd} aria-label="끝으로" title="끝으로" style={{ background: "none", border: "none", padding: 4, color: atEnd ? "var(--faint)" : "var(--muted)", cursor: atEnd ? "default" : "pointer", display: "flex" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="16" y="6" width="2" height="12"/><path d="M5.59 7.41L7 6l6 6-6 6-1.41-1.41L10.17 12z"/></svg>
           </button>
         </div>
       </div>
@@ -3032,31 +3071,46 @@ export default function WordGame() {
                 const isStory = cw.type === "sentence";
                 const c  = isStory ? "#2DD4BF" : "#A78BFA";
                 const cd = isStory ? "#0f766e" : "#6d28d9";
+                const managing = manageOpenId === cw.id;
+                // 이야기: ▶ 자동재생 / 플래시카드 모드 버튼   단어장: ▶ 플래시카드 / 자동재생 모드 버튼
+                const primaryAction   = isStory ? () => openListen(cw) : () => openCustomWorld(cw);
+                const secondaryAction = isStory ? () => openCustomWorld(cw) : () => openListen(cw);
+                const secondaryLabel  = isStory ? "플래시카드 모드" : "자동재생 모드";
                 return (
                   <div key={cw.id} style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px" }}>
-                    <div onClick={() => openCustomWorld(cw)} style={{ cursor: "pointer" }}>
-                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                           <span style={{ color: "var(--text)", fontSize: 16, fontWeight: 800 }}>{cw.title}</span>
                           <span style={{ color: "var(--text2)", fontSize: 12 }}>{isStory ? "문장" : "단어"} {cw.words.length}개</span>
                         </div>
-                        {inProgress && <span style={{ background: `${c}22`, color: c, fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 10, flexShrink: 0, whiteSpace: "nowrap" }}>이어하기 {rec.pos}/{total}</span>}
+                        {inProgress && <span style={{ color: c, fontSize: 11, fontWeight: 800 }}>이어하기 {rec.pos}/{total}</span>}
                       </div>
-                      {inProgress && (
-                        <div style={{ marginTop: 7, height: 4, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: `linear-gradient(90deg,${cd},${c})`, borderRadius: 3 }} />
-                        </div>
-                      )}
+                      <button onClick={primaryAction} aria-label={isStory ? "자동재생 시작" : "플래시카드 시작"} title={isStory ? "자동재생" : "플래시카드"}
+                        style={{ flexShrink: 0, width: 44, height: 44, background: `linear-gradient(135deg,${c},${cd})`, border: "none", borderRadius: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
+                      </button>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
-                      <button onClick={() => moveCustom(sets, i, -1)} disabled={i === 0} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === 0 ? "var(--faint)" : "var(--text2)")}>▲</button>
-                      <button onClick={() => moveCustom(sets, i, 1)} disabled={i === sets.length - 1} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === sets.length - 1 ? "var(--faint)" : "var(--text2)")}>▼</button>
+                    {inProgress && (
+                      <div style={{ marginTop: 7, height: 4, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${Math.round(rec.pos / total * 100)}%`, background: `linear-gradient(90deg,${cd},${c})`, borderRadius: 3 }} />
+                      </div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                      <button onClick={secondaryAction} style={{ padding: "6px 10px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 9, color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{secondaryLabel}</button>
                       <div style={{ flex: 1 }} />
-                      {isStory && <button onClick={() => openListen(cw)} aria-label="자동재생" title="자동재생(듣기)" style={iconBtn(`${c}22`, `1px solid ${c}55`, c)}>📖</button>}
-                      {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
-                      <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
-                      <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                      <button onClick={() => setManageOpenId(managing ? null : cw.id)} style={{ padding: "6px 10px", background: managing ? `${c}22` : "var(--surface)", border: `1px solid ${managing ? c + "55" : "var(--border)"}`, borderRadius: 9, color: managing ? c : "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>관리</button>
                     </div>
+                    {managing && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, paddingTop: 8, borderTop: "1px dashed var(--border)" }}>
+                        <button onClick={() => moveCustom(sets, i, -1)} disabled={i === 0} aria-label="위로" title="위로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === 0 ? "var(--faint)" : "var(--text2)")}>▲</button>
+                        <button onClick={() => moveCustom(sets, i, 1)} disabled={i === sets.length - 1} aria-label="아래로" title="아래로" style={iconBtn("var(--surface)", "1px solid var(--border)", i === sets.length - 1 ? "var(--faint)" : "var(--text2)")}>▼</button>
+                        <div style={{ flex: 1 }} />
+                        {session && approved === true && <button onClick={() => setSendModalSet(cw)} aria-label="보내기" title="보내기" style={iconBtn("rgba(74,222,128,0.12)", "none", "#4ADE80")}>📤</button>}
+                        <button onClick={() => startEditCustom(cw)} aria-label="편집" title="편집" style={iconBtn("rgba(167,139,250,0.12)", "none", "#A78BFA")}>✏️</button>
+                        <button onClick={() => { if(!confirm('정말 삭제하시겠습니까?')) return; const newCw = customWorlds.filter(w => w.id !== cw.id); setCustomWorlds(newCw); localStorage.setItem('custom_worlds', JSON.stringify(newCw)); clearCustomResume(cw.id); if (editingId === cw.id) cancelEditCustom(); if (manageOpenId === cw.id) setManageOpenId(null); }} aria-label="삭제" title="삭제" style={iconBtn("rgba(239,68,68,0.1)", "none", "#EF4444")}>🗑️</button>
+                      </div>
+                    )}
                   </div>
                 );
               };

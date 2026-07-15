@@ -2270,7 +2270,7 @@ export default function WordGame() {
       setScreen("map");
     }
   };
-  const FunUncleBar = ({ showLevel = false }: { showLevel?: boolean }) => (
+  const FunUncleBar = () => (
     <>
     <div style={{ padding: "16px 20px 0" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -2279,18 +2279,10 @@ export default function WordGame() {
           <span style={{ background: "linear-gradient(90deg,#FF8C00,#FF6B00)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800, fontSize: 13, letterSpacing: -0.3 }}>플래시카드</span>
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ height: 34, minWidth: 34, padding: "0 10px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", justifyContent: "center" }}>{session ? (avatar || "👤") : "로그인"}</button>
-          {showLevel ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 5, height: 34, background: "rgba(255,184,0,0.1)", border: "1px solid rgba(255,184,0,0.25)", borderRadius: 12, padding: "0 12px" }}>
-              <span style={{ color: "var(--gold)", fontSize: 15, fontWeight: 900 }}>Lv.{level}</span>
-              <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>{xp}XP</span>
-            </div>
-          ) : (
-            <div style={{ height: 34, background: "linear-gradient(135deg, rgba(255,184,0,0.2), rgba(255,184,0,0.05))", border: "1px solid rgba(255,184,0,0.3)", padding: "0 14px", borderRadius: 12, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: 14 }}>⚡</span>
-              <span style={{ color: "var(--gold)", fontWeight: 900, fontSize: 14 }}>{xp} XP</span>
-            </div>
-          )}
+          <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} style={{ height: 34, minWidth: 34, padding: "0 10px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 16 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", gap: 6 }}>
+            <span>{session ? (avatar || "👤") : "로그인"}</span>
+            <span style={{ color: "var(--gold)", fontSize: 12, fontWeight: 900 }}>Lv.{level}</span>
+          </button>
           <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
             style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {isLight ? "🌙" : "☀️"}
@@ -2640,7 +2632,7 @@ export default function WordGame() {
         <div style={{ width:"100%", maxWidth:480, display:"flex", flexDirection:"column", paddingBottom:80 }}>
         {/* 헤더 */}
         <div style={{ background:"linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)" }}>
-          <FunUncleBar showLevel={true} />
+          <FunUncleBar />
           <div style={{ padding:"12px 22px 16px" }}>
           {/* 검색창 */}
           <div style={{ position:"relative" }}>
@@ -2773,7 +2765,7 @@ export default function WordGame() {
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)" }}>
-          <FunUncleBar showLevel={true} />
+          <FunUncleBar />
           <div style={{ padding: "12px 22px 20px" }}>
           {/* 통계 카드 = 필터 버튼 (클릭하면 필터 전환) */}
           <div style={{ display: "flex", gap: 10 }}>
@@ -2919,11 +2911,11 @@ export default function WordGame() {
 
       {/* 계정·설정 버튼 */}
       <div style={{ width: "100%", maxWidth: 440, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, padding: "8px 16px 0" }}>
+        <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} aria-label="계정" style={{ height: 34, minWidth: 34, padding: "0 12px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", justifyContent: "center" }}>{session ? (avatar || "👤") : "로그인"}</button>
         <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
           style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
           {isLight ? "🌙" : "☀️"}
         </button>
-        <button onClick={() => { setAuthStatus(""); setShowAuthModal(true); }} aria-label="계정" style={{ height: 34, minWidth: 34, padding: "0 12px", background: session ? "rgba(74,222,128,0.12)" : "var(--surface)", border: `1px solid ${session ? "rgba(74,222,128,0.3)" : "var(--border)"}`, borderRadius: 12, cursor: "pointer", fontSize: session && avatar ? 18 : 13, fontWeight: 800, color: session ? "#4ADE80" : "var(--text2)", display: "flex", alignItems: "center", justifyContent: "center" }}>{session ? (avatar || "👤") : "로그인"}</button>
       </div>
 
       <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 22px 20px", flex: 1 }}>
@@ -3054,7 +3046,13 @@ export default function WordGame() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <button onClick={() => setShowListenQuitConfirm(true)} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>← 나가기</button>
             <div style={{ color: "var(--text)", fontWeight: 800, fontSize: 14, textAlign: "center", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", margin: "0 10px" }}>📖 {listenWorld.title}</div>
-            <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 700, minWidth: 46, textAlign: "right" }}>{listenIdx + 1}/{total}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
+                style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {isLight ? "🌙" : "☀️"}
+              </button>
+              <div style={{ color: "var(--muted)", fontSize: 12, fontWeight: 700, minWidth: 40, textAlign: "right" }}>{listenIdx + 1}/{total}</div>
+            </div>
           </div>
           <div
             ref={listenBarRef}
@@ -3164,7 +3162,7 @@ export default function WordGame() {
         <div style={{ width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", paddingBottom: 80 }}>
         {/* 헤더 */}
         <div style={{ background: "linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%)", paddingBottom: 8 }}>
-          <FunUncleBar showLevel={true} />
+          <FunUncleBar />
         </div>
 
         <div style={{ padding: "16px 22px 0", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -3205,6 +3203,8 @@ export default function WordGame() {
                 const primaryAction   = isStory ? () => openListen(cw) : () => openCustomWorld(cw);
                 const secondaryAction = isStory ? () => openCustomWorld(cw) : () => openListen(cw);
                 const secondaryLabel  = isStory ? "플래시카드 모드" : "자동재생 모드";
+                const cwProgress = progress.find(pp => pp.worldId === cw.id);
+                const failedCount = cwProgress?.failed?.length || 0;
                 return (
                   <div key={cw.id} onClick={primaryAction}
                     style={{ background: `linear-gradient(135deg,${c}12,${cd}1c)`, border: `1.5px solid ${c}40`, borderRadius: 18, padding: "12px 14px", cursor: "pointer" }}>
@@ -3228,6 +3228,11 @@ export default function WordGame() {
                     )}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
                       <button onClick={(e) => { e.stopPropagation(); secondaryAction(); }} style={{ padding: "6px 10px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 9, color: "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{secondaryLabel}</button>
+                      {failedCount > 0 && (
+                        <button onClick={(e) => { e.stopPropagation(); startReview(cw); }} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 9, color: "#EF4444", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                          🔁 오답 복습 <span style={{ background: "rgba(239,68,68,0.2)", borderRadius: 20, padding: "1px 6px" }}>{failedCount}개</span>
+                        </button>
+                      )}
                       <div style={{ flex: 1 }} />
                       <button onClick={(e) => { e.stopPropagation(); setManageOpenId(managing ? null : cw.id); }} style={{ padding: "6px 10px", background: managing ? `${c}22` : "var(--surface)", border: `1px solid ${managing ? c + "55" : "var(--border)"}`, borderRadius: 9, color: managing ? c : "var(--text2)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>관리</button>
                     </div>
@@ -3383,7 +3388,7 @@ export default function WordGame() {
       {/* 고정 헤더 */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, display: "flex", justifyContent: "center", background: "var(--bg2)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ width: "100%", maxWidth: 480 }}>
-          <FunUncleBar showLevel={true} />
+          <FunUncleBar />
           <div style={{ padding: "8px 22px 12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
               <span style={{ color: "var(--muted)", fontSize: 10, fontWeight: 700 }}>다음 레벨</span>
@@ -3502,7 +3507,7 @@ export default function WordGame() {
                     <button
                       onClick={(e) => { e.stopPropagation(); startReview(world); }}
                       style={{ width: "100%", padding: "10px", marginBottom: 12, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 12, color: "#EF4444", fontSize: 12, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                      🔁 틀린 단어 복습 <span style={{ background: "rgba(239,68,68,0.2)", borderRadius: 20, padding: "1px 8px" }}>{p.failed.length}개</span>
+                      🔁 오답 복습 <span style={{ background: "rgba(239,68,68,0.2)", borderRadius: 20, padding: "1px 8px" }}>{p.failed.length}개</span>
                     </button>
                   )}
 
@@ -3590,16 +3595,10 @@ export default function WordGame() {
         {/* 상단 */}
         <div style={{ padding: "44px 20px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
-                style={{ background: "var(--surface)", border: "none", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                🏠 홈
-              </button>
-              <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
-                style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {isLight ? "🌙" : "☀️"}
-              </button>
-            </div>
+            <button onClick={() => { setQuitTarget("map"); setShowQuitConfirm(true); }}
+              style={{ background: "var(--surface)", border: "none", borderRadius: 12, padding: "8px 14px", color: "var(--muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              🏠 홈
+            </button>
             <div style={{ textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 <div style={{ color: w.color, fontWeight: 800, fontSize: 13 }}>{w.emoji} {w.title}</div>
@@ -3612,10 +3611,16 @@ export default function WordGame() {
               </div>
               <div style={{ color: "var(--muted)", fontSize: 11 }}>{cardIdx + 1} / {queue.length}</div>
             </div>
-            <div style={{ background: combo >= 3 ? "rgba(255,184,0,0.14)" : "var(--surface)", border: `1px solid ${combo >= 3 ? "rgba(255,184,0,0.28)" : "var(--border)"}`, borderRadius: 12, padding: "8px 14px", minWidth: 52, textAlign: "center", transition: "all 0.3s" }}>
-              <span style={{ color: combo >= 3 ? "var(--gold)" : "var(--muted)", fontWeight: 800, fontSize: 13 }}>
-                {combo >= 3 ? `🔥${combo}` : `×${combo}`}
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button onClick={() => setIsLight(l => !l)} aria-label="다크/라이트 모드 전환"
+                style={{ width: 34, height: 34, flexShrink: 0, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {isLight ? "🌙" : "☀️"}
+              </button>
+              <div style={{ background: combo >= 3 ? "rgba(255,184,0,0.14)" : "var(--surface)", border: `1px solid ${combo >= 3 ? "rgba(255,184,0,0.28)" : "var(--border)"}`, borderRadius: 12, padding: "8px 14px", minWidth: 52, textAlign: "center", transition: "all 0.3s" }}>
+                <span style={{ color: combo >= 3 ? "var(--gold)" : "var(--muted)", fontWeight: 800, fontSize: 13 }}>
+                  {combo >= 3 ? `🔥${combo}` : `×${combo}`}
+                </span>
+              </div>
             </div>
           </div>
           <div style={{ height: 4, background: "var(--surface)", borderRadius: 4, overflow: "hidden" }}>
@@ -4000,7 +4005,7 @@ export default function WordGame() {
             {p.failed.length > 0 && (
               <button onClick={() => startReview(w)}
                 style={{ padding: "16px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", borderRadius: 18, color: "#EF4444", fontSize: 15, fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                🔁 틀린 단어 복습 <span style={{ background: "rgba(239,68,68,0.18)", borderRadius: 20, padding: "1px 8px", fontSize: 12 }}>{p.failed.length}개</span>
+                🔁 오답 복습 <span style={{ background: "rgba(239,68,68,0.18)", borderRadius: 20, padding: "1px 8px", fontSize: 12 }}>{p.failed.length}개</span>
               </button>
             )}
             <button onClick={() => setScreen(activeWorld?.isCustom ? "customVocab" : "map")}

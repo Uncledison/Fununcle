@@ -89,3 +89,34 @@ export function countDue(allowed: string[], now: number = Date.now()): number {
 export function learnedCount(): number {
   return Object.keys(load()).length;
 }
+
+// 다음 복습 알림을 언제·몇 개로 띄울지 계산.
+// 가장 이른 "미래 복습 예정" 단어를 찾아 그 날 저녁 7시로 보정한 시각과,
+// 그 시각까지 복습 예정이 되는 단어 수를 반환. 예정이 없으면 null.
+export function nextReviewReminder(
+  allowed: string[],
+  now: number = Date.now()
+): { at: number; count: number } | null {
+  const store = load();
+  const allow = new Set(allowed);
+
+  let earliestFuture = Infinity;
+  for (const en in store) {
+    if (!allow.has(en)) continue;
+    const due = store[en].due;
+    if (due > now && due < earliestFuture) earliestFuture = due;
+  }
+  if (earliestFuture === Infinity) return null;
+
+  // 알림은 그 날 저녁 7시에(공부하기 좋은 시간). 이미 지난 시각이면 원래 예정 시각 사용.
+  const d = new Date(earliestFuture);
+  d.setHours(19, 0, 0, 0);
+  let at = d.getTime();
+  if (at <= now) at = earliestFuture;
+
+  let count = 0;
+  for (const en in store) {
+    if (allow.has(en) && store[en].due <= at) count++;
+  }
+  return { at, count };
+}

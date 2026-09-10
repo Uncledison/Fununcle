@@ -1,4 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { isNativeApp } from './lib/notify';
 import { Home } from './pages/Home';
 import { HistoryGame } from './pages/HistoryGame';
 import { ShapeGame } from './pages/ShapeGame';
@@ -17,6 +19,18 @@ import { FeedbackModal } from './components/FeedbackModal';
 function AppRoutes() {
   useCopyProtection();
   usePageTracking(); // Google Analytics 페이지뷰 추적
+
+  // 안드로이드 앱(내장형)은 루트(/) 대신 영단어 화면(/english)에서 시작.
+  // 웹에서는 no-op(isNativeApp=false)이라 기존 라우팅에 영향 없음.
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (isNativeApp() && location.pathname === '/') {
+      navigate('/english', { replace: true });
+    }
+    // 최초 진입 시 1회만.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

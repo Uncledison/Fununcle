@@ -5,6 +5,7 @@ import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak, stopSpeak } from "../lib/pronunciation";
 import { recordSrs, getDueWords } from "../lib/srs";
+import { rescheduleReviewReminder, isNativeApp, scheduleTestNotification } from "../lib/notify";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState, clearLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
@@ -2068,6 +2069,8 @@ export default function WordGame() {
       ...customWorlds.flatMap(w => (w.words || []).map(x => x.en)),
     ];
     setDueEns(getDueWords(allEns));
+    // 네이티브 앱: 다음 복습 알림을 최신 일정으로 재예약(웹에서는 no-op).
+    rescheduleReviewReminder(allEns);
     // worlds는 매 렌더 새로 계산되므로 의존성에서 제외(무한루프 방지) — screen 전환마다 갱신.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, customWorlds]);
@@ -3482,6 +3485,15 @@ export default function WordGame() {
             </span>
           </span>
           <span style={{ color: "#3a1a00", fontWeight: 900, fontSize: 13, background: "rgba(255,255,255,0.5)", borderRadius: 20, padding: "5px 12px", whiteSpace: "nowrap" }}>지금 시작 ▶</span>
+        </button>
+      )}
+
+      {/* [임시/테스트 전용] 네이티브 앱에서만 보이는 알림 테스트 버튼. Play 배포 전 제거. */}
+      {isNativeApp() && (
+        <button
+          onClick={() => scheduleTestNotification()}
+          style={{ width: "calc(100% - 44px)", margin: "0 22px 14px", padding: "10px", background: "var(--surface)", border: "1px dashed var(--border)", borderRadius: 12, color: "var(--muted)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          🔔 알림 테스트 (8초 뒤 알림)
         </button>
       )}
 

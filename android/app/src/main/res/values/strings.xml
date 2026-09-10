@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">영단어 플래시카드</string>
+    <string name="title_activity_main">영단어 플래시카드</string>
+    <string name="package_name">com.uncledison.english</string>
+    <string name="custom_url_scheme">com.uncledison.english</string>
+</resources>

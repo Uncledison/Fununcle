@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak, stopSpeak } from "../lib/pronunciation";
+import { recordSrs, getDueWords } from "../lib/srs";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState, clearLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
@@ -2054,6 +2055,56 @@ export default function WordGame() {
     setScreen("game");
   };
 
+  // ── 오늘의 복습(SRS) ─────────────────────────────
+  // 예전에 학습한 단어 중 "복습 예정일이 된" 것만 모아 원탭으로 복습.
+  // 설정/통계 없이 화면엔 "오늘 복습 N개" 버튼 하나만 노출한다.
+  const [dueEns, setDueEns] = useState([]);
+
+  // 맵으로 돌아올 때마다(세션 종료 포함) 복습 대상 재계산.
+  useEffect(() => {
+    if (screen !== "map") return;
+    const allEns = [
+      ...worlds.flatMap(w => w.words.map(x => x.en)),
+      ...customWorlds.flatMap(w => (w.words || []).map(x => x.en)),
+    ];
+    setDueEns(getDueWords(allEns));
+    // worlds는 매 렌더 새로 계산되므로 의존성에서 제외(무한루프 방지) — screen 전환마다 갱신.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, customWorlds]);
+
+  const startDueReview = () => {
+    // 전 단어장(고정+커스텀)에서 en→단어객체 맵 구성
+    const byEn = {};
+    for (const wld of worlds) for (const x of wld.words) if (!byEn[x.en]) byEn[x.en] = x;
+    for (const wld of customWorlds) for (const x of (wld.words || [])) if (!byEn[x.en]) byEn[x.en] = x;
+
+    const q = dueEns.map(en => byEn[en]).filter(Boolean);
+    if (!q.length) return;
+
+    // 합성 복습 월드 — 게임 화면(w=activeWorld)이 참조하는 표시용 필드를 채워 UI 깨짐 방지.
+    setActiveWorld({
+      id: "__srs_daily__",
+      title: "오늘의 복습",
+      emoji: "📅",
+      color: "#FF8C00",
+      dark: "#C25E00",
+      type: "word",
+      words: q,
+    });
+    setActiveStage(0);
+    setQueue(shuffle(q));
+    setCardIdx(0);
+    setFlipped(false);
+    setSwipeDir(null);
+    setDragX(0);
+    setSessionCorrect(0);
+    setSessionTotal(0);
+    setCombo(0);
+    setIsReview(true);
+    processingRef.current = false;
+    setScreen("game");
+  };
+
   // ── 스와이프 티칭 애니메이션 (최초 1회) ──────────
   useEffect(() => {
     if (screen !== "game" || !queue[cardIdx] || cardIdx !== 0) return;
@@ -2108,21 +2159,28 @@ export default function WordGame() {
     setSessionCorrect(sc);
     setSessionTotal(st);
 
-    // progress — 즉시 계산해서 반영 (setProgress 비동기 문제 방지)
+    // SRS: 모든 채점을 망각곡선 스케줄러에 기록(보이지 않는 두뇌). 화면 변화 없음.
     const en         = queue[cardIdx].en;
-    const curProg    = progress.find(p => p.worldId === activeWorld.id);
-    const newMastered = correct
-      ? [...new Set([...curProg.mastered, en])]
-      : curProg.mastered.filter(w => w !== en);
-    const newFailed   = correct
-      ? curProg.failed.filter(w => w !== en)
-      : [...new Set([...curProg.failed, en])];
+    recordSrs(en, correct);
 
-    const updatedProgress = progress.map(p => {
-      if (p.worldId !== activeWorld.id) return p;
-      return { ...p, mastered: newMastered, failed: newFailed };
-    });
-    setProgress(updatedProgress);
+    // progress — 즉시 계산해서 반영 (setProgress 비동기 문제 방지)
+    // curProg가 없는 합성 월드(오늘의 복습 __srs_daily__)에서는 mastered/failed 갱신을 건너뜀.
+    const curProg    = progress.find(p => p.worldId === activeWorld.id);
+    let updatedProgress = progress;
+    if (curProg) {
+      const newMastered = correct
+        ? [...new Set([...curProg.mastered, en])]
+        : curProg.mastered.filter(w => w !== en);
+      const newFailed   = correct
+        ? curProg.failed.filter(w => w !== en)
+        : [...new Set([...curProg.failed, en])];
+
+      updatedProgress = progress.map(p => {
+        if (p.worldId !== activeWorld.id) return p;
+        return { ...p, mastered: newMastered, failed: newFailed };
+      });
+      setProgress(updatedProgress);
+    }
 
     setTimeout(() => {
       const nextIdx = cardIdx + 1;
@@ -3409,6 +3467,22 @@ export default function WordGame() {
           <span style={{ fontSize: 16 }}>🔥</span>
           <span style={{ color: "#FF6B00", fontWeight: 800, fontSize: 12 }}>{streak}연속 정답 스트릭 유지중!</span>
         </div>
+      )}
+
+      {/* 오늘의 복습(SRS) — 예정된 복습이 있을 때만 노출. 원탭 시작. */}
+      {dueEns.length > 0 && (
+        <button
+          onClick={startDueReview}
+          style={{ width: "calc(100% - 44px)", margin: "0 22px 14px", padding: "14px 18px", background: "linear-gradient(135deg,#FFB800,#FF6B00)", border: "none", borderRadius: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, boxShadow: "0 4px 16px rgba(255,107,0,0.28)" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>📅</span>
+            <span style={{ textAlign: "left" }}>
+              <span style={{ display: "block", color: "#3a1a00", fontWeight: 900, fontSize: 15 }}>오늘 복습할 단어 {dueEns.length}개</span>
+              <span style={{ display: "block", color: "rgba(58,26,0,0.72)", fontWeight: 700, fontSize: 11, marginTop: 1 }}>기억이 흐려지기 전에 한 번 더!</span>
+            </span>
+          </span>
+          <span style={{ color: "#3a1a00", fontWeight: 900, fontSize: 13, background: "rgba(255,255,255,0.5)", borderRadius: 20, padding: "5px 12px", whiteSpace: "nowrap" }}>지금 시작 ▶</span>
+        </button>
       )}
 
       {/* 월드 카드 */}

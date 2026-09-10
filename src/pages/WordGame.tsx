@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageSeo } from "../hooks/usePageSeo";
 import { usePwaManifest } from "../hooks/usePwaManifest";
 import { speak, stopSpeak } from "../lib/pronunciation";
-import { recordSrs, getDueWords, seedDemoDue } from "../lib/srs";
+import { recordSrs, getDueWords } from "../lib/srs";
 import { supabase } from "../lib/supabase";
 import { pullCloud, pushCloud, applyLocalState, clearLocalState } from "../lib/cloudSync";
 import { ensureHandle, lookupUser, acceptInvite, listConnections, sendSet, listInbox, deleteTransfer, removeConnection } from "../lib/sharing";
@@ -2059,20 +2059,6 @@ export default function WordGame() {
   // 예전에 학습한 단어 중 "복습 예정일이 된" 것만 모아 원탭으로 복습.
   // 설정/통계 없이 화면엔 "오늘 복습 N개" 버튼 하나만 노출한다.
   const [dueEns, setDueEns] = useState([]);
-  const [srsSeeded, setSrsSeeded] = useState(false);
-
-  // [임시/데모 전용] ?srsdemo=1 로 접속하면 첫 월드 단어 몇 개를 즉시 복습 대상으로 시드.
-  // 폰에서 진입점을 바로 확인하기 위함. 실서비스 배포 전 이 블록과 seedDemoDue를 제거한다.
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("srsdemo") === "1") {
-        const demoEns = (WORLDS[0]?.words || []).slice(0, 6).map(x => x.en);
-        seedDemoDue(demoEns);
-        setSrsSeeded(true);
-      }
-    } catch (e) { /* noop */ }
-  }, []);
 
   // 맵으로 돌아올 때마다(세션 종료 포함) 복습 대상 재계산.
   useEffect(() => {
@@ -2084,7 +2070,7 @@ export default function WordGame() {
     setDueEns(getDueWords(allEns));
     // worlds는 매 렌더 새로 계산되므로 의존성에서 제외(무한루프 방지) — screen 전환마다 갱신.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, customWorlds, srsSeeded]);
+  }, [screen, customWorlds]);
 
   const startDueReview = () => {
     // 전 단어장(고정+커스텀)에서 en→단어객체 맵 구성

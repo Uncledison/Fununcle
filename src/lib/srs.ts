@@ -89,15 +89,3 @@ export function countDue(allowed: string[], now: number = Date.now()): number {
 export function learnedCount(): number {
   return Object.keys(load()).length;
 }
-
-// [임시/데모 전용] 주어진 단어들을 "이미 복습 예정이 지난" 상태로 시드한다.
-// 폰에서 '오늘 복습' 진입점을 즉시 확인하기 위한 테스트 장치. 실서비스 배포 전 제거 예정.
-export function seedDemoDue(ens: string[], now: number = Date.now()): void {
-  if (!ens || !ens.length) return;
-  const store = load();
-  for (const en of ens) {
-    if (!en) continue;
-    store[en] = { ef: 2.3, reps: 1, interval: 1, due: now - 60 * 1000, last: now - DAY };
-  }
-  save(store);
-}

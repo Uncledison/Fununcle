@@ -1206,11 +1206,14 @@
                             triggerFlashEffect();
                             AudioEngine.playWrong();
                             spawnTextAlert("LIFE -1", stone.x, stone.y, "#ff3b30", false);
-                            playerStone.vx *= -0.55;
-                            playerStone.vy *= -0.55;
+
+                            // 같은 오답 돌에 여러 프레임 연속으로 겹쳐 목숨이 한번에 여러 개 깎이는 것을 방지
+                            playerStone.isLaunched = false;
 
                             if (lives <= 0) {
                                 endGame();
+                            } else {
+                                resetPlayerStone();
                             }
                         }
                         break;

@@ -1131,7 +1131,7 @@
         function triggerFlashEffect() {
             const el = document.getElementById('damageFlash');
             el.style.opacity = '1';
-            setTimeout(() => el.style.opacity = '0', 90);
+            setTimeout(() => el.style.opacity = '0', 60);
         }
 
         function updatePhysics() {
@@ -1202,7 +1202,7 @@
                             combo = 0;
                             lives--;
                             updateLivesDisplay();
-                            shakeFrames = 16;
+                            shakeFrames = 8;
                             triggerFlashEffect();
                             AudioEngine.playWrong();
                             spawnTextAlert("LIFE -1", stone.x, stone.y, "#ff3b30", false);

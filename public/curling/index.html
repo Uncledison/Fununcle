@@ -397,7 +397,7 @@
             <div class="brand-zone">
                 <span class="badge">High-End Edition</span>
                 <h1 class="main-title">태극 수학 컬링</h1>
-                <p class="sub-title">목숨 3개 + 전략적 방해돌 시스템</p>
+                <p class="sub-title">난이도별 목숨 시스템 + 전략적 방해돌</p>
             </div>
 
             <div class="logo-wrapper">
@@ -481,7 +481,7 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button onclick="restartGame()" class="action-btn btn-primary">다시 플레이</button>
+                    <button onclick="restartGame()" class="action-btn btn-primary">현재 스테이지 재도전</button>
                     <button onclick="exitToLobby()" class="action-btn btn-secondary">메인 메뉴로</button>
                 </div>
             </div>
@@ -501,13 +501,16 @@
     </div>
 
     <script>
-        let currentOperator = 'all';
+        let currentOperator = '+';
         let difficulty = 'medium';
         let score = 0;
         let combo = 0;
         let gameLevel = 1;
         let levelProgress = 0;
         const REQ_PROGRESS = 3;
+
+        const LIFE_CONFIG = { easy: 10, medium: 5, hard: 3 };
+        function getInitialLives() { return LIFE_CONFIG[difficulty]; }
 
         let lives = 3;
         let isGameOver = false;
@@ -520,6 +523,10 @@
         const VIEW_HEIGHT = 800;
         const WALL_LEFT = 28;
         const WALL_RIGHT = VIEW_WIDTH - 28;
+        const WALL_TOP = 28;
+
+        const STONE_RADIUS = 38 * 2 / 3;
+        const PLAYER_RADIUS = 36 * 2 / 3;
 
         let scale = 1;
         let offsetX = 0;
@@ -549,7 +556,7 @@
             basic: [{ x: 80, y: 240 }, { x: 175, y: 185 }, { x: 270, y: 155 }, { x: 365, y: 185 }, { x: 460, y: 240 }],
             vShape: [{ x: 70, y: 265 }, { x: 160, y: 210 }, { x: 270, y: 160 }, { x: 380, y: 210 }, { x: 470, y: 265 }],
             stairs: [{ x: 90, y: 245 }, { x: 170, y: 215 }, { x: 250, y: 185 }, { x: 330, y: 155 }, { x: 410, y: 135 }],
-            cluster: [{ x: 180, y: 200 }, { x: 230, y: 170 }, { x: 270, y: 195 }, { x: 310, y: 165 }, { x: 360, y: 205 }],
+            cluster: [{ x: 160, y: 210 }, { x: 230, y: 165 }, { x: 280, y: 205 }, { x: 330, y: 160 }, { x: 400, y: 210 }],
             circle: [{ x: 270, y: 135 }, { x: 180, y: 195 }, { x: 360, y: 195 }, { x: 200, y: 255 }, { x: 340, y: 255 }],
             mountain: [{ x: 80, y: 170 }, { x: 160, y: 225 }, { x: 270, y: 265 }, { x: 380, y: 225 }, { x: 460, y: 170 }],
             zigzag: [{ x: 70, y: 165 }, { x: 150, y: 235 }, { x: 270, y: 170 }, { x: 390, y: 235 }, { x: 470, y: 165 }],
@@ -812,7 +819,7 @@
             lastCorrectSlot = correctIdx;
 
             targetStones = positions.map((pos, i) => ({
-                x: pos.x, y: pos.y, radius: 38,
+                x: pos.x, y: pos.y, radius: STONE_RADIUS,
                 value: allValues[i],
                 isCorrect: allValues[i] === currentQuestion.answer
             }));
@@ -823,7 +830,7 @@
 
         function resetPlayerStone() {
             playerStone = {
-                x: VIEW_WIDTH / 2, y: VIEW_HEIGHT - 125, radius: 36,
+                x: VIEW_WIDTH / 2, y: VIEW_HEIGHT - 125, radius: PLAYER_RADIUS,
                 isLaunched: false, vx: 0, vy: 0, angle: 0, targetAngleVelocity: 0, trail: []
             };
             isDragging = false;
@@ -885,8 +892,8 @@
         }
 
         function isPositionValid(x, y, radius) {
-            // 컬링볼 지름의 1.5배 이상 거리 (약 108px)
-            const minDist = 38 + radius + 72 * 1.5;
+            // 컬링볼 지름의 1.5배 이상 거리
+            const minDist = STONE_RADIUS + radius + PLAYER_RADIUS * 2 * 1.5;
             for (let stone of targetStones) {
                 const dx = x - stone.x;
                 const dy = y - stone.y;
@@ -928,17 +935,19 @@
                     }
                     attempts++;
                 }
-                // 이동돌
-                attempts = 0;
-                placed = false;
-                while (!placed && attempts < 60) {
-                    const x = 80 + Math.random() * 70;
-                    const y = 410 + Math.random() * 90;
-                    if (isPositionValid(x, y, 15)) {
-                        obstacles.push({ x, y, radius: 15, vx: (Math.random() > 0.5 ? 1.15 : -1.15) * 1.05, type: 'moving' });
-                        placed = true;
+                // 이동돌 (이지 모드 제외)
+                if (difficulty !== 'easy') {
+                    attempts = 0;
+                    placed = false;
+                    while (!placed && attempts < 60) {
+                        const x = 80 + Math.random() * 70;
+                        const y = 410 + Math.random() * 90;
+                        if (isPositionValid(x, y, 15)) {
+                            obstacles.push({ x, y, radius: 15, vx: (Math.random() > 0.5 ? 1.15 : -1.15) * 1.05, type: 'moving' });
+                            placed = true;
+                        }
+                        attempts++;
                     }
-                    attempts++;
                 }
             }
 
@@ -956,16 +965,18 @@
                         attempts++;
                     }
                 }
-                let attempts = 0;
-                let placed = false;
-                while (!placed && attempts < 60) {
-                    const x = 70 + Math.random() * 60;
-                    const y = 440 + Math.random() * 80;
-                    if (isPositionValid(x, y, 14)) {
-                        obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.25 : 1.25) * 1.1, type: 'moving' });
-                        placed = true;
+                if (difficulty !== 'easy') {
+                    let attempts = 0;
+                    let placed = false;
+                    while (!placed && attempts < 60) {
+                        const x = 70 + Math.random() * 60;
+                        const y = 440 + Math.random() * 80;
+                        if (isPositionValid(x, y, 14)) {
+                            obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.25 : 1.25) * 1.1, type: 'moving' });
+                            placed = true;
+                        }
+                        attempts++;
                     }
-                    attempts++;
                 }
             }
 
@@ -987,17 +998,19 @@
                     }
                 }
 
-                for (let i = 0; i < movingCount; i++) {
-                    let attempts = 0;
-                    let placed = false;
-                    while (!placed && attempts < 60) {
-                        const x = 60 + Math.random() * 90;
-                        const y = 390 + Math.random() * 130;
-                        if (isPositionValid(x, y, 14)) {
-                            obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.35 : 1.35) * (1.05 + gameLevel * 0.02), type: 'moving' });
-                            placed = true;
+                if (difficulty !== 'easy') {
+                    for (let i = 0; i < movingCount; i++) {
+                        let attempts = 0;
+                        let placed = false;
+                        while (!placed && attempts < 60) {
+                            const x = 60 + Math.random() * 90;
+                            const y = 390 + Math.random() * 130;
+                            if (isPositionValid(x, y, 14)) {
+                                obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.35 : 1.35) * (1.05 + gameLevel * 0.02), type: 'moving' });
+                                placed = true;
+                            }
+                            attempts++;
                         }
-                        attempts++;
                     }
                 }
             }
@@ -1018,24 +1031,13 @@
         function checkObstacleCollisions() {
             if (!playerStone || !playerStone.isLaunched) return;
 
-            obstacles.forEach(obs => {
+            for (let obs of obstacles) {
                 const dx = playerStone.x - obs.x;
                 const dy = playerStone.y - obs.y;
                 const dist = Math.hypot(dx, dy);
                 const minDist = playerStone.radius + obs.radius + 2;
 
                 if (dist < minDist && dist > 0.1) {
-                    const nx = dx / dist;
-                    const ny = dy / dist;
-                    const overlap = minDist - dist;
-
-                    playerStone.x += nx * overlap * 0.6;
-                    playerStone.y += ny * overlap * 0.6;
-
-                    const dot = playerStone.vx * nx + playerStone.vy * ny;
-                    playerStone.vx -= 2 * dot * nx * 0.92;
-                    playerStone.vy -= 2 * dot * ny * 0.92;
-
                     const isMoving = obs.type === 'moving';
                     const pCount = isMoving ? 12 : 8;
                     const pColor = isMoving ? '#00d4ff' : '#6c6c70';
@@ -1054,8 +1056,11 @@
                     }
 
                     AudioEngine.playSweep();
+                    // 장애물에 맞으면 튕겨나오는 즉시 다시 세팅해 연속 조준을 막는다
+                    resetPlayerStone();
+                    break;
                 }
-            });
+            }
         }
 
         function triggerFlashEffect() {
@@ -1069,6 +1074,8 @@
                 dilationTimer--;
                 if (dilationTimer <= 0) timeDilation = 1.0;
             }
+
+            updateObstacles();
 
             if (playerStone && playerStone.isLaunched) {
                 playerStone.x += playerStone.vx * timeDilation;
@@ -1089,11 +1096,14 @@
                     playerStone.x = WALL_RIGHT - playerStone.radius;
                     playerStone.vx = -Math.abs(playerStone.vx) * 0.92;
                 }
+                if (playerStone.y < WALL_TOP + playerStone.radius) {
+                    playerStone.y = WALL_TOP + playerStone.radius;
+                    playerStone.vy = Math.abs(playerStone.vy) * 0.92;
+                }
 
                 if (Math.hypot(playerStone.vx, playerStone.vy) < 0.12) resetPlayerStone();
-                if (playerStone.y < -20 || playerStone.y > VIEW_HEIGHT + 20) resetPlayerStone();
+                if (playerStone.y > VIEW_HEIGHT + 20) resetPlayerStone();
 
-                updateObstacles();
                 checkObstacleCollisions();
 
                 for (let i = targetStones.length - 1; i >= 0; i--) {
@@ -1149,6 +1159,11 @@
             levelProgress = 0;
             isLevelingUp = true;
             shakeFrames = 30;
+
+            // 스테이지를 넘기면 목숨을 보너스로 회복 (초기 목숨 개수를 넘지 않음)
+            const lifeBonus = difficulty === 'easy' ? 2 : 1;
+            lives = Math.min(getInitialLives(), lives + lifeBonus);
+            updateLivesDisplay();
             if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
             AudioEngine.playLevelUp();
             if (gameLevel === 5) {
@@ -1321,7 +1336,7 @@
                 ctx.fillStyle = stoneGrad; ctx.fill();
 
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, sans-serif";
+                ctx.font = "bold 18px -apple-system, BlinkMacSystemFont, sans-serif";
                 ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 ctx.fillText(stone.value, 0, 1);
                 ctx.restore();
@@ -1453,7 +1468,7 @@
 
         function startGame() {
             score = 0; combo = 0; gameLevel = 1; levelProgress = 0;
-            lives = 3;
+            lives = getInitialLives();
             isGameOver = false;
             isLevelingUp = false;
             timeDilation = 1.0; dilationTimer = 0;
@@ -1490,7 +1505,23 @@
 
         function restartGame() {
             document.getElementById('gameOverModal').classList.add('hidden');
-            startGame();
+
+            // 처음부터가 아니라 죽었던 스테이지에서 목숨만 회복해 재도전
+            lives = getInitialLives();
+            combo = 0;
+            levelProgress = 0;
+            isGameOver = false;
+            isLevelingUp = false;
+            timeDilation = 1.0; dilationTimer = 0;
+            particles = []; textAlerts = [];
+
+            updateHUD();
+            resizeCanvas();
+            initGameObjects();
+            AudioEngine.playBgm(gameLevel >= 5 ? 2 : 1);
+
+            if (loopId) cancelAnimationFrame(loopId);
+            gameLoop();
         }
 
         function exitToLobby() {
@@ -1545,6 +1576,7 @@
 
                 let wallT = Infinity;
                 let wallHitX = 0, wallHitY = 0;
+                let wallSide = null;
                 if (currentVX < 0) {
                     wallT = (WALL_LEFT - currentX) / currentVX;
                     if (wallT > 0.01 && wallT < closestT) {
@@ -1553,6 +1585,7 @@
                         wallHitY = currentY + currentVY * wallT;
                         hitType = 'wall';
                         hitObstacle = null;
+                        wallSide = 'x';
                     }
                 } else if (currentVX > 0) {
                     wallT = (WALL_RIGHT - currentX) / currentVX;
@@ -1562,6 +1595,19 @@
                         wallHitY = currentY + currentVY * wallT;
                         hitType = 'wall';
                         hitObstacle = null;
+                        wallSide = 'x';
+                    }
+                }
+
+                if (currentVY < 0) {
+                    const topT = (WALL_TOP - currentY) / currentVY;
+                    if (topT > 0.01 && topT < closestT) {
+                        closestT = topT;
+                        wallHitY = WALL_TOP;
+                        wallHitX = currentX + currentVX * topT;
+                        hitType = 'wall';
+                        hitObstacle = null;
+                        wallSide = 'y';
                     }
                 }
 
@@ -1585,7 +1631,11 @@
                 currentY = endY;
 
                 if (hitType === 'wall') {
-                    currentVX = -currentVX;
+                    if (wallSide === 'y') {
+                        currentVY = -currentVY;
+                    } else {
+                        currentVX = -currentVX;
+                    }
                 } else if (hitType === 'obstacle' && hitObstacle) {
                     const nx = (endX - hitObstacle.x) / hitObstacle.radius;
                     const ny = (endY - hitObstacle.y) / hitObstacle.radius;

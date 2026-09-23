@@ -53,7 +53,7 @@
             z-index: 20;
             display: flex;
             flex-direction: column;
-            padding: 40px 28px;
+            padding: 24px 28px;
             background: linear-gradient(180deg, #e3f1f9 0%, #ffffff 100%);
             overflow-y: auto;
         }
@@ -76,29 +76,23 @@
             margin-bottom: 16px;
         }
         .main-title {
-            font-size: 34px;
+            font-size: 26px;
             font-weight: 800;
             letter-spacing: -0.04em;
             color: #1d1d1f;
-        }
-        .sub-title {
-            color: #86868b;
-            font-size: 14px;
-            margin-top: 8px;
-            font-weight: 400;
         }
 
         .logo-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 50px 0;
+            margin: 16px 0;
             flex-shrink: 0;
         }
         .cinema-logo {
-            width: 130px;
-            height: 130px;
-            border-radius: 34px;
+            width: 88px;
+            height: 88px;
+            border-radius: 24px;
             background: #ffffff;
             border: 1px solid rgba(0, 0, 0, 0.04);
             display: flex;
@@ -107,8 +101,8 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.05);
         }
         .taegeuk-core {
-            width: 70px;
-            height: 70px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             position: relative;
             overflow: hidden;
@@ -239,28 +233,43 @@
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 0 24px;
+            padding: 0 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            height: 72px;
+            height: 60px;
             flex-shrink: 0;
             z-index: 30;
+            gap: 6px;
         }
-        .back-btn {
-            background: none;
+        .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
             border: none;
-            color: #007aff;
+            background: rgba(0, 0, 0, 0.04);
+            color: #1d1d1f;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-weight: 500;
+            flex-shrink: 0;
+            padding: 0;
         }
-        
+        .icon-btn.accent { color: #007aff; background: rgba(0, 122, 255, 0.08); }
+
         .hud-stats {
             display: flex;
             align-items: center;
-            gap: 32px;
+            gap: 16px;
         }
         .stat-group {
             display: flex;
@@ -273,18 +282,24 @@
             color: #86868b;
         }
         .stat-value {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #1d1d1f;
+            white-space: nowrap;
         }
         .stat-value.level { color: #34c759; }
 
         .lives {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 22px;
+            gap: 4px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ff3b30;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
+        .lives .heart-icon { font-size: 17px; }
 
         .question-bar {
             background: rgba(255,255,255,0.95);
@@ -454,7 +469,6 @@
             <div class="brand-zone">
                 <span class="badge">High-End Edition</span>
                 <h1 class="main-title">태극 수학 컬링</h1>
-                <p class="sub-title">난이도별 목숨 시스템 + 전략적 방해돌</p>
             </div>
 
             <div class="logo-wrapper">
@@ -500,9 +514,10 @@
         <!-- INGAME -->
         <div id="playScreen" class="screen hidden" style="padding: 0; overflow: hidden;">
             <div class="hud-top">
-                <div style="display:flex; gap:12px; align-items:center;">
-                    <button onclick="exitToLobby()" class="back-btn">◀ 종료</button>
-                    <button id="muteBtn" onclick="AudioEngine.toggleMute()" class="back-btn" style="font-size:16px; margin-top: -2px;">🔊</button>
+                <div class="hud-left">
+                    <button onclick="exitToLobby()" class="icon-btn" title="종료">✕</button>
+                    <button id="pauseBtn" onclick="togglePause()" class="icon-btn accent" title="일시정지">⏸</button>
+                    <button id="muteBtn" onclick="AudioEngine.toggleMute()" class="icon-btn" title="음소거">🔊</button>
                 </div>
                 <div class="hud-stats">
                     <div class="stat-group">
@@ -514,7 +529,7 @@
                         <p id="hudScore" class="stat-value">0</p>
                     </div>
                 </div>
-                <div class="lives" id="hudLives">❤️ ❤️ ❤️</div>
+                <div class="lives"><span class="heart-icon">❤️</span><span id="hudLives">3</span></div>
             </div>
 
             <div class="question-bar">
@@ -563,6 +578,18 @@
             </div>
         </div>
 
+        <!-- PAUSE -->
+        <div id="pauseModal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <h2 class="modal-title">일시정지</h2>
+                <p style="color:#86868b; font-size:13px; margin: 10px 0 28px;">잠시 쉬어가도 좋아요</p>
+                <div class="modal-actions">
+                    <button onclick="resumeGame()" class="action-btn btn-primary">계속하기</button>
+                    <button onclick="exitToLobby()" class="action-btn btn-secondary">메인 메뉴로</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -580,6 +607,8 @@
         let lives = 3;
         let isGameOver = false;
         let isLevelingUp = false;
+        let isPaused = false;
+        let missBounceTimer = 0;
 
         let canvas = null;
         let ctx = null;
@@ -886,7 +915,8 @@
             targetStones = positions.map((pos, i) => ({
                 x: pos.x, y: pos.y, radius: STONE_RADIUS,
                 value: allValues[i],
-                isCorrect: allValues[i] === currentQuestion.answer
+                isCorrect: allValues[i] === currentQuestion.answer,
+                cooldown: 0
             }));
 
             resetPlayerStone();
@@ -899,6 +929,7 @@
                 isLaunched: false, vx: 0, vy: 0, angle: 0, targetAngleVelocity: 0, trail: []
             };
             isDragging = false;
+            missBounceTimer = 0;
         }
 
         function getCanvasMousePos(e) {
@@ -913,7 +944,7 @@
 
         function bindEvents() {
             const onDown = (e) => {
-                if (isGameOver || isLevelingUp || !playerStone || playerStone.isLaunched) return;
+                if (isGameOver || isLevelingUp || isPaused || !playerStone || playerStone.isLaunched) return;
                 const pos = getCanvasMousePos(e);
                 if (Math.hypot(pos.x - playerStone.x, pos.y - playerStone.y) < playerStone.radius + 35) {
                     isDragging = true;
@@ -980,7 +1011,7 @@
                     const x = 200 + Math.random() * 140;
                     const y = 230 + Math.random() * 80;
                     if (isPositionValid(x, y, 15)) {
-                        obstacles.push({ x, y, radius: 15, vx: 0, type: 'fixed' });
+                        obstacles.push({ x, y, radius: 15, vx: 0, type: 'fixed', hitCooldown: 0 });
                         placed = true;
                     }
                     attempts++;
@@ -995,7 +1026,7 @@
                     const x = 190 + Math.random() * 110;
                     const y = 225 + Math.random() * 70;
                     if (isPositionValid(x, y, 15)) {
-                        obstacles.push({ x, y, radius: 15, vx: 0, type: 'fixed' });
+                        obstacles.push({ x, y, radius: 15, vx: 0, type: 'fixed', hitCooldown: 0 });
                         placed = true;
                     }
                     attempts++;
@@ -1008,7 +1039,7 @@
                         const x = 80 + Math.random() * 70;
                         const y = 410 + Math.random() * 90;
                         if (isPositionValid(x, y, 15)) {
-                            obstacles.push({ x, y, radius: 15, vx: (Math.random() > 0.5 ? 1.15 : -1.15) * 1.05, type: 'moving' });
+                            obstacles.push({ x, y, radius: 15, vx: (Math.random() > 0.5 ? 1.15 : -1.15) * 1.05, type: 'moving', hitCooldown: 0 });
                             placed = true;
                         }
                         attempts++;
@@ -1024,7 +1055,7 @@
                         const x = 140 + Math.random() * 260;
                         const y = 215 + Math.random() * 90;
                         if (isPositionValid(x, y, 14)) {
-                            obstacles.push({ x, y, radius: 14, vx: 0, type: 'fixed' });
+                            obstacles.push({ x, y, radius: 14, vx: 0, type: 'fixed', hitCooldown: 0 });
                             placed = true;
                         }
                         attempts++;
@@ -1037,7 +1068,7 @@
                         const x = 70 + Math.random() * 60;
                         const y = 440 + Math.random() * 80;
                         if (isPositionValid(x, y, 14)) {
-                            obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.25 : 1.25) * 1.1, type: 'moving' });
+                            obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.25 : 1.25) * 1.1, type: 'moving', hitCooldown: 0 });
                             placed = true;
                         }
                         attempts++;
@@ -1056,7 +1087,7 @@
                         const x = 140 + Math.random() * (VIEW_WIDTH - 280);
                         const y = 200 + Math.random() * 160;
                         if (isPositionValid(x, y, 14)) {
-                            obstacles.push({ x, y, radius: 14, vx: 0, type: 'fixed' });
+                            obstacles.push({ x, y, radius: 14, vx: 0, type: 'fixed', hitCooldown: 0 });
                             placed = true;
                         }
                         attempts++;
@@ -1071,7 +1102,7 @@
                             const x = 60 + Math.random() * 90;
                             const y = 390 + Math.random() * 130;
                             if (isPositionValid(x, y, 14)) {
-                                obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.35 : 1.35) * (1.05 + gameLevel * 0.02), type: 'moving' });
+                                obstacles.push({ x, y, radius: 14, vx: (Math.random() > 0.5 ? -1.35 : 1.35) * (1.05 + gameLevel * 0.02), type: 'moving', hitCooldown: 0 });
                                 placed = true;
                             }
                             attempts++;
@@ -1083,6 +1114,7 @@
 
         function updateObstacles() {
             obstacles.forEach(obs => {
+                if (obs.hitCooldown > 0) obs.hitCooldown--;
                 if (obs.type === 'moving') {
                     obs.x += obs.vx * timeDilation;
                     if (obs.x - obs.radius < WALL_LEFT || obs.x + obs.radius > WALL_RIGHT) {
@@ -1093,16 +1125,33 @@
             });
         }
 
+        // 장애물/오답 돌에 맞아 튕겨나가는 동안 최대 이만큼(프레임) 후 강제로 리셋
+        const MISS_BOUNCE_FRAMES = 120;
+
         function checkObstacleCollisions() {
             if (!playerStone || !playerStone.isLaunched) return;
 
             for (let obs of obstacles) {
+                if (obs.hitCooldown > 0) continue;
                 const dx = playerStone.x - obs.x;
                 const dy = playerStone.y - obs.y;
                 const dist = Math.hypot(dx, dy);
                 const minDist = playerStone.radius + obs.radius + 2;
 
                 if (dist < minDist && dist > 0.1) {
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const overlap = minDist - dist;
+
+                    // 튕겨나가면서 다른 돌을 맞출 수 있도록 즉시 리셋하지 않고 반사시킨다
+                    playerStone.x += nx * overlap;
+                    playerStone.y += ny * overlap;
+                    const dot = playerStone.vx * nx + playerStone.vy * ny;
+                    playerStone.vx -= 2 * dot * nx * 0.9;
+                    playerStone.vy -= 2 * dot * ny * 0.9;
+
+                    obs.hitCooldown = 14;
+
                     const isMoving = obs.type === 'moving';
                     const pCount = isMoving ? 12 : 8;
                     const pColor = isMoving ? '#00d4ff' : '#6c6c70';
@@ -1119,10 +1168,23 @@
                             decay: 0.08
                         });
                     }
-
                     AudioEngine.playSweep();
-                    // 장애물에 맞으면 튕겨나오는 즉시 다시 세팅해 연속 조준을 막는다
-                    resetPlayerStone();
+
+                    // 움직이는 방해돌에 맞으면 정답을 못 맞춘 것과 같으므로 목숨을 잃는다
+                    if (isMoving) {
+                        combo = 0;
+                        lives--;
+                        updateLivesDisplay();
+                        shakeFrames = 8;
+                        triggerFlashEffect();
+                        AudioEngine.playWrong();
+                        spawnTextAlert("LIFE -1", obs.x, obs.y, "#ff3b30", false);
+                        missBounceTimer = MISS_BOUNCE_FRAMES;
+                        if (lives <= 0) {
+                            endGame();
+                            return;
+                        }
+                    }
                     break;
                 }
             }
@@ -1141,6 +1203,7 @@
             }
 
             updateObstacles();
+            targetStones.forEach(s => { if (s.cooldown > 0) s.cooldown--; });
 
             if (playerStone && playerStone.isLaunched) {
                 playerStone.x += playerStone.vx * timeDilation;
@@ -1173,8 +1236,11 @@
 
                 for (let i = targetStones.length - 1; i >= 0; i--) {
                     const stone = targetStones[i];
-                    const dist = Math.hypot(stone.x - playerStone.x, stone.y - playerStone.y);
-                    if (dist < playerStone.radius + stone.radius) {
+                    const dx = stone.x - playerStone.x;
+                    const dy = stone.y - playerStone.y;
+                    const dist = Math.hypot(dx, dy);
+                    const minDist = playerStone.radius + stone.radius;
+                    if (dist < minDist) {
                         if (stone.isCorrect) {
                             combo++;
                             levelProgress++;
@@ -1199,25 +1265,43 @@
                                 setTimeout(() => { if (!isGameOver && !isLevelingUp) initGameObjects(); }, 380);
                             }
                         } else {
-                            combo = 0;
-                            lives--;
-                            updateLivesDisplay();
-                            shakeFrames = 8;
-                            triggerFlashEffect();
-                            AudioEngine.playWrong();
-                            spawnTextAlert("LIFE -1", stone.x, stone.y, "#ff3b30", false);
+                            // 오답 돌은 사라지지 않고 튕겨나가며, 그 여세로 다른 돌을 맞출 수도 있다.
+                            // 같은 돌에 여러 프레임 연속으로 겹쳐 목숨이 한번에 여러 개 깎이는 것은 쿨다운으로 방지.
+                            if (dist > 0.1) {
+                                const nx = -dx / dist;
+                                const ny = -dy / dist;
+                                const overlap = minDist - dist;
+                                playerStone.x += nx * overlap;
+                                playerStone.y += ny * overlap;
+                                const dot = playerStone.vx * nx + playerStone.vy * ny;
+                                playerStone.vx -= 2 * dot * nx * 0.9;
+                                playerStone.vy -= 2 * dot * ny * 0.9;
+                            }
 
-                            // 같은 오답 돌에 여러 프레임 연속으로 겹쳐 목숨이 한번에 여러 개 깎이는 것을 방지
-                            playerStone.isLaunched = false;
+                            if (stone.cooldown <= 0) {
+                                combo = 0;
+                                lives--;
+                                updateLivesDisplay();
+                                shakeFrames = 8;
+                                triggerFlashEffect();
+                                AudioEngine.playWrong();
+                                spawnTextAlert("LIFE -1", stone.x, stone.y, "#ff3b30", false);
+                                stone.cooldown = 20;
+                                missBounceTimer = MISS_BOUNCE_FRAMES;
 
-                            if (lives <= 0) {
-                                endGame();
-                            } else {
-                                resetPlayerStone();
+                                if (lives <= 0) {
+                                    endGame();
+                                    return;
+                                }
                             }
                         }
                         break;
                     }
+                }
+
+                if (missBounceTimer > 0) {
+                    missBounceTimer--;
+                    if (missBounceTimer <= 0) resetPlayerStone();
                 }
             }
         }
@@ -1286,7 +1370,7 @@
         function updateLivesDisplay() {
             const livesEl = document.getElementById('hudLives');
             if (livesEl) {
-                livesEl.innerHTML = '❤️ '.repeat(lives).trim();
+                livesEl.textContent = Math.max(lives, 0);
             }
         }
 
@@ -1529,9 +1613,35 @@
         let loopId = null;
         function gameLoop() {
             if (isGameOver) return;
+            if (isPaused) {
+                loopId = requestAnimationFrame(gameLoop);
+                return;
+            }
             if (!isLevelingUp) updatePhysics();
             render();
             loopId = requestAnimationFrame(gameLoop);
+        }
+
+        function togglePause() {
+            if (isPaused) resumeGame(); else pauseGame();
+        }
+
+        function pauseGame() {
+            if (isGameOver || isLevelingUp || isPaused || !document.getElementById('playScreen') || document.getElementById('playScreen').classList.contains('hidden')) return;
+            isPaused = true;
+            document.getElementById('pauseModal').classList.remove('hidden');
+            document.getElementById('pauseBtn').innerText = '▶';
+            if (AudioEngine.currentBgm) AudioEngine.currentBgm.pause();
+        }
+
+        function resumeGame() {
+            if (!isPaused) return;
+            isPaused = false;
+            document.getElementById('pauseModal').classList.add('hidden');
+            document.getElementById('pauseBtn').innerText = '⏸';
+            if (AudioEngine.currentBgm && !AudioEngine.isMuted) {
+                AudioEngine.currentBgm.play().catch(() => {});
+            }
         }
 
         function startGame() {
@@ -1539,6 +1649,7 @@
             lives = getInitialLives();
             isGameOver = false;
             isLevelingUp = false;
+            isPaused = false;
             timeDilation = 1.0; dilationTimer = 0;
             particles = []; textAlerts = []; obstacles = [];
             lastPatternKey = null;
@@ -1580,6 +1691,7 @@
             levelProgress = 0;
             isGameOver = false;
             isLevelingUp = false;
+            isPaused = false;
             timeDilation = 1.0; dilationTimer = 0;
             particles = []; textAlerts = [];
 
@@ -1595,11 +1707,14 @@
         function exitToLobby() {
             isGameOver = true;
             isLevelingUp = false;
+            isPaused = false;
             AudioEngine.stopBgm();
             if (loopId) cancelAnimationFrame(loopId);
             document.getElementById('playScreen').classList.add('hidden');
             document.getElementById('gameOverModal').classList.add('hidden');
             document.getElementById('levelUpModal').classList.add('hidden');
+            document.getElementById('pauseModal').classList.add('hidden');
+            document.getElementById('pauseBtn').innerText = '⏸';
             document.getElementById('lobbyScreen').classList.remove('hidden');
         }
 

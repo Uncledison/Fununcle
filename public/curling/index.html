@@ -1206,6 +1206,15 @@
             return true;
         }
 
+        // 정답을 못 맞히고 발사가 끝나면 무조건 목숨 1개 차감(이미 이번 발사에서 차감됐으면 중복 없음)
+        function endShotAsMiss() {
+            if (!playerStone.penalized && !takeMissPenalty(Math.min(Math.max(playerStone.x, 40), VIEW_WIDTH - 40), Math.min(Math.max(playerStone.y, 60), VIEW_HEIGHT - 60))) {
+                return false;
+            }
+            resetPlayerStone();
+            return true;
+        }
+
         function checkObstacleCollisions() {
             if (!playerStone || !playerStone.isLaunched || playerStone.pierce) return;
 
@@ -1296,8 +1305,10 @@
                     playerStone.vy = Math.abs(playerStone.vy) * 0.92;
                 }
 
-                if (Math.hypot(playerStone.vx, playerStone.vy) < 0.12) resetPlayerStone();
-                if (playerStone.y > VIEW_HEIGHT + 20) resetPlayerStone();
+                if (Math.hypot(playerStone.vx, playerStone.vy) < 0.12 || playerStone.y > VIEW_HEIGHT + 20) {
+                    if (!endShotAsMiss()) return;
+                    return;
+                }
 
                 checkObstacleCollisions();
 
@@ -1358,7 +1369,7 @@
 
                 if (missBounceTimer > 0) {
                     missBounceTimer--;
-                    if (missBounceTimer <= 0) resetPlayerStone();
+                    if (missBounceTimer <= 0) endShotAsMiss();
                 }
             }
         }

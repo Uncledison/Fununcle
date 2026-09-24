@@ -122,8 +122,12 @@
             padding: 16px 18px;
             border-radius: 24px;
             width: 100%;
-            margin-bottom: 16px;
+            margin: 8px 0 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
         }
         .panel-label {
             font-size: 11px;
@@ -146,7 +150,7 @@
             color: #86868b;
             font-size: 13px;
             font-weight: 500;
-            padding: 9px 0;
+            padding: 14px 0;
             cursor: pointer;
             border-radius: 10px;
         }
@@ -172,7 +176,7 @@
             background: rgba(0, 0, 0, 0.03);
             border: 1.5px solid transparent;
             border-radius: 14px;
-            padding: 9px 0;
+            padding: 16px 0;
             cursor: pointer;
             transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
         }
@@ -200,12 +204,12 @@
             background: rgba(0, 0, 0, 0.03);
             border: 1.5px solid transparent;
             border-radius: 12px;
-            padding: 8px 0;
-            font-size: 12px;
+            padding: 14px 0;
+            font-size: 13px;
             font-weight: 600;
             color: #86868b;
             cursor: pointer;
-            margin-bottom: 14px;
+            margin-bottom: 0;
             transition: background 0.15s ease, border-color 0.15s ease;
         }
         .op-all-btn.active {
@@ -224,7 +228,7 @@
             border: none;
             border-radius: 16px;
             cursor: pointer;
-            margin-top: auto;
+            flex-shrink: 0;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
@@ -926,7 +930,8 @@
         function resetPlayerStone() {
             playerStone = {
                 x: VIEW_WIDTH / 2, y: VIEW_HEIGHT - 125, radius: PLAYER_RADIUS,
-                isLaunched: false, vx: 0, vy: 0, angle: 0, targetAngleVelocity: 0, trail: []
+                isLaunched: false, vx: 0, vy: 0, angle: 0, targetAngleVelocity: 0, trail: [],
+                penalized: false
             };
             isDragging = false;
             missBounceTimer = 0;
@@ -1171,7 +1176,8 @@
                     AudioEngine.playSweep();
 
                     // 움직이는 방해돌에 맞으면 정답을 못 맞춘 것과 같으므로 목숨을 잃는다
-                    if (isMoving) {
+                    if (isMoving && !playerStone.penalized) {
+                        playerStone.penalized = true;
                         combo = 0;
                         lives--;
                         updateLivesDisplay();
@@ -1278,7 +1284,8 @@
                                 playerStone.vy -= 2 * dot * ny * 0.9;
                             }
 
-                            if (stone.cooldown <= 0) {
+                            if (!playerStone.penalized) {
+                                playerStone.penalized = true;
                                 combo = 0;
                                 lives--;
                                 updateLivesDisplay();

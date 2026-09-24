@@ -459,6 +459,22 @@
             cursor: pointer;
             border: none;
         }
+        .item-list { display: flex; flex-direction: column; gap: 8px; }
+        .item-card {
+            display: flex; align-items: center; gap: 12px; text-align: left;
+            padding: 12px 14px; border-radius: 16px; cursor: pointer;
+            background: rgba(0, 122, 255, 0.06); border: 1.5px solid rgba(0, 122, 255, 0.2);
+        }
+        .item-card:active { transform: scale(0.97); }
+        .item-emoji { font-size: 28px; }
+        .item-text { display: flex; flex-direction: column; gap: 2px; color: #1d1d1f; }
+        .item-text b { font-size: 14px; }
+        .item-text small { font-size: 11px; color: #86868b; }
+        .item-badge {
+            position: absolute; top: 10px; left: 10px; z-index: 12;
+            padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+            background: rgba(255,255,255,0.9); color: #007aff; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
         .btn-primary { background: #1d1d1f; color: #ffffff; }
         .btn-secondary { background: rgba(0,0,0,0.04); color: #1d1d1f; }
     </style>
@@ -543,6 +559,7 @@
 
             <div class="canvas-container">
                 <canvas id="gameCanvas"></canvas>
+                <div id="itemBadge" class="item-badge hidden"></div>
                 <div id="slingshotTip" class="overlay-tip">볼을 아래로 멀리 당기면 정밀 레이저 조준선이 나타납니다</div>
             </div>
         </div>
@@ -577,8 +594,21 @@
                 <div class="levelup-emoji">🎉</div>
                 <h2 class="modal-title" style="font-size: 28px; color: #34c759;">STAGE UP!</h2>
                 <div id="levelUpNumber" class="levelup-number">LEVEL 2</div>
-                <p style="color:#86868b; font-size:13px; margin-bottom: 28px;">방해돌이 더 강력해집니다!</p>
-                <button onclick="continueAfterLevelUp()" class="action-btn btn-primary">다음 문제 시작</button>
+                <p style="color:#86868b; font-size:13px; margin-bottom: 16px;">아이템 1개를 골라 다음 스테이지에 사용하세요</p>
+                <div class="item-list">
+                    <button onclick="continueAfterLevelUp('pierce')" class="item-card">
+                        <span class="item-emoji">🔮</span>
+                        <span class="item-text"><b>관통구슬</b><small>다음 발사 1회, 오답 돌·방해돌을 통과</small></span>
+                    </button>
+                    <button onclick="continueAfterLevelUp('shield')" class="item-card">
+                        <span class="item-emoji">🛡️</span>
+                        <span class="item-text"><b>실드</b><small>다음 실수 1회 목숨 차감 무효</small></span>
+                    </button>
+                    <button onclick="continueAfterLevelUp('purge')" class="item-card">
+                        <span class="item-emoji">✨</span>
+                        <span class="item-text"><b>오답 제거</b><small>다음 문제의 오답 돌 2개 삭제</small></span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -613,6 +643,21 @@
         let isLevelingUp = false;
         let isPaused = false;
         let missBounceTimer = 0;
+
+        // 레벨업 아이템: 'pierce'(다음 발사 관통) | 'shield'(다음 실수 무효) | 'purge'(오답 2개 삭제)
+        let pendingItem = null;
+        const ITEM_LABEL = { pierce: '🔮 관통구슬', shield: '🛡️ 실드' };
+        function updateItemBadge() {
+            const el = document.getElementById('itemBadge');
+            if (!el) return;
+            if (ITEM_LABEL[pendingItem]) {
+                el.textContent = ITEM_LABEL[pendingItem];
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+        function clearItem() { pendingItem = null; updateItemBadge(); }
 
         let canvas = null;
         let ctx = null;
@@ -980,6 +1025,10 @@
                         playerStone.vy = (playerStone.vy / speed) * 24;
                     }
                     playerStone.isLaunched = true;
+                    if (pendingItem === 'pierce') {
+                        playerStone.pierce = true;
+                        clearItem();
+                    }
                     AudioEngine.playLaunch();
                 }
             };
@@ -1133,8 +1182,32 @@
         // 장애물/오답 돌에 맞아 튕겨나가는 동안 최대 이만큼(프레임) 후 강제로 리셋
         const MISS_BOUNCE_FRAMES = 120;
 
+        // 발사당 1회만 호출됨. 실드가 있으면 목숨 대신 실드 소모. 게임오버면 false 반환
+        function takeMissPenalty(x, y) {
+            playerStone.penalized = true;
+            missBounceTimer = MISS_BOUNCE_FRAMES;
+            if (pendingItem === 'shield') {
+                clearItem();
+                spawnTextAlert("SHIELD!", x, y, "#007aff", true);
+                AudioEngine.playSweep();
+                return true;
+            }
+            combo = 0;
+            lives--;
+            updateLivesDisplay();
+            shakeFrames = 8;
+            triggerFlashEffect();
+            AudioEngine.playWrong();
+            spawnTextAlert("LIFE -1", x, y, "#ff3b30", false);
+            if (lives <= 0) {
+                endGame();
+                return false;
+            }
+            return true;
+        }
+
         function checkObstacleCollisions() {
-            if (!playerStone || !playerStone.isLaunched) return;
+            if (!playerStone || !playerStone.isLaunched || playerStone.pierce) return;
 
             for (let obs of obstacles) {
                 if (obs.hitCooldown > 0) continue;
@@ -1177,19 +1250,7 @@
 
                     // 움직이는 방해돌에 맞으면 정답을 못 맞춘 것과 같으므로 목숨을 잃는다
                     if (isMoving && !playerStone.penalized) {
-                        playerStone.penalized = true;
-                        combo = 0;
-                        lives--;
-                        updateLivesDisplay();
-                        shakeFrames = 8;
-                        triggerFlashEffect();
-                        AudioEngine.playWrong();
-                        spawnTextAlert("LIFE -1", obs.x, obs.y, "#ff3b30", false);
-                        missBounceTimer = MISS_BOUNCE_FRAMES;
-                        if (lives <= 0) {
-                            endGame();
-                            return;
-                        }
+                        if (!takeMissPenalty(obs.x, obs.y)) return;
                     }
                     break;
                 }
@@ -1270,6 +1331,8 @@
                             } else {
                                 setTimeout(() => { if (!isGameOver && !isLevelingUp) initGameObjects(); }, 380);
                             }
+                        } else if (playerStone.pierce) {
+                            continue;
                         } else {
                             // 오답 돌은 사라지지 않고 튕겨나가며, 그 여세로 다른 돌을 맞출 수도 있다.
                             // 같은 돌에 여러 프레임 연속으로 겹쳐 목숨이 한번에 여러 개 깎이는 것은 쿨다운으로 방지.
@@ -1285,21 +1348,8 @@
                             }
 
                             if (!playerStone.penalized) {
-                                playerStone.penalized = true;
-                                combo = 0;
-                                lives--;
-                                updateLivesDisplay();
-                                shakeFrames = 8;
-                                triggerFlashEffect();
-                                AudioEngine.playWrong();
-                                spawnTextAlert("LIFE -1", stone.x, stone.y, "#ff3b30", false);
                                 stone.cooldown = 20;
-                                missBounceTimer = MISS_BOUNCE_FRAMES;
-
-                                if (lives <= 0) {
-                                    endGame();
-                                    return;
-                                }
+                                if (!takeMissPenalty(stone.x, stone.y)) return;
                             }
                         }
                         break;
@@ -1344,10 +1394,17 @@
             document.getElementById('levelUpNumber').innerText = `LEVEL ${gameLevel}`;
         }
 
-        function continueAfterLevelUp() {
+        function continueAfterLevelUp(item) {
             document.getElementById('levelUpModal').classList.add('hidden');
             isLevelingUp = false;
+            pendingItem = item || null;
             initGameObjects();
+            if (pendingItem === 'purge') {
+                const wrongs = targetStones.filter(s => !s.isCorrect).sort(() => Math.random() - 0.5).slice(0, 2);
+                targetStones = targetStones.filter(s => !wrongs.includes(s));
+                pendingItem = null;
+            }
+            updateItemBadge();
         }
 
         function createSpectacleExplosion(x, y) {
@@ -1553,7 +1610,7 @@
 
                 ctx.beginPath(); ctx.arc(0, 0, playerStone.radius, 0, Math.PI * 2);
                 ctx.fillStyle = "#ffffff"; ctx.fill();
-                ctx.strokeStyle = combo >= 3 ? "#ff9500" : "#d1d1d6";
+                ctx.strokeStyle = playerStone.pierce ? "#af52de" : (combo >= 3 ? "#ff9500" : "#d1d1d6");
                 ctx.lineWidth = 2.5; ctx.stroke();
 
                 const tr = playerStone.radius * 0.8;
@@ -1657,6 +1714,7 @@
             isGameOver = false;
             isLevelingUp = false;
             isPaused = false;
+            clearItem();
             timeDilation = 1.0; dilationTimer = 0;
             particles = []; textAlerts = []; obstacles = [];
             lastPatternKey = null;
@@ -1699,6 +1757,7 @@
             isGameOver = false;
             isLevelingUp = false;
             isPaused = false;
+            clearItem();
             timeDilation = 1.0; dilationTimer = 0;
             particles = []; textAlerts = [];
 
@@ -1715,6 +1774,7 @@
             isGameOver = true;
             isLevelingUp = false;
             isPaused = false;
+            clearItem();
             AudioEngine.stopBgm();
             if (loopId) cancelAnimationFrame(loopId);
             document.getElementById('playScreen').classList.add('hidden');

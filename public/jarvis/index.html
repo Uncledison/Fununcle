@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D JARVIS</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; touch-action: none; user-select: none; }
+        
+        #input_video { display: none; }
+        #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* UI Panel */
+        #ui-container {
+            position: absolute; top: 15px; right: 15px; width: 300px;
+            max-width: 90vw;
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 16px;
+            color: white;
+            z-index: 10;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        /* Collapsed State (접혔을 때) */
+        #ui-container.collapsed {
+            width: 45px; height: 45px; border-radius: 50%; /* 완벽한 원 */
+            padding: 0;
+            background: rgba(0, 210, 255, 0.1); 
+            border: 2px solid #00d2ff; /* 테두리 강조 */
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+        }
+        #ui-container.collapsed #header-content, 
+        #ui-container.collapsed #content { display: none; }
+        
+        #ui-container.collapsed #toggle-btn {
+            /* 텍스트/아이콘 숨김 */
+            color: transparent; 
+        }
+
+        /* Header */
+        #header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        h2 { margin: 0; font-size: 14px; font-weight: 800; color: #00d2ff; letter-spacing: 1px; text-transform: uppercase; }
+        
+        #toggle-btn {
+            background: none; border: none; color: rgba(255,255,255,0.7);
+            font-size: 16px; cursor: pointer; padding: 5px; transition: 0.3s;
+            width: 100%; height: 100%;
+        }
+
+        /* Content */
+        #content { padding: 20px; }
+
+        /* Shape Grid */
+        .shape-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        
+        .shape-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #aaa; padding: 12px 0; border-radius: 6px;
+            cursor: pointer; font-size: 10px; font-weight: 700; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .shape-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
+        .shape-btn.active { 
+            background: rgba(0, 210, 255, 0.15); color: #00d2ff; border-color: #00d2ff; 
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        /* Audio Button Toggle Style */
+        #audio-btn {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; text-align: center;
+            transition: all 0.3s;
+            border: 1px solid #555; background: rgba(255, 255, 255, 0.05); color: #888;
+        }
+        
+        /* Active State */
+        #audio-btn.active {
+            background: rgba(0, 210, 255, 0.2); border-color: #00d2ff; color: #00d2ff;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+        }
+        
+        /* Deactive State */
+        #audio-btn.deactive {
+            background: rgba(255, 50, 50, 0.1); border-color: #ff3232; color: #ff3232;
+        }
+
+        /* HUD */
+        #hud-status {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-size: 14px; font-weight: 700; text-align: center;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            width: 100%; pointer-events: none; z-index: 5; opacity: 0.8;
+        }
+        .mode-label { color: #00d2ff; font-weight: 900; font-size: 18px; display: block; margin-bottom: 5px; }
+
+        #loading {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; color: #00d2ff; z-index: 99;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold; letter-spacing: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading">INITIALIZING JARVIS...</div>
+
+    <video id="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+
+    <div id="ui-container">
+        <div id="header">
+            <h2 id="header-content">System Controls</h2>
+            <button id="toggle-btn">▲</button>
+        </div>
+        <div id="content">
+            <!-- Audio Toggle Button -->
+            <div id="audio-btn">🔊 SOUND ACTIVE</div>
+
+            <div class="shape-grid">
+                <button class="shape-btn active" data-shape="saturn">Saturn</button>
+                <button class="shape-btn" data-shape="galaxy">Galaxy</button>
+                <button class="shape-btn" data-shape="atomic">Atomic</button>
+                
+                <button class="shape-btn" data-shape="dyson">Dyson Sph</button>
+                <button class="shape-btn" data-shape="dualpoly">Dual Poly</button>
+                <button class="shape-btn" data-shape="snowflake">Snowflake</button>
+                
+                <button class="shape-btn" data-shape="dna">DNA Helix</button>
+                <button class="shape-btn" data-shape="mobius">Mobius</button>
+                <button class="shape-btn" data-shape="gyroid">Gyroid</button>
+
+                <button class="shape-btn" data-shape="tesseract">Tesseract</button>
+                <button class="shape-btn" data-shape="sierpinski">Pyramid</button>
+                <button class="shape-btn" data-shape="terrain">Terrain</button>
+            </div>
+            
+            <input type="color" id="colorPicker" value="#00d2ff" style="width:100%; height:30px; border:none; background:transparent;">
+            
+            <div style="margin-top:15px; font-size:11px; color:#777; line-height:1.6;">
+                ☝️ <b>1 Hand:</b> Pinch to <span style="color:#fff">Zoom</span><br>
+                👐 <b>2 Hands:</b> Tilt to <span style="color:#fff">Rotate</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="hud-status">WAITING FOR INPUT...</div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        /**
+         * 🔊 NEW AUDIO ENGINE (Mechanical Sine Wave)
+         */
+        const AudioEngine = {
+            ctx: null,
+            osc: null,
+            gain: null,
+            isPlaying: false,
+            isMuted: false,
+
+            init() {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+                
+                // Oscillator setup
+                this.osc = this.ctx.createOscillator();
+                this.gain = this.ctx.createGain();
+                
+                // 요청하신대로 'sine' 웨이브 사용 (부드러운 기계음)
+                this.osc.type = 'sine'; 
+                this.osc.frequency.value = 400; // Base freq
+                this.gain.gain.value = 0; // Start silent
+                
+                this.osc.connect(this.gain);
+                this.gain.connect(this.ctx.destination);
+                
+                this.osc.start();
+                this.isPlaying = true;
+            },
+
+            // Toggle Sound On/Off
+            toggle() {
+                if (!this.ctx) this.init();
+                
+                this.isMuted = !this.isMuted;
+                
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                if (this.isMuted) {
+                    this.gain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.1);
+                }
+            },
+
+            update(deltaScale) {
+                if (!this.isPlaying || this.isMuted) return;
+                
+                // 속도에 따른 볼륨 조절
+                const speed = Math.abs(deltaScale) * 50; 
+                let targetVol = Math.min(0.4, speed); // Max volume 0.4
+                if (speed < 0.01) targetVol = 0;
+
+                const time = this.ctx.currentTime;
+                
+                // 주파수 조절 (피치)
+                // 줌 인(+): 800Hz 쪽으로 상승
+                // 줌 아웃(-): 200Hz 쪽으로 하강
+                let targetFreq = 400; // 기본음
+                
+                if (deltaScale > 0.001) {
+                    // Zoom IN -> Go High
+                    targetFreq = 800;
+                } else if (deltaScale < -0.001) {
+                    // Zoom OUT -> Go Low
+                    targetFreq = 200;
+                }
+
+                // 부드러운 전환 (Ramp)
+                this.gain.gain.setTargetAtTime(targetVol, time, 0.1);
+                this.osc.frequency.setTargetAtTime(targetFreq, time, 0.2);
+            }
+        };
+
+        // Audio Button Logic
+        const audioBtn = document.getElementById('audio-btn');
+        audioBtn.addEventListener('click', () => {
+            AudioEngine.toggle();
+            
+            if (AudioEngine.isMuted) {
+                audioBtn.innerText = "🔇 SOUND DEACTIVE";
+                audioBtn.classList.remove('active');
+                audioBtn.classList.add('deactive');
+            } else {
+                audioBtn.innerText = "🔊 SOUND ACTIVE";
+                audioBtn.classList.remove('deactive');
+                audioBtn.classList.add('active');
+            }
+        });
+        // Init state
+        audioBtn.classList.add('active');
+
+
+        /**
+         * CONFIGURATION
+         */
+        const PARTICLE_COUNT = 30000;
+        let currentShape = 'saturn';
+        
+        let targetScale = 1.0;
+        let currentScale = 1.0;
+        let prevScale = 1.0;
+        
+        let targetRotZ = 0; 
+        let targetRotX = 0;
+        let currentRotZ = 0;
+        let currentRotX = 0;
+
+        /**
+         * UI LOGIC (Toggle Panel)
+         */
+        const uiContainer = document.getElementById('ui-container');
+        const toggleBtn = document.getElementById('toggle-btn');
+        let isCollapsed = false;
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isCollapsed = !isCollapsed;
+            uiContainer.classList.toggle('collapsed', isCollapsed);
+            
+            // 텍스트/아이콘 처리: 접혔을 땐 빈 문자열(원만 남김), 펼치면 화살표
+            toggleBtn.innerText = isCollapsed ? '' : '▲';
+        });
+        
+        // 원 클릭 시 다시 펼치기
+        uiContainer.addEventListener('click', () => {
+            if(isCollapsed) {
+                isCollapsed = false;
+                uiContainer.classList.remove('collapsed');
+                toggleBtn.innerText = '▲';
+            }
+        });
+
+        /**
+         * THREE.JS SETUP
+         */
+        const canvas = document.getElementById('output_canvas');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020205, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        
+        for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
+            positions[i] = (Math.random() - 0.5) * 200;
+            targetPositions[i] = positions[i];
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            color: 0x00d2ff,
+            size: 0.25,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        /**
+         * 📐 SHAPE GENERATORS
+         */
+        function setPos(arr, i, x, y, z) { arr[i*3]=x; arr[i*3+1]=y; arr[i*3+2]=z; }
+        function spherePoint(r) {
+            const u=Math.random(), v=Math.random();
+            const t=2*Math.PI*u, p=Math.acos(2*v-1);
+            return { x: r*Math.sin(p)*Math.cos(t), y: r*Math.sin(p)*Math.sin(t), z: r*Math.cos(p) };
+        }
+
+        function genDyson(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                let x,y,z;
+                if(i < PARTICLE_COUNT * 0.4) {
+                    const p = spherePoint(4 + Math.random()*2);
+                    x=p.x; y=p.y; z=p.z;
+                } else {
+                    const r = 15;
+                    const u = Math.random(); const v = Math.random();
+                    let theta = 2*Math.PI*u; let phi = Math.acos(2*v-1);
+                    if (Math.random() > 0.5) phi = Math.floor(phi * 10) / 10;
+                    else theta = Math.floor(theta * 10) / 10;
+                    x=r*Math.sin(phi)*Math.cos(theta); y=r*Math.sin(phi)*Math.sin(theta); z=r*Math.cos(phi);
+                    x += (Math.random()-0.5)*0.5; y += (Math.random()-0.5)*0.5; z += (Math.random()-0.5)*0.5;
+                }
+                setPos(arr,i,x,y,z);
+            }
+        }
+
+        function genDualPoly(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                let x,y,z;
+                const isInner = i < PARTICLE_COUNT * 0.5;
+                const scale = isInner ? 6 : 12; 
+                const angle = Math.random() * Math.PI * 2;
+                const z1 = (Math.random()-0.5)*2;
+                const r = Math.sqrt(1-z1*z1);
+                let qA = Math.floor(angle * (isInner?3:5)) / (isInner?3:5) * Math.PI * 2; 
+                x = r * Math.cos(qA) * scale; y = r * Math.sin(qA) * scale; z = z1 * scale;
+                if (Math.random() < 0.2) { x *= Math.random(); y *= Math.random(); z *= Math.random(); }
+                setPos(arr,i,x,y,z);
+            }
+        }
+
+        function genSaturn(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                if(Math.random()>0.4) { const p=spherePoint(6); setPos(arr,i,p.x,p.y,p.z); }
+                else { const a=Math.random()*Math.PI*2; const r=9+Math.random()*8; setPos(arr,i,Math.cos(a)*r,(Math.random()-0.5)*0.3,Math.sin(a)*r); }
+            }
+        }
+        function genGalaxy(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const arms=4, arm=Math.floor(Math.random()*arms);
+                const r=Math.random(), dist=Math.pow(r,2)*25, angle=dist*0.5+(arm*(Math.PI*2/arms));
+                const f=(Math.random()-0.5)*(25-dist)*0.5;
+                setPos(arr,i,Math.cos(angle)*dist+f, (Math.random()-0.5)*(25-dist)*0.3, Math.sin(angle)*dist+f);
+            }
+        }
+        function genAtomic(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                if(i<PARTICLE_COUNT*0.15) { const p=spherePoint(3); setPos(arr,i,p.x,p.y,p.z); }
+                else {
+                    const ring=Math.floor(Math.random()*3), a=Math.random()*Math.PI*2, r=12+(Math.random()-0.5);
+                    if(ring===0) setPos(arr,i,Math.cos(a)*r, (Math.random()-0.5), Math.sin(a)*r);
+                    else if(ring===1) setPos(arr,i,Math.cos(a)*r*0.5, Math.cos(a)*r*0.866, Math.sin(a)*r);
+                    else setPos(arr,i,Math.cos(a)*r*0.5, -Math.cos(a)*r*0.866, Math.sin(a)*r);
+                }
+            }
+        }
+        function genSnowflake(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const b=Math.floor(Math.random()*6), a=(b*Math.PI/3), d=Math.random()*16;
+                let x=Math.cos(a)*d, y=Math.sin(a)*d, z=(Math.random()-0.5);
+                if(Math.random()>0.4) { const sa=a+Math.PI/3, sd=(Math.random()-0.5)*(16-d)*0.6; x+=Math.cos(sa)*sd; y+=Math.sin(sa)*sd; }
+                setPos(arr,i,x,y,z);
+            }
+        }
+        function genDNA(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const t=(Math.random()-0.5)*50;
+                if(Math.random()>0.2) { const s=Math.random()>0.5?0:Math.PI; setPos(arr,i,5*Math.cos(t*0.4+s),t,5*Math.sin(t*0.4+s)); }
+                else { const l=Math.floor(t), r=Math.random(); const x1=5*Math.cos(l*0.4),z1=5*Math.sin(l*0.4),x2=5*Math.cos(l*0.4+Math.PI),z2=5*Math.sin(l*0.4+Math.PI); setPos(arr,i,x1+(x2-x1)*r,l,z1+(z2-z1)*r); }
+            }
+        }
+        function genMobius(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const t=Math.random()*Math.PI*2, w=(Math.random()-0.5)*6, R=10;
+                setPos(arr,i,(R+w*Math.cos(t/2))*Math.cos(t), (R+w*Math.cos(t/2))*Math.sin(t), w*Math.sin(t/2));
+            }
+        }
+        function genGyroid(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const t=Math.random()*Math.PI*2, s=Math.random()*Math.PI*2;
+                setPos(arr,i,Math.sin(t)*12+Math.cos(s)*4, Math.cos(t)*12+Math.sin(s)*4, Math.sin(t+s)*12);
+            }
+        }
+        function genTesseract(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) {
+                const s=Math.random()>0.5?12:6, ax=Math.floor(Math.random()*3), l=(Math.random()-0.5)*2, d1=Math.random()>0.5?-1:1, d2=Math.random()>0.5?-1:1;
+                let x,y,z; if(ax===0){x=l*s;y=d1*s;z=d2*s;}else if(ax===1){x=d1*s;y=l*s;z=d2*s;}else{x=d1*s;y=d2*s;z=l*s;}
+                if(Math.random()<0.2){x*=0.75;y*=0.75;z*=0.75;} setPos(arr,i,x,y,z);
+            }
+        }
+        function genSierpinski(arr) {
+            const v=[{x:12,y:-10,z:12},{x:-12,y:-10,z:12},{x:0,y:-10,z:-12},{x:0,y:14,z:0}]; let cx=0,cy=0,cz=0;
+            for(let i=0; i<PARTICLE_COUNT; i++) { const r=Math.floor(Math.random()*4); cx=(cx+v[r].x)/2; cy=(cy+v[r].y)/2; cz=(cz+v[r].z)/2; setPos(arr,i,cx,cy,cz); }
+        }
+        function genTerrain(arr) {
+            for(let i=0; i<PARTICLE_COUNT; i++) { const x=(Math.random()-0.5)*40, z=(Math.random()-0.5)*40; setPos(arr,i,x,Math.sin(x*0.4)*3+Math.cos(z*0.4)*3-5,z); }
+        }
+
+        function generateTarget(type) {
+            const arr = targetPositions;
+            switch(type) {
+                case 'saturn': genSaturn(arr); break;
+                case 'galaxy': genGalaxy(arr); break;
+                case 'atomic': genAtomic(arr); break;
+                case 'dyson': genDyson(arr); break;
+                case 'dualpoly': genDualPoly(arr); break;
+                case 'snowflake': genSnowflake(arr); break;
+                case 'dna': genDNA(arr); break;
+                case 'mobius': genMobius(arr); break;
+                case 'gyroid': genGyroid(arr); break;
+                case 'tesseract': genTesseract(arr); break;
+                case 'sierpinski': genSierpinski(arr); break;
+                case 'terrain': genTerrain(arr); break;
+            }
+        }
+        generateTarget('saturn');
+
+        /**
+         * INTERACTION & LOGIC
+         */
+        document.getElementById('colorPicker').addEventListener('input', (e) => material.color.set(e.target.value));
+        document.querySelectorAll('.shape-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                generateTarget(e.target.getAttribute('data-shape'));
+            });
+        });
+
+        // MediaPipe
+        const hud = document.getElementById('hud-status');
+        function getDist(p1, p2) { return Math.sqrt(Math.pow(p1.x-p2.x,2)+Math.pow(p1.y-p2.y,2)); }
+
+        function onResults(results) {
+            document.getElementById('loading').style.display = 'none';
+            const handsCount = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
+
+            if (handsCount === 2) {
+                const h1 = results.multiHandLandmarks[0][9]; 
+                const h2 = results.multiHandLandmarks[1][9];
+                
+                const dy = h2.y - h1.y;
+                targetRotX = dy * 2; 
+
+                const dx = h2.x - h1.x;
+                targetRotZ = Math.atan2(-dy, dx);
+
+                hud.innerHTML = "<span class='mode-label'>ROTATION MODE</span>TILT HANDS TO ROTATE";
+                AudioEngine.update(0); // Silence when rotating
+
+            } else if (handsCount === 1) {
+                const hand = results.multiHandLandmarks[0];
+                const thumb = hand[4];
+                const index = hand[8];
+                
+                const dist = getDist(thumb, index);
+                const n = Math.max(0, Math.min(1, (dist - 0.02) / 0.23));
+                targetScale = 0.5 + (n * 3.0);
+                
+                hud.innerHTML = "<span class='mode-label'>ZOOM MODE</span>PINCH TO SCALE";
+
+            } else {
+                hud.innerHTML = "SHOW HANDS";
+                AudioEngine.update(0);
+                targetRotZ += 0.001; 
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        hands.onResults(onResults);
+
+        const cam = new Camera(document.getElementById('input_video'), {
+            onFrame: async () => { await hands.send({image: document.getElementById('input_video')}); },
+            width: 640, height: 480
+        });
+        cam.start();
+
+        /**
+         * ANIMATION LOOP
+         */
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+
+            prevScale = currentScale;
+
+            const lerp = 4.0 * dt;
+            currentScale += (targetScale - currentScale) * lerp;
+            currentRotZ += (targetRotZ - currentRotZ) * lerp;
+            currentRotX += (targetRotX - currentRotX) * lerp;
+
+            // Audio Feedback
+            const deltaScale = currentScale - prevScale;
+            AudioEngine.update(deltaScale);
+
+            particles.scale.set(currentScale, currentScale, currentScale);
+            particles.rotation.z = currentRotZ;
+            particles.rotation.x = currentRotX;
+            particles.rotation.y += 0.002;
+
+            const pos = geometry.attributes.position.array;
+            const target = targetPositions;
+            const speed = 4.0 * dt;
+
+            for (let i = 0; i < PARTICLE_COUNT * 3; i++) {
+                if (Math.abs(target[i] - pos[i]) > 0.01) pos[i] += (target[i] - pos[i]) * speed;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

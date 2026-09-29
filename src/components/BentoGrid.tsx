@@ -450,7 +450,35 @@ export const BentoGrid: React.FC = () => {
                     </motion.div>
                 </a>
 
-                {/* 11. Coming Soon - Interaction Trigger */}
+                {/* 11. 3D JARVIS (핸드 제스처 파티클 - 정적 하위앱 /jarvis) */}
+                <a
+                    href="/jarvis/"
+                    className="md:col-span-1 md:row-span-1 relative group block overflow-hidden rounded-3xl aspect-video z-10"
+                    aria-label="3D JARVIS"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '-50px' }}
+                        transition={{ duration: 0.5, delay: 0.44 }}
+                        whileHover={{ y: -5, scale: 1.02, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+                        className="w-full h-full relative flex items-center justify-center bg-gradient-to-br from-[#050510] to-[#0a1a2e] overflow-hidden border border-[#00d2ff]/30"
+                    >
+                        <div className="z-10 text-center">
+                            <h3 className="text-5xl font-black text-white tracking-tighter leading-none">
+                                <span className="text-[#00d2ff] block mb-1 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)]">3D</span>JARVIS
+                            </h3>
+                        </div>
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                            className="absolute w-40 h-40 rounded-full border border-dashed border-[#00d2ff]/40"
+                        />
+                        <NewBadge date="2026-09-29" />
+                    </motion.div>
+                </a>
+
+                {/* 12. Coming Soon - Interaction Trigger */}
                 <BentoCard
                     delay={0.45}
                     className="md:col-span-1 md:row-span-1 relative group !p-0 !bg-transparent !shadow-none overflow-hidden rounded-3xl aspect-video cursor-pointer"

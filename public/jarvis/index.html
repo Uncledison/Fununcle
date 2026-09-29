@@ -148,8 +148,8 @@
             <input type="color" id="colorPicker" value="#00d2ff" style="width:100%; height:30px; border:none; background:transparent;">
             
             <div style="margin-top:15px; font-size:11px; color:#777; line-height:1.6;">
-                ☝️ <b>1 Hand:</b> Pinch to <span style="color:#fff">Zoom</span><br>
-                👐 <b>2 Hands:</b> Tilt to <span style="color:#fff">Rotate</span>
+                ☝️ <b>1 Hand:</b> Drag to <span style="color:#fff">Rotate</span><br>
+                👐 <b>2 Hands:</b> Spread/Close to <span style="color:#fff">Zoom</span>
             </div>
         </div>
     </div>
@@ -264,9 +264,11 @@
         let currentScale = 1.0;
         let prevScale = 1.0;
         
-        let targetRotZ = 0; 
+        let targetRotY = 0;
+        let currentRotY = 0;
+        let lastHand = null;
+        let autoSpin = true;
         let targetRotX = 0;
-        let currentRotZ = 0;
         let currentRotX = 0;
 
         /**
@@ -482,33 +484,32 @@
             const handsCount = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
 
             if (handsCount === 2) {
-                const h1 = results.multiHandLandmarks[0][9]; 
+                // 2 hands: spread / close to zoom
+                const h1 = results.multiHandLandmarks[0][9];
                 const h2 = results.multiHandLandmarks[1][9];
-                
-                const dy = h2.y - h1.y;
-                targetRotX = dy * 2; 
+                const n = Math.max(0, Math.min(1, (getDist(h1, h2) - 0.1) / 0.6));
+                targetScale = 0.5 + (n * 3.0);
+                lastHand = null;
+                autoSpin = false;
 
-                const dx = h2.x - h1.x;
-                targetRotZ = Math.atan2(-dy, dx);
-
-                hud.innerHTML = "<span class='mode-label'>ROTATION MODE</span>TILT HANDS TO ROTATE";
-                AudioEngine.update(0); // Silence when rotating
+                hud.innerHTML = "<span class='mode-label'>ZOOM MODE</span>SPREAD / CLOSE HANDS";
 
             } else if (handsCount === 1) {
-                const hand = results.multiHandLandmarks[0];
-                const thumb = hand[4];
-                const index = hand[8];
-                
-                const dist = getDist(thumb, index);
-                const n = Math.max(0, Math.min(1, (dist - 0.02) / 0.23));
-                targetScale = 0.5 + (n * 3.0);
-                
-                hud.innerHTML = "<span class='mode-label'>ZOOM MODE</span>PINCH TO SCALE";
+                // 1 hand: drag to rotate (camera image is mirrored, so flip x)
+                const p = results.multiHandLandmarks[0][9];
+                if (lastHand) {
+                    targetRotY += -(p.x - lastHand.x) * 8;
+                    targetRotX += (p.y - lastHand.y) * 8;
+                }
+                lastHand = { x: p.x, y: p.y };
+                autoSpin = false;
+
+                hud.innerHTML = "<span class='mode-label'>ROTATE MODE</span>DRAG HAND TO ROTATE";
 
             } else {
                 hud.innerHTML = "SHOW HANDS";
-                AudioEngine.update(0);
-                targetRotZ += 0.001; 
+                lastHand = null;
+                autoSpin = true;
             }
         }
 
@@ -535,7 +536,8 @@
 
             const lerp = 4.0 * dt;
             currentScale += (targetScale - currentScale) * lerp;
-            currentRotZ += (targetRotZ - currentRotZ) * lerp;
+            if (autoSpin) targetRotY += 0.15 * dt;
+            currentRotY += (targetRotY - currentRotY) * lerp;
             currentRotX += (targetRotX - currentRotX) * lerp;
 
             // Audio Feedback
@@ -543,9 +545,8 @@
             AudioEngine.update(deltaScale);
 
             particles.scale.set(currentScale, currentScale, currentScale);
-            particles.rotation.z = currentRotZ;
             particles.rotation.x = currentRotX;
-            particles.rotation.y += 0.002;
+            particles.rotation.y = currentRotY;
 
             const pos = geometry.attributes.position.array;
             const target = targetPositions;

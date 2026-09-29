@@ -148,8 +148,8 @@
             <input type="color" id="colorPicker" value="#00d2ff" style="width:100%; height:30px; border:none; background:transparent;">
             
             <div style="margin-top:15px; font-size:11px; color:#777; line-height:1.6;">
-                ☝️ <b>1 Hand:</b> Drag to <span style="color:#fff">Rotate</span><br>
-                👐 <b>2 Hands:</b> Spread/Close to <span style="color:#fff">Zoom</span>
+                ☝️ <b>1 Hand:</b> Pinch to <span style="color:#fff">Zoom</span><br>
+                👐 <b>2 Hands:</b> Steer like a wheel to <span style="color:#fff">Rotate</span>
             </div>
         </div>
     </div>
@@ -266,8 +266,9 @@
         
         let targetRotY = 0;
         let currentRotY = 0;
-        let lastHand = null;
-        let autoSpin = true;
+        let targetRotZ = 0;
+        let currentRotZ = 0;
+        let lastAngle = null;
         let targetRotX = 0;
         let currentRotX = 0;
 
@@ -331,6 +332,7 @@
         });
 
         const particles = new THREE.Points(geometry, material);
+        particles.rotation.order = "ZYX"; // screen-plane roll is outermost
         scene.add(particles);
 
         /**
@@ -484,32 +486,35 @@
             const handsCount = results.multiHandLandmarks ? results.multiHandLandmarks.length : 0;
 
             if (handsCount === 2) {
-                // 2 hands: spread / close to zoom
-                const h1 = results.multiHandLandmarks[0][9];
-                const h2 = results.multiHandLandmarks[1][9];
-                const n = Math.max(0, Math.min(1, (getDist(h1, h2) - 0.1) / 0.6));
-                targetScale = 0.5 + (n * 3.0);
-                lastHand = null;
-                autoSpin = false;
+                // 2 hands: steering-wheel rotation (accumulates, keeps angle when released)
+                let h1 = results.multiHandLandmarks[0][9];
+                let h2 = results.multiHandLandmarks[1][9];
+                if (h1.x > h2.x) { const t = h1; h1 = h2; h2 = t; } // stable order
+                const ang = Math.atan2(h2.y - h1.y, h2.x - h1.x);
+                if (lastAngle !== null) {
+                    let d = ang - lastAngle;
+                    if (d > Math.PI) d -= Math.PI * 2;
+                    if (d < -Math.PI) d += Math.PI * 2;
+                    if (Math.abs(d) < 0.6) targetRotZ += d; // ignore tracking glitches
+                }
+                lastAngle = ang;
 
-                hud.innerHTML = "<span class='mode-label'>ZOOM MODE</span>SPREAD / CLOSE HANDS";
+                hud.innerHTML = "<span class='mode-label'>ROTATION MODE</span>TURN HANDS LIKE A STEERING WHEEL";
+                AudioEngine.update(0);
 
             } else if (handsCount === 1) {
-                // 1 hand: drag to rotate (camera image is mirrored, so flip x)
-                const p = results.multiHandLandmarks[0][9];
-                if (lastHand) {
-                    targetRotY += -(p.x - lastHand.x) * 8;
-                    targetRotX += (p.y - lastHand.y) * 8;
-                }
-                lastHand = { x: p.x, y: p.y };
-                autoSpin = false;
+                lastAngle = null;
+                const hand = results.multiHandLandmarks[0];
+                const dist = getDist(hand[4], hand[8]);
+                const n = Math.max(0, Math.min(1, (dist - 0.02) / 0.23));
+                targetScale = 0.5 + (n * 3.0);
 
-                hud.innerHTML = "<span class='mode-label'>ROTATE MODE</span>DRAG HAND TO ROTATE";
+                hud.innerHTML = "<span class='mode-label'>ZOOM MODE</span>PINCH TO SCALE";
 
             } else {
+                lastAngle = null;
                 hud.innerHTML = "SHOW HANDS";
-                lastHand = null;
-                autoSpin = true;
+                AudioEngine.update(0);
             }
         }
 
@@ -536,7 +541,8 @@
 
             const lerp = 4.0 * dt;
             currentScale += (targetScale - currentScale) * lerp;
-            if (autoSpin) targetRotY += 0.15 * dt;
+            targetRotY += 0.15 * dt;
+            currentRotZ += (targetRotZ - currentRotZ) * lerp;
             currentRotY += (targetRotY - currentRotY) * lerp;
             currentRotX += (targetRotX - currentRotX) * lerp;
 
@@ -546,6 +552,7 @@
 
             particles.scale.set(currentScale, currentScale, currentScale);
             particles.rotation.x = currentRotX;
+            particles.rotation.z = currentRotZ;
             particles.rotation.y = currentRotY;
 
             const pos = geometry.attributes.position.array;
